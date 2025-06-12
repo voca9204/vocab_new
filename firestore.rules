@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 테스트 컬렉션 - 개발 중에는 읽기 허용
+    match /test/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // 사용자 프로필 데이터 - 본인만 접근 가능
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // 사용자의 개인 설정
+      match /preferences/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // 사용자의 학습 진도
+      match /progress/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // SAT 어휘 데이터 - 인증된 사용자만 읽기 가능
+    match /vocabulary/{wordId} {
+      allow read: if request.auth != null;
+      allow write: if false; // 관리자만 수정 가능 (추후 Admin SDK 사용)
+      
+      // 어휘 관련 메타데이터
+      match /metadata/{document=**} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+    }
+    
+    // 뉴스 기사 데이터 - 인증된 사용자만 읽기 가능
+    match /news/{articleId} {
+      allow read: if request.auth != null;
+      allow write: if false; // 시스템에서만 생성
+    }
+    
+    // 학습 진도 추적 - 본인 데이터만 접근
+    match /progress/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /words/{wordId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // 퀴즈 결과 - 본인 데이터만 접근
+    match /quiz_results/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /sessions/{sessionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // 분석 데이터 - 읽기 전용 (인증된 사용자)
+    match /analytics/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false; // 시스템에서만 생성
+    }
+    
+    // 기본적으로 모든 접근 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
