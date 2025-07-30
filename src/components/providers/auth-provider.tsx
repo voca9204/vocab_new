@@ -4,11 +4,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User } from 'firebase/auth'
 import { onAuthStateChanged, auth } from '@/lib/firebase/auth'
 import type { User as AppUser } from '@/types'
+import { isAdmin } from '@/lib/auth/admin'
 
 interface AuthContextType {
   user: User | null
   appUser: AppUser | null
   loading: boolean
+  isAdmin: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, displayName?: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
@@ -16,7 +18,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function useAuth() {
   const context = useContext(AuthContext)
@@ -34,6 +36,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [appUser, setAppUser] = useState<AppUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAdminUser, setIsAdminUser] = useState(false)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -51,8 +54,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             lastLoginAt: new Date(firebaseUser.metadata.lastSignInTime!),
           }
           setAppUser(userData)
+          setIsAdminUser(isAdmin(firebaseUser.email))
         } else {
           setAppUser(null)
+          setIsAdminUser(false)
         }
       } catch (error) {
         console.error('Error processing auth state change:', error)
@@ -132,6 +137,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     appUser,
     loading,
+    isAdmin: isAdminUser,
     signIn,
     signUp,
     signInWithGoogle,

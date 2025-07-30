@@ -8,7 +8,6 @@ import { AuthForm } from '@/components/forms/auth-form'
 export default function LoginPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
 
   // 이미 로그인된 사용자는 대시보드로 리다이렉트
   useEffect(() => {
@@ -45,15 +44,14 @@ export default function LoginPage() {
               SAT Vocabulary Platform
             </h1>
             <p className="text-gray-600">
-              {authMode === 'login' ? '로그인하여 학습을 시작하세요' : '새 계정을 만들어 시작하세요'}
+              구글 계정으로 로그인하여 학습을 시작하세요
             </p>
           </div>
 
-          {/* 인증 폼 */}
+          {/* Google 로그인 전용 폼 */}
           <AuthForm
-            mode={authMode}
+            mode="google-only"
             onSuccess={handleAuthSuccess}
-            onModeChange={setAuthMode}
           />
         </div>
       </div>
@@ -65,7 +63,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">대시보드로 이동 중...</p>
+        <p className="mt-4 text-gray-600">홈페이지로 이동 중...</p>
       </div>
     </div>
   )

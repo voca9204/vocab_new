@@ -1,31 +1,23 @@
 // Vocabulary Components - Word Detail Modal
 
 import * as React from 'react'
-import { 
-  Modal, 
-  ModalHeader, 
-  ModalTitle, 
-  ModalBody, 
-  ModalFooter 
-} from '@/components/ui/modal'
-import { Button } from '@/components/ui/button'
-import { Badge, DifficultyBadge, MasteryBadge } from '@/components/ui/badge'
-import { Progress, LearningProgress } from '@/components/ui/progress'
-import { LoadingSpinner } from '@/components/ui/loading'
-import type { VocabularyWord, UserProgress, NewsArticle } from '@/types'
+import { Button } from '@/components/ui'
+import { Card } from '@/components/ui/card'
+import { X, Volume2, Sparkles, BookOpen, Brain, Target } from 'lucide-react'
+import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
 import { cn } from '@/lib/utils'
 
 export interface WordDetailModalProps {
   open: boolean
   onClose: () => void
-  word?: VocabularyWord
-  userProgress?: UserProgress
-  relatedArticles?: NewsArticle[]
-  loading?: boolean
-  onStartQuiz?: (wordId: string) => void
-  onBookmark?: (wordId: string) => void
+  word: ExtractedVocabulary | null
   onPlayPronunciation?: (word: string) => void
-  onViewInContext?: (articleId: string) => void
+  onGenerateExamples?: () => Promise<void>
+  onGenerateEtymology?: () => Promise<void>
+  onFetchPronunciation?: () => Promise<void>
+  generatingExamples?: boolean
+  generatingEtymology?: boolean
+  fetchingPronunciation?: boolean
 }
 
 export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalProps>(
@@ -33,306 +25,186 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     open, 
     onClose, 
     word, 
-    userProgress, 
-    relatedArticles = [],
-    loading = false,
-    onStartQuiz,
-    onBookmark,
     onPlayPronunciation,
-    onViewInContext,
-    ...props 
+    onGenerateExamples,
+    onGenerateEtymology,
+    onFetchPronunciation,
+    generatingExamples = false,
+    generatingEtymology = false,
+    fetchingPronunciation = false
   }, ref) => {
-    const [activeTab, setActiveTab] = React.useState<'definitions' | 'examples' | 'articles'>('definitions')
-    const [isBookmarked, setIsBookmarked] = React.useState(false)
-
-    const masteryLevel = userProgress 
-      ? userProgress.correctAttempts / Math.max(userProgress.totalAttempts, 1)
-      : 0
-
-    const handleBookmarkClick = () => {
-      if (!word) return
-      setIsBookmarked(!isBookmarked)
-      onBookmark?.(word.id)
-    }
+    React.useEffect(() => {
+      if (word && open) {
+        if (!word.pronunciation && onFetchPronunciation) {
+          onFetchPronunciation()
+        }
+        if (!word.examples?.length && onGenerateExamples) {
+          onGenerateExamples()
+        }
+        if (!word.realEtymology && onGenerateEtymology) {
+          onGenerateEtymology()
+        }
+      }
+    }, [word?.id, open])
 
     const handlePronunciationClick = () => {
       if (!word) return
       onPlayPronunciation?.(word.word)
     }
 
-    const handleQuizClick = () => {
-      if (!word) return
-      onStartQuiz?.(word.id)
+    const getDifficultyColor = (difficulty: number) => {
+      if (difficulty <= 3) return 'text-green-600'
+      if (difficulty <= 6) return 'text-yellow-600'
+      return 'text-red-600'
     }
 
-    const tabButton = (tab: typeof activeTab, label: string, count?: number) => (
-      <button
-        onClick={() => setActiveTab(tab)}
-        className={cn(
-          "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-          activeTab === tab
-            ? "bg-primary text-primary-foreground"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent"
-        )}
-      >
-        {label}
-        {count !== undefined && (
-          <span className="ml-1 text-xs opacity-75">({count})</span>
-        )}
-      </button>
-    )
-
-    if (loading) {
-      return (
-        <Modal open={open} onClose={onClose} size="lg">
-          <ModalBody>
-            <div className="flex items-center justify-center py-12">
-              <LoadingSpinner size="lg" label="Loading word details..." />
-            </div>
-          </ModalBody>
-        </Modal>
-      )
+    const getPartOfSpeechColor = (pos: string) => {
+      switch (pos) {
+        case 'n.': return 'bg-blue-100 text-blue-800'
+        case 'v.': return 'bg-green-100 text-green-800'
+        case 'adj.': return 'bg-purple-100 text-purple-800'
+        case 'adv.': return 'bg-orange-100 text-orange-800'
+        default: return 'bg-gray-100 text-gray-800'
+      }
     }
 
-    if (!word) {
+    if (!open || !word) {
       return null
     }
 
     return (
-      <Modal 
-        ref={ref}
-        open={open} 
-        onClose={onClose} 
-        size="2xl"
-        {...props}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        onClick={onClose}
       >
-        <ModalHeader>
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <ModalTitle className="text-3xl">
-                  {word.word}
-                </ModalTitle>
-                
-                {word.pronunciation && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handlePronunciationClick}
-                    className="h-8 w-8 p-0 rounded-full"
-                    title="Play pronunciation"
-                  >
-                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-                    </svg>
-                  </Button>
-                )}
-                
-                <span className="text-lg text-muted-foreground font-mono">
-                  {word.pronunciation}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {word.partOfSpeech.map((pos, index) => (
-                  <Badge key={index} variant="secondary">
-                    {pos}
-                  </Badge>
-                ))}
-                
-                <DifficultyBadge difficulty={word.difficulty} />
-                
-                {word.satLevel && (
-                  <Badge variant="sat">
-                    SAT Level
-                  </Badge>
-                )}
-
-                {userProgress && (
-                  <MasteryBadge masteryLevel={masteryLevel} />
-                )}
-              </div>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBookmarkClick}
-              className={cn(
-                "h-10 w-10 p-0 rounded-full",
-                isBookmarked && "text-yellow-500 hover:text-yellow-600"
-              )}
-              title={isBookmarked ? "Remove bookmark" : "Bookmark word"}
-            >
-              <svg 
-                className="h-5 w-5" 
-                fill={isBookmarked ? "currentColor" : "none"}
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" 
-                />
-              </svg>
-            </Button>
-          </div>
-        </ModalHeader>
-
-        <ModalBody>
-          {/* Progress Section */}
-          {userProgress && (
-            <div className="mb-6 p-4 bg-accent/30 rounded-lg">
-              <h4 className="font-medium mb-3">Your Progress</h4>
-              <LearningProgress
-                wordsLearned={userProgress.correctAttempts}
-                totalWords={userProgress.totalAttempts || 1}
-                masteryLevel={masteryLevel}
-              />
-              <div className="grid grid-cols-3 gap-4 mt-3 text-center text-sm">
-                <div>
-                  <div className="font-medium text-foreground">{userProgress.correctAttempts}</div>
-                  <div className="text-muted-foreground">Correct</div>
+        <Card 
+          ref={ref}
+          className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h2 className="text-2xl font-bold">{word.word}</h2>
+                  {onPlayPronunciation && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handlePronunciationClick}
+                      className="p-2"
+                    >
+                      <Volume2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {fetchingPronunciation ? (
+                    <span className="text-sm text-gray-500 italic">발음 정보 가져오는 중...</span>
+                  ) : word.pronunciation ? (
+                    <span className="text-lg text-gray-600">[{word.pronunciation}]</span>
+                  ) : null}
                 </div>
-                <div>
-                  <div className="font-medium text-foreground">{userProgress.streak}</div>
-                  <div className="text-muted-foreground">Streak</div>
-                </div>
-                <div>
-                  <div className="font-medium text-foreground">
-                    {Math.round(masteryLevel * 100)}%
-                  </div>
-                  <div className="text-muted-foreground">Mastery</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Categories and Frequency */}
-          <div className="mb-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium mb-2">Categories</h4>
-                <div className="flex flex-wrap gap-1">
-                  {word.categories.map((category, index) => (
-                    <Badge key={index} variant="category" size="sm">
-                      {category}
-                    </Badge>
+                <div className="flex gap-2">
+                  {word.partOfSpeech.map(pos => (
+                    <span 
+                      key={pos}
+                      className={`text-sm px-3 py-1 rounded ${getPartOfSpeechColor(pos)}`}
+                    >
+                      {pos}
+                    </span>
                   ))}
                 </div>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
               <div>
-                <h4 className="font-medium mb-2">Word Statistics</h4>
-                <div className="space-y-1 text-sm">
-                  <div>Frequency: {word.frequency}/10</div>
-                  <div>Sources: {word.sources.length}</div>
-                  {word.apiSource && <div>API: {word.apiSource}</div>}
+                <h3 className="font-semibold text-gray-700 mb-1">뜻</h3>
+                <p className="text-lg">{word.definition}</p>
+              </div>
+
+              {word.etymology && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h3 className="font-semibold text-blue-800 mb-1">영어 정의</h3>
+                  <p className="text-blue-700">{word.etymology}</p>
+                </div>
+              )}
+
+              {word.realEtymology ? (
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <h3 className="font-semibold text-purple-800 mb-1">어원</h3>
+                  <p className="text-purple-700">{word.realEtymology}</p>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg text-center">
+                  {generatingEtymology ? (
+                    <p className="text-sm text-purple-600 flex items-center justify-center gap-1">
+                      <Sparkles className="h-4 w-4 animate-pulse" />
+                      AI가 어원을 분석하고 있습니다...
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">어원 정보가 없습니다</p>
+                  )}
+                </div>
+              )}
+
+              {word.examples && word.examples.length > 0 ? (
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <h3 className="font-semibold text-green-800 mb-2">예문</h3>
+                  <div className="space-y-2">
+                    {word.examples.map((example, idx) => (
+                      <p key={idx} className="text-green-700">
+                        • {example}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg text-center">
+                  {generatingExamples ? (
+                    <p className="text-sm text-blue-600 flex items-center justify-center gap-1">
+                      <Sparkles className="h-4 w-4 animate-pulse" />
+                      AI가 예문을 생성하고 있습니다...
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">예문이 없습니다</p>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div>
+                  <p className="text-sm text-gray-600">난이도</p>
+                  <p className={`font-semibold ${getDifficultyColor(word.difficulty || 5)}`}>
+                    Level {word.difficulty}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">학습 상태</p>
+                  <p className="font-semibold">
+                    {word.studyStatus.studied ? '학습 완료' : '미학습'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">숙련도</p>
+                  <p className="font-semibold">{word.studyStatus.masteryLevel}%</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">복습 횟수</p>
+                  <p className="font-semibold">{word.studyStatus.reviewCount}회</p>
                 </div>
               </div>
             </div>
+
           </div>
-
-          {/* Tab Navigation */}
-          <div className="flex gap-2 mb-6 border-b">
-            {tabButton('definitions', 'Definitions', word.definitions.length)}
-            {tabButton('examples', 'Examples', word.examples.length)}
-            {tabButton('articles', 'In Context', relatedArticles.length)}
-          </div>
-
-          {/* Tab Content */}
-          <div className="min-h-[200px]">
-            {activeTab === 'definitions' && (
-              <div className="space-y-4">
-                {word.definitions.map((definition, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <Badge variant="secondary" size="sm">
-                        {definition.partOfSpeech}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {definition.source}
-                      </span>
-                    </div>
-                    <p className="text-foreground leading-relaxed">
-                      {definition.text}
-                    </p>
-                  </div>
-                ))}
-
-                {/* Etymology */}
-                {word.etymology && (
-                  <div className="p-4 bg-accent/30 rounded-lg">
-                    <h4 className="font-medium mb-2">Etymology</h4>
-                    <p className="text-sm">
-                      <span className="font-medium">{word.etymology.origin}</span>
-                      {" "}({word.etymology.language}) - {word.etymology.meaning}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'examples' && (
-              <div className="space-y-3">
-                {word.examples.map((example, index) => (
-                  <div key={index} className="p-3 border-l-4 border-primary bg-accent/20 rounded-r-lg">
-                    <p className="italic text-foreground">"{example}"</p>
-                  </div>
-                ))}
-                {word.examples.length === 0 && (
-                  <div className="text-center text-muted-foreground py-8">
-                    No examples available for this word.
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'articles' && (
-              <div className="space-y-3">
-                {relatedArticles.map((article, index) => (
-                  <div key={index} className="p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <h5 className="font-medium mb-2">{article.title}</h5>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {article.content.substring(0, 150)}...
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        {article.source} • {new Date(article.publishedAt).toLocaleDateString()}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onViewInContext?.(article.id)}
-                      >
-                        Read Article
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {relatedArticles.length === 0 && (
-                  <div className="text-center text-muted-foreground py-8">
-                    No related articles found for this word.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </ModalBody>
-
-        <ModalFooter>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
-            <Button onClick={handleQuizClick} variant="default">
-              Start Quiz
-            </Button>
-          </div>
-        </ModalFooter>
-      </Modal>
+        </Card>
+      </div>
     )
   }
 )

@@ -1,14 +1,51 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { 
+  User, 
+  BookOpen, 
+  Target, 
+  Clock, 
+  TrendingUp,
+  ChevronRight,
+  Edit2,
+  Sparkles
+} from 'lucide-react'
+import { db } from '@/lib/firebase/config'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { getSelectedSources, filterWordsBySelectedSources } from '@/lib/settings/get-selected-sources'
+import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
+import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
+import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
+import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
 
 export default function DashboardPage() {
-  const { user, appUser, signOut, loading } = useAuth()
+  const { user, appUser, loading } = useAuth()
   const router = useRouter()
+  const [stats, setStats] = useState({
+    totalWords: 0,
+    studiedWords: 0,
+    todayWords: 0,
+    masteryAverage: 0
+  })
+  const [sources, setSources] = useState<{filename: string, count: number}[]>([])
+  const [recentWords, setRecentWords] = useState<ExtractedVocabulary[]>([])
+  const {
+    selectedWord,
+    openModal,
+    closeModal,
+    generateExamples,
+    generateEtymology,
+    fetchPronunciation,
+    generatingExamples,
+    generatingEtymology,
+    fetchingPronunciation,
+    speakWord
+  } = useWordDetailModal()
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
   useEffect(() => {
@@ -17,19 +54,118 @@ export default function DashboardPage() {
     }
   }, [user, loading, router])
 
-  const handleSignOut = async () => {
+  // 통계 데이터 가져오기
+  useEffect(() => {
+    if (user) {
+      loadStats()
+    }
+  }, [user])
+
+  const updateFilename = async (oldFilename: string, newFilename: string) => {
+    if (!user) return
+
     try {
-      await signOut()
-      router.push('/login')
+      const response = await fetch('/api/update-source', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          oldFilename,
+          newFilename
+        })
+      })
+      
+      const result = await response.json()
+      if (result.success) {
+        alert(result.message)
+        loadStats() // 통계 다시 로드
+      }
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Error updating filename:', error)
+      alert('파일명 변경 중 오류가 발생했습니다.')
     }
   }
 
-  // 로딩 중이면 로딩 화면 표시
+  const loadStats = async () => {
+    if (!user) return
+
+    try {
+      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
+      const q = createVocabularyQuery('extracted_vocabulary', user.uid)
+      
+      const snapshot = await getDocs(q)
+      let words = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      })) as ExtractedVocabulary[]
+      
+      // Firestore에서 선택된 단어장 가져오기
+      const selectedSources = await getSelectedSources(user.uid)
+      
+      // 선택된 단어장으로 필터링
+      let filteredWords = filterWordsBySelectedSources(words, selectedSources)
+      
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      const studiedWords = filteredWords.filter(w => w.studyStatus?.studied).length
+      const todayWords = filteredWords.filter(w => {
+        const lastStudied = w.studyStatus?.lastStudied?.toDate ? 
+          w.studyStatus.lastStudied.toDate() : 
+          w.studyStatus?.lastStudied
+        return lastStudied && new Date(lastStudied) >= today
+      }).length
+      
+      const masterySum = filteredWords.reduce((sum, w) => 
+        sum + (w.studyStatus?.masteryLevel || 0), 0
+      )
+      const masteryAverage = filteredWords.length > 0 ? 
+        Math.round(masterySum / filteredWords.length) : 0
+      
+      setStats({
+        totalWords: filteredWords.length,
+        studiedWords,
+        todayWords,
+        masteryAverage
+      })
+      
+      // 출처별 단어 수 계산
+      const sourceMap = new Map<string, number>()
+      words.forEach(word => {
+        const filename = word.source?.filename || '알 수 없음'
+        sourceMap.set(filename, (sourceMap.get(filename) || 0) + 1)
+      })
+      
+      const sourceList = Array.from(sourceMap.entries())
+        .map(([filename, count]) => ({ filename, count }))
+        .sort((a, b) => b.count - a.count)
+      
+      setSources(sourceList)
+      
+      // 최근 학습하지 않은 단어 10개 가져오기  
+      const notStudiedWords = filteredWords
+        .filter(w => !w.studyStatus?.studied)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10)
+        .map(w => ({
+          ...w,
+          createdAt: w.createdAt instanceof Date ? w.createdAt : (w.createdAt as any).toDate(),
+          updatedAt: w.updatedAt instanceof Date ? w.updatedAt : (w.updatedAt as any).toDate(),
+          source: {
+            ...w.source,
+            uploadedAt: w.source.uploadedAt instanceof Date ? w.source.uploadedAt : (w.source.uploadedAt as any).toDate()
+          }
+        }))
+      
+      setRecentWords(notStudiedWords)
+    } catch (error) {
+      console.error('Error loading stats:', error)
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>
@@ -38,133 +174,137 @@ export default function DashboardPage() {
     )
   }
 
-  // 로그인하지 않은 사용자
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로그인 페이지로 이동 중...</p>
-        </div>
-      </div>
-    )
+    return null
   }
 
-  // 로그인된 사용자 대시보드
+  const statsDisplay = [
+    { label: '학습한 단어', value: `${stats.studiedWords}개`, icon: BookOpen, color: 'text-blue-600' },
+    { label: '오늘의 목표', value: `${stats.todayWords}/30개`, icon: Target, color: 'text-green-600' },
+    { label: '전체 단어', value: `${stats.totalWords}개`, icon: Clock, color: 'text-purple-600' },
+    { label: '평균 숙련도', value: `${stats.masteryAverage}%`, icon: TrendingUp, color: 'text-orange-600' }
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
-                SAT Vocabulary Platform
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                안녕하세요, {appUser?.displayName || appUser?.email}님!
-              </span>
-              <Button onClick={handleSignOut} variant="outline" size="sm">
-                로그아웃
-              </Button>
-            </div>
+    <div className="container mx-auto py-8 px-4">
+      {/* 환영 메시지 */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          안녕하세요, {appUser?.displayName || user.email?.split('@')[0]}님!
+        </h1>
+        <p className="text-gray-600">오늘도 SAT 단어 학습을 시작해볼까요?</p>
+      </div>
+
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {statsDisplay.map((stat, idx) => {
+          const Icon = stat.icon
+          return (
+            <Card key={idx}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">{stat.label}</p>
+                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                  </div>
+                  <Icon className={`h-8 w-8 ${stat.color} opacity-20`} />
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      {/* 빠른 시작 섹션 */}
+      <div className="mb-8">
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/study')}>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              단어 학습 시작
+              <ChevronRight className="h-5 w-5" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600">플래시카드, 리스트 등 다양한 방법으로 단어를 학습하세요.</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 단어장 출처 */}
+      {sources.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-4">업로드된 단어장</h3>
+          <div className="space-y-2">
+            {sources.map((source, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium">{source.filename}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">{source.count}개 단어</span>
+                  {source.filename === '[SAT] 24FW V.ZIP 3K.pdf' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateFilename('[SAT] 24FW V.ZIP 3K.pdf', 'veterans_24FW.pdf')}
+                    >
+                      <Edit2 className="h-3 w-3 mr-1" />
+                      이름 변경
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </header>
+      )}
 
-      {/* 메인 콘텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h2>
-          <p className="text-gray-600">SAT 어휘 학습을 시작해보세요!</p>
-        </div>
-
-        {/* 사용자 정보 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">👤 사용자 정보</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p><strong>이름:</strong> {appUser?.displayName || '설정되지 않음'}</p>
-                <p><strong>이메일:</strong> {appUser?.email}</p>
-                <p><strong>가입일:</strong> {appUser?.createdAt?.toLocaleDateString('ko-KR')}</p>
-                <p><strong>마지막 로그인:</strong> {appUser?.lastLoginAt?.toLocaleDateString('ko-KR')}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">📚 학습 현황</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p><strong>학습한 단어:</strong> 0개</p>
-                <p><strong>마스터한 단어:</strong> 0개</p>
-                <p><strong>연속 학습일:</strong> 0일</p>
-                <p><strong>오늘의 목표:</strong> 10개</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">🎯 퀴즈 성과</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p><strong>총 퀴즈 수:</strong> 0개</p>
-                <p><strong>정답률:</strong> 0%</p>
-                <p><strong>평균 점수:</strong> 0점</p>
-                <p><strong>최고 기록:</strong> 0점</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 액션 버튼들 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Button className="h-20" disabled>
-            📚 어휘 학습 시작
-            <br />
-            <span className="text-xs opacity-75">(곧 출시)</span>
-          </Button>
-          <Button className="h-20" disabled>
-            📰 뉴스로 학습하기
-            <br />
-            <span className="text-xs opacity-75">(곧 출시)</span>
-          </Button>
-          <Button className="h-20" disabled>
-            🎯 퀴즈 도전하기
-            <br />
-            <span className="text-xs opacity-75">(곧 출시)</span>
-          </Button>
-          <Button className="h-20" disabled>
-            📊 진도 확인하기
-            <br />
-            <span className="text-xs opacity-75">(곧 출시)</span>
-          </Button>
-        </div>
-
-        {/* 인증 성공 메시지 */}
+      {/* 최근 단어 섹션 */}
+      {recentWords.length > 0 && (
         <div className="mt-8">
-          <Card className="border-green-200 bg-green-50">
-            <CardHeader>
-              <CardTitle className="text-lg text-green-800">🎉 인증 시스템 성공!</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-green-700">
-                Firebase Authentication이 정상적으로 작동하고 있습니다. 
-                이제 SAT 어휘 데이터베이스를 구축하여 학습 기능을 추가할 차례입니다!
-              </p>
-            </CardContent>
-          </Card>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-600" />
+            오늘의 추천 단어
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {recentWords.map((word) => (
+              <Card 
+                key={word.id}
+                className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => openModal(word)}
+              >
+                <div className="text-center">
+                  <p className="font-bold text-lg mb-1">{word.word}</p>
+                  <p className="text-sm text-gray-600 line-clamp-2">{word.definition}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* 계정 정보 (작게) */}
+      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-3">
+          <User className="h-5 w-5 text-gray-600" />
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">{user.email}</span> • 
+            가입일: {appUser?.createdAt?.toLocaleDateString('ko-KR') || '알 수 없음'}
+          </div>
+        </div>
+      </div>
+
+      {/* 단어 상세 모달 */}
+      <WordDetailModal
+        open={!!selectedWord}
+        onClose={closeModal}
+        word={selectedWord}
+        onPlayPronunciation={speakWord}
+        onGenerateExamples={generateExamples}
+        onGenerateEtymology={generateEtymology}
+        onFetchPronunciation={fetchPronunciation}
+        generatingExamples={generatingExamples}
+        generatingEtymology={generatingEtymology}
+        fetchingPronunciation={fetchingPronunciation}
+      />
     </div>
   )
 }

@@ -32,8 +32,8 @@ A modern, contextual SAT vocabulary learning platform built with Next.js, Fireba
 ### 1. Clone and Install
 
 \`\`\`bash
-git clone <repository-url>
-cd vocabulary-v2
+git clone https://github.com/voca9204/vocab_new.git
+cd vocab_new
 npm install
 \`\`\`
 
