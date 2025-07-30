@@ -1,5 +1,6 @@
 // Vocabulary Service - Integrates Dictionary APIs with Vocabulary Database
 import { dictionaryClient, type StandardDictionaryResponse } from './dictionary-client'
+import { WordDifficultyCalculator } from '../vocabulary/word-difficulty-calculator'
 import type { VocabularyWord } from '@/types'
 
 export interface VocabularyFetchOptions {
@@ -121,16 +122,8 @@ class VocabularyService {
   }
 
   private estimateDifficulty(response: StandardDictionaryResponse): number {
-    // Simple heuristic based on word length and definition complexity
-    const wordLength = response.word.length
-    const definitionLength = response.definitions[0]?.definition.length || 0
-    const hasMultipleMeanings = response.definitions.length > 1
-    
-    let difficulty = Math.min(wordLength / 2, 5) // Base on word length
-    difficulty += Math.min(definitionLength / 50, 3) // Add for definition complexity
-    if (hasMultipleMeanings) difficulty += 1
-    
-    return Math.round(Math.min(difficulty, 10))
+    // 학술적 방법론 기반 난이도 계산
+    return WordDifficultyCalculator.calculateDifficulty(response.word)
   }
 
   private estimateFrequency(response: StandardDictionaryResponse): number {

@@ -1,7 +1,7 @@
 // News Processing - SAT Word Detection System
 
 import type { VocabularyWord, NewsHighlight } from '@/types'
-import { vocabularyService } from '../firebase/firestore'
+import { vocabularyService } from '../firebase/firestore-v2'
 import { SAT_WORD_PATTERNS } from '@/lib/constants'
 
 export interface WordDetectionResult {

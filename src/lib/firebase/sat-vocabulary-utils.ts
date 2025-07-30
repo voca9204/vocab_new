@@ -2,7 +2,7 @@
 
 import type { VocabularyWord, UserProgress, Quiz } from '@/types'
 import { VocabularySearchService } from './vocabulary-search'
-import { vocabularyService, progressService } from './firestore'
+import { vocabularyService, progressService } from './firestore-v2'
 
 export interface SATStudySession {
   recommendedWords: VocabularyWord[]

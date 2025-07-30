@@ -1,17 +1,24 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { ExtractedVocabulary } from '@/types/extracted-vocabulary'
+import { VocabularyWord } from '@/types'
 import { useAuth } from '@/hooks/use-auth'
-import { collection, query, where, getDocs, doc, updateDoc, Timestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
+import { vocabularyService } from '@/lib/api'
+
+// Type that accepts both old and new word types
+type ModalWord = ExtractedVocabulary | VocabularyWord
 
 export function useWordDetailModal() {
   const { user } = useAuth()
-  const [selectedWord, setSelectedWord] = useState<ExtractedVocabulary | null>(null)
+  const [selectedWord, setSelectedWord] = useState<ModalWord | null>(null)
   const [generatingExamples, setGeneratingExamples] = useState(false)
   const [generatingEtymology, setGeneratingEtymology] = useState(false)
   const [fetchingPronunciation, setFetchingPronunciation] = useState(false)
+  
+  // Use ref to access current word without causing re-renders
+  const selectedWordRef = useRef<ModalWord | null>(null)
+  selectedWordRef.current = selectedWord
 
-  const openModal = useCallback((word: ExtractedVocabulary) => {
+  const openModal = useCallback((word: ModalWord) => {
     setSelectedWord(word)
   }, [])
 
@@ -20,7 +27,8 @@ export function useWordDetailModal() {
   }, [])
 
   const generateExamples = useCallback(async () => {
-    if (!selectedWord || !selectedWord.id || selectedWord.examples?.length > 0 || generatingExamples || !user) return
+    const word = selectedWordRef.current
+    if (!word || !word.id || word.examples?.length > 0 || !user) return
     
     setGeneratingExamples(true)
     
@@ -30,7 +38,7 @@ export function useWordDetailModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.uid,
-          wordIds: [selectedWord.id],
+          wordIds: [word.id],
           singleWord: true
         })
       })
@@ -38,19 +46,22 @@ export function useWordDetailModal() {
       if (response.ok) {
         const result = await response.json()
         if (result.updated > 0) {
-          // Reload the word data
-          const q = query(
-            collection(db, 'extracted_vocabulary'),
-            where('userId', '==', user.uid),
-            where('__name__', '==', selectedWord.id)
-          )
-          const snapshot = await getDocs(q)
-          if (!snapshot.empty) {
-            const updatedWord = snapshot.docs[0].data() as ExtractedVocabulary
+          // Reload the word data from new service
+          // Wait for DB propagation
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          const updatedWord = await vocabularyService.getById(word.id)
+          if (updatedWord) {
             setSelectedWord(prev => prev ? {
               ...prev,
               examples: updatedWord.examples
             } : null)
+            
+            // Dispatch custom event for list page to reload
+            const event = new CustomEvent('word-updated', {
+              detail: { wordId: word.id, type: 'examples' }
+            })
+            window.dispatchEvent(event)
           }
         }
       }
@@ -59,10 +70,15 @@ export function useWordDetailModal() {
     } finally {
       setGeneratingExamples(false)
     }
-  }, [selectedWord, generatingExamples, user])
+  }, [user])
 
   const generateEtymology = useCallback(async () => {
-    if (!selectedWord || !selectedWord.id || selectedWord.realEtymology || generatingEtymology || !user) return
+    const word = selectedWordRef.current
+    if (!word || !word.id || !user) return
+    
+    // Handle both old and new word types
+    const hasEtymology = 'realEtymology' in word ? word.realEtymology : word?.etymology?.meaning
+    if (hasEtymology) return
     
     setGeneratingEtymology(true)
     
@@ -72,7 +88,7 @@ export function useWordDetailModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.uid,
-          wordIds: [selectedWord.id],
+          wordIds: [word.id],
           singleWord: true
         })
       })
@@ -80,19 +96,32 @@ export function useWordDetailModal() {
       if (response.ok) {
         const result = await response.json()
         if (result.updated > 0) {
-          // Reload the word data
-          const q = query(
-            collection(db, 'extracted_vocabulary'),
-            where('userId', '==', user.uid),
-            where('__name__', '==', selectedWord.id)
-          )
-          const snapshot = await getDocs(q)
-          if (!snapshot.empty) {
-            const updatedWord = snapshot.docs[0].data() as ExtractedVocabulary
-            setSelectedWord(prev => prev ? {
-              ...prev,
-              realEtymology: updatedWord.realEtymology
-            } : null)
+          // Reload the word data from new service
+          // Wait for DB propagation
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          const updatedWord = await vocabularyService.getById(word.id)
+          if (updatedWord) {
+            setSelectedWord(prev => {
+              if (!prev) return null
+              if ('realEtymology' in prev) {
+                return { ...prev, realEtymology: updatedWord.realEtymology }
+              } else {
+                return { 
+                  ...prev, 
+                  etymology: {
+                    ...prev.etymology,
+                    meaning: updatedWord.realEtymology
+                  }
+                }
+              }
+            })
+            
+            // Dispatch custom event for list page to reload
+            const event = new CustomEvent('word-updated', {
+              detail: { wordId: word.id, type: 'etymology' }
+            })
+            window.dispatchEvent(event)
           }
         }
       }
@@ -101,28 +130,27 @@ export function useWordDetailModal() {
     } finally {
       setGeneratingEtymology(false)
     }
-  }, [selectedWord, generatingEtymology, user])
+  }, [user])
 
   const fetchPronunciation = useCallback(async () => {
-    if (!selectedWord || !selectedWord.id || selectedWord.pronunciation || fetchingPronunciation || !user) return
+    const word = selectedWordRef.current
+    if (!word || !word.id || word.pronunciation || !user) return
     
     setFetchingPronunciation(true)
     
     try {
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(selectedWord.word)}`)
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.word)}`)
       if (response.ok) {
         const data = await response.json()
         const phonetic = data[0]?.phonetic || 
                         data[0]?.phonetics?.[0]?.text ||
                         data[0]?.phonetics?.find((p: any) => p.text)?.text
                         
-        if (phonetic && selectedWord.id) {
-          // Update in database
-          const wordRef = doc(db, 'extracted_vocabulary', selectedWord.id)
-          await updateDoc(wordRef, {
-            pronunciation: phonetic,
-            updatedAt: Timestamp.now()
-          })
+        if (phonetic && word.id) {
+          // Update in database using new service
+          // For now, we'll skip DB update as the compatibility layer is read-only
+          // TODO: Implement pronunciation update in new DB structure
+          console.log('Pronunciation fetched:', phonetic, 'for word:', word.word)
           
           // Update local state
           setSelectedWord(prev => prev ? {
@@ -136,7 +164,7 @@ export function useWordDetailModal() {
     } finally {
       setFetchingPronunciation(false)
     }
-  }, [selectedWord, fetchingPronunciation, user])
+  }, [user])
 
   const speakWord = useCallback((text: string) => {
     if ('speechSynthesis' in window) {

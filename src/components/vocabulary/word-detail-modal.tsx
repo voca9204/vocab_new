@@ -5,12 +5,15 @@ import { Button } from '@/components/ui'
 import { Card } from '@/components/ui/card'
 import { X, Volume2, Sparkles, BookOpen, Brain, Target } from 'lucide-react'
 import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
+import type { VocabularyWord } from '@/types'
 import { cn } from '@/lib/utils'
+
+type ModalWord = ExtractedVocabulary | VocabularyWord
 
 export interface WordDetailModalProps {
   open: boolean
   onClose: () => void
-  word: ExtractedVocabulary | null
+  word: ModalWord | null
   onPlayPronunciation?: (word: string) => void
   onGenerateExamples?: () => Promise<void>
   onGenerateEtymology?: () => Promise<void>
@@ -33,19 +36,81 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     generatingEtymology = false,
     fetchingPronunciation = false
   }, ref) => {
+    // Track which word IDs we've already triggered API calls for
+    const processedWords = React.useRef<Set<string>>(new Set())
+    
     React.useEffect(() => {
-      if (word && open) {
-        if (!word.pronunciation && onFetchPronunciation) {
-          onFetchPronunciation()
-        }
-        if (!word.examples?.length && onGenerateExamples) {
-          onGenerateExamples()
-        }
-        if (!word.realEtymology && onGenerateEtymology) {
-          onGenerateEtymology()
+      // Only process when modal opens with a new word
+      if (word && open && !processedWords.current.has(word.id)) {
+        console.log('[WordDetailModal] New word opened:', word.word, 'ID:', word.id)
+        console.log('[WordDetailModal] Word structure:', {
+          hasRealEtymology: 'realEtymology' in word,
+          realEtymology: 'realEtymology' in word ? word.realEtymology : undefined,
+          etymologyMeaning: word.etymology?.meaning,
+          etymology: word.etymology,
+          examples: word.examples,
+          pronunciation: word.pronunciation
+        })
+        
+        // Mark this word as processed immediately
+        processedWords.current.add(word.id)
+        
+        // Check what needs to be generated
+        const needsPronunciation = !word.pronunciation && !!onFetchPronunciation && !fetchingPronunciation
+        const needsExamples = (!word.examples || word.examples.length === 0) && !!onGenerateExamples && !generatingExamples
+        const hasEtymology = 'realEtymology' in word ? !!word.realEtymology : !!word.etymology?.meaning
+        const needsEtymology = !hasEtymology && !!onGenerateEtymology && !generatingEtymology
+        
+        console.log('[WordDetailModal] Needs:', { 
+          pronunciation: needsPronunciation, 
+          examples: needsExamples, 
+          etymology: needsEtymology,
+          callbacks: {
+            onGenerateExamples: !!onGenerateExamples,
+            onGenerateEtymology: !!onGenerateEtymology,
+            onFetchPronunciation: !!onFetchPronunciation
+          },
+          generating: {
+            examples: generatingExamples,
+            etymology: generatingEtymology,
+            pronunciation: fetchingPronunciation
+          }
+        })
+        
+        // Only set timeouts if we need to generate something
+        if (needsPronunciation || needsExamples || needsEtymology) {
+          // Debounce and sequence API calls to avoid conflicts
+          const timeoutId = setTimeout(async () => {
+            // 1. First, fetch pronunciation if needed
+            if (needsPronunciation) {
+              console.log('[WordDetailModal] Fetching pronunciation')
+              onFetchPronunciation()
+            }
+            
+            // 2. Then generate examples after a delay
+            if (needsExamples) {
+              console.log('[WordDetailModal] Will generate examples')
+              setTimeout(() => {
+                console.log('[WordDetailModal] Calling onGenerateExamples')
+                onGenerateExamples()
+              }, 1000)
+            }
+            
+            // 3. Finally generate etymology after another delay
+            if (needsEtymology) {
+              console.log('[WordDetailModal] Will generate etymology')
+              setTimeout(() => {
+                console.log('[WordDetailModal] Calling onGenerateEtymology')
+                onGenerateEtymology()
+              }, 2000)
+            }
+          }, 500) // Initial delay to debounce rapid opens
+          
+          return () => clearTimeout(timeoutId)
         }
       }
-    }, [word?.id, open])
+    }, [word, open, onFetchPronunciation, onGenerateExamples, onGenerateEtymology, 
+        fetchingPronunciation, generatingExamples, generatingEtymology])
 
     const handlePronunciationClick = () => {
       if (!word) return
@@ -126,20 +191,30 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-gray-700 mb-1">뜻</h3>
-                <p className="text-lg">{word.definition}</p>
+                <p className="text-lg">{
+                  'definition' in word 
+                    ? word.definition 
+                    : word.definitions[0]?.text || 'No definition available'
+                }</p>
               </div>
 
-              {word.etymology && (
+              {('etymology' in word && typeof word.etymology === 'string' ? word.etymology : word.etymology?.origin) && (
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="font-semibold text-blue-800 mb-1">영어 정의</h3>
-                  <p className="text-blue-700">{word.etymology}</p>
+                  <p className="text-blue-700">{
+                    'etymology' in word && typeof word.etymology === 'string' 
+                      ? word.etymology 
+                      : word.etymology?.origin
+                  }</p>
                 </div>
               )}
 
-              {word.realEtymology ? (
+              {('realEtymology' in word ? word.realEtymology : word.etymology?.meaning) ? (
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <h3 className="font-semibold text-purple-800 mb-1">어원</h3>
-                  <p className="text-purple-700">{word.realEtymology}</p>
+                  <p className="text-purple-700">{
+                    'realEtymology' in word ? word.realEtymology : word.etymology?.meaning
+                  }</p>
                 </div>
               ) : (
                 <div className="p-4 bg-gray-50 rounded-lg text-center">
@@ -159,9 +234,22 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                   <h3 className="font-semibold text-green-800 mb-2">예문</h3>
                   <div className="space-y-2">
                     {word.examples.map((example, idx) => (
-                      <p key={idx} className="text-green-700">
-                        • {example}
-                      </p>
+                      <div key={idx} className="flex items-start gap-2">
+                        <p className="text-green-700 flex-1">
+                          • {example}
+                        </p>
+                        {onPlayPronunciation && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onPlayPronunciation(example)}
+                            className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100"
+                            title="예문 듣기"
+                          >
+                            <Volume2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

@@ -1,159 +1,178 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { ChevronLeft, Keyboard, CheckCircle } from 'lucide-react'
+import { vocabularyService } from '@/lib/api'
+import { prepareWordsForTyping } from '@/lib/typing-utils'
+import { useTypingPractice } from '@/hooks/use-typing-practice'
+import { useTypingTimer } from '@/hooks/use-typing-timer'
 import { 
-  ChevronLeft,
-  Keyboard,
-  CheckCircle,
-  XCircle,
-  RotateCcw,
-  Trophy,
-  Zap
-} from 'lucide-react'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs, doc, updateDoc, Timestamp } from 'firebase/firestore'
-import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
-import { getSelectedSources, filterWordsBySelectedSources } from '@/lib/settings/get-selected-sources'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
-
-interface TypingResult {
-  word: ExtractedVocabulary
-  typed: string
-  correct: boolean
-  time: number
-}
+  TypingStatsGrid, 
+  WordDisplayCard, 
+  TypingResultDisplay, 
+  PracticeCompleteScreen 
+} from '@/components/typing'
+import { LoadingSkeleton } from '@/components/typing/loading-skeleton'
+import { ErrorFallback } from '@/components/typing/error-fallback'
 
 export default function TypingPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [words, setWords] = useState<ExtractedVocabulary[]>([])
-  const [currentWordIndex, setCurrentWordIndex] = useState(0)
-  const [typedWord, setTypedWord] = useState('')
-  const [showResult, setShowResult] = useState(false)
-  const [results, setResults] = useState<TypingResult[]>([])
-  const [loading, setLoading] = useState(true)
-  const [practiceComplete, setPracticeComplete] = useState(false)
-  const [wordStartTime, setWordStartTime] = useState<Date | null>(null)
-  const [practiceSize, setPracticeSize] = useState(20) // 기본 20단어
   const inputRef = useRef<HTMLInputElement>(null)
+  const sessionCountRef = useRef(0)
+  
+  const {
+    words,
+    currentWordIndex,
+    typedWord,
+    showResult,
+    currentResult,
+    results,
+    practiceComplete,
+    wordStartTime,
+    isLoading,
+    error,
+    setWords,
+    setTypedWord,
+    submitWord,
+    nextWord,
+    restartPractice,
+    startNewSession,
+    clearError,
+    setLoading,
+    setError,
+    currentWord,
+    accuracy,
+    avgTime,
+    avgHints,
+    correctCount,
+  } = useTypingPractice()
+  
+  const {
+    timeElapsed,
+    hintLevel,
+    nextHintIn,
+    resetTimer,
+    startNewWord,
+  } = useTypingTimer({
+    currentWord,
+    showResult,
+    practiceComplete,
+    wordStartTime,
+  })
+
+  const loadWords = useCallback(async () => {
+    if (!user) return
+
+    try {
+      setLoading(true)
+      clearError()
+      
+      // 세션 카운터 증가하여 다른 단어들을 가져오도록 함
+      sessionCountRef.current += 1
+      const offset = (sessionCountRef.current - 1) * 20
+      
+      // 사용자 선택 단어장의 모든 단어들을 가져옴 (타이핑 연습에 적합한 단어 필터링 후 선택)
+      const { words: wordsData } = await vocabularyService.getAll(undefined, 3000, user.uid) // 모든 단어 가져온 후 필터링
+      
+      if (wordsData.length === 0) {
+        setError('연습할 단어를 찾을 수 없습니다. 단어장을 확인해주세요.')
+        setWords([])
+        return
+      }
+      
+      // 전체 단어를 필터링하고 정렬
+      const filteredWords = wordsData.filter(w => w.word.length >= 3 && w.word.length <= 12)
+      
+      // 셔플하여 랜덤하게 선택
+      const shuffled = [...filteredWords].sort(() => Math.random() - 0.5)
+      const selectedWords = shuffled.slice(0, 20)
+      
+      if (selectedWords.length === 0) {
+        setError('타이핑 연습에 적합한 단어가 없습니다. (3-12글자 단어 필요)')
+        setWords([])
+        return
+      }
+      
+      console.log(`세션 ${sessionCountRef.current}: ${selectedWords.length}개 단어 로드`)
+      
+      setWords(selectedWords)
+      resetTimer()
+      
+      // Start new session after words are loaded
+      setTimeout(() => {
+        startNewSession()
+      }, 0)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '단어를 불러오는 중 오류가 발생했습니다.'
+      setError(errorMessage)
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error loading words:', err)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [user, setWords, resetTimer, startNewSession, setLoading, clearError, setError])
 
   useEffect(() => {
     if (user) {
       loadWords()
     }
-  }, [user])
+  }, [user, loadWords])
 
+  // Focus input field when appropriate
   useEffect(() => {
-    // 새 단어가 시작될 때 입력 필드에 포커스
-    if (!loading && !practiceComplete && inputRef.current) {
+    if (words.length > 0 && !practiceComplete && inputRef.current && !showResult) {
       inputRef.current.focus()
     }
-  }, [currentWordIndex, loading, practiceComplete])
+  }, [words.length, practiceComplete, currentWordIndex, showResult])
 
-  const loadWords = async () => {
-    if (!user) return
-
-    try {
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      const q = createVocabularyQuery('extracted_vocabulary', user.uid)
-      
-      const snapshot = await getDocs(q)
-      let wordsData = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-        source: {
-          ...doc.data().source,
-          uploadedAt: doc.data().source?.uploadedAt?.toDate() || new Date()
-        }
-      })) as ExtractedVocabulary[]
-      
-      // Firestore에서 선택된 단어장 가져오기
-      const selectedSources = await getSelectedSources(user.uid)
-      wordsData = filterWordsBySelectedSources(wordsData, selectedSources)
-      
-      // 난이도가 낮은 단어부터 연습 (철자가 어려운 단어 우선)
-      const practiceWords = wordsData
-        .sort((a, b) => a.studyStatus.masteryLevel - b.studyStatus.masteryLevel)
-        .slice(0, Math.min(practiceSize, wordsData.length))
-      
-      setWords(practiceWords)
-      setWordStartTime(new Date())
-    } catch (error) {
-      console.error('Error loading words:', error)
-    } finally {
-      setLoading(false)
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!showResult) {
+      setTypedWord(e.target.value)
     }
-  }
+  }, [showResult, setTypedWord])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (showResult) return
-    setTypedWord(e.target.value)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
-    if (!wordStartTime || showResult) return
-    
-    const currentWord = words[currentWordIndex]
-    const timeSpent = (new Date().getTime() - wordStartTime.getTime()) / 1000
-    const isCorrect = typedWord.trim().toLowerCase() === currentWord.word.toLowerCase()
-    
-    // 결과 저장
-    setResults([...results, {
-      word: currentWord,
-      typed: typedWord,
-      correct: isCorrect,
-      time: timeSpent
-    }])
-    
-    // 단어 숙련도 업데이트
-    if (currentWord.id) {
-      const wordRef = doc(db, 'extracted_vocabulary', currentWord.id)
-      const increment = isCorrect ? 15 : -10 // 타이핑은 더 어려우므로 점수 높게
-      const newMasteryLevel = Math.max(0, Math.min(100, 
-        currentWord.studyStatus.masteryLevel + increment
-      ))
-      
-      await updateDoc(wordRef, {
-        'studyStatus.masteryLevel': newMasteryLevel,
-        'studyStatus.typingCount': (currentWord.studyStatus.typingCount || 0) + 1,
-        'studyStatus.lastStudied': Timestamp.now(),
-        'studyStatus.studied': true,
-        updatedAt: Timestamp.now()
-      })
-    }
-    
-    setShowResult(true)
-  }
+    submitWord(hintLevel)
+  }, [submitWord, hintLevel])
 
-  const handleNextWord = () => {
-    if (currentWordIndex < words.length - 1) {
-      setCurrentWordIndex(currentWordIndex + 1)
-      setTypedWord('')
-      setShowResult(false)
-      setWordStartTime(new Date())
-    } else {
-      // 연습 완료
-      setPracticeComplete(true)
-    }
-  }
+  const handleNextWord = useCallback(() => {
+    nextWord()
+    startNewWord()
+  }, [nextWord, startNewWord])
 
-  const restartPractice = () => {
-    setCurrentWordIndex(0)
-    setTypedWord('')
-    setShowResult(false)
-    setResults([])
-    setPracticeComplete(false)
-    setWordStartTime(new Date())
+  const handleRestartPractice = useCallback(() => {
+    restartPractice()
+    resetTimer()
+    clearError()
     loadWords()
-  }
+  }, [restartPractice, resetTimer, loadWords, clearError])
+
+  const handleRetry = useCallback(() => {
+    clearError()
+    loadWords()
+  }, [clearError, loadWords])
+
+  // Memoized input className to prevent unnecessary re-renders
+  const inputClassName = useMemo(() => {
+    const baseClasses = 'text-center text-2xl py-6 font-mono'
+    if (!showResult || !currentWord) return baseClasses
+    
+    const isCorrect = typedWord.trim().toLowerCase() === currentWord.word.toLowerCase()
+    const resultClasses = isCorrect 
+      ? 'border-green-500 bg-green-50' 
+      : 'border-red-500 bg-red-50'
+    
+    return `${baseClasses} ${resultClasses}`
+  }, [showResult, typedWord, currentWord])
 
   if (!user) {
     return (
@@ -166,24 +185,34 @@ export default function TypingPage() {
     )
   }
 
-  if (loading) {
+  // Show loading skeleton while words are being loaded
+  if (isLoading) {
+    return <LoadingSkeleton />
+  }
+
+  // Show error state
+  if (error) {
     return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <p>로딩 중...</p>
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex items-center gap-4 mb-6">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => router.push('/study')}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            돌아가기
+          </Button>
+          <h1 className="text-2xl font-bold">타이핑 연습 (힌트 모드)</h1>
+        </div>
+        <ErrorFallback error={new Error(error)} resetError={handleRetry} />
       </div>
     )
   }
 
-  const currentWord = words[currentWordIndex]
-  const correctCount = results.filter(r => r.correct).length
-  const accuracy = results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0
-  const avgTime = results.length > 0 
-    ? (results.reduce((sum, r) => sum + r.time, 0) / results.length).toFixed(1)
-    : '0'
-
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* 헤더 */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Button 
@@ -194,109 +223,21 @@ export default function TypingPage() {
             <ChevronLeft className="h-4 w-4 mr-1" />
             돌아가기
           </Button>
-          <h1 className="text-2xl font-bold">타이핑 연습</h1>
+          <h1 className="text-2xl font-bold">타이핑 연습 (힌트 모드)</h1>
         </div>
       </div>
 
-      {/* 통계 카드 */}
-      {!practiceComplete && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">진행률</p>
-                  <p className="text-2xl font-bold">
-                    {currentWordIndex + 1}/{words.length}
-                  </p>
-                </div>
-                <Keyboard className="h-8 w-8 text-blue-600 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">정확도</p>
-                  <p className="text-2xl font-bold text-green-600">{accuracy}%</p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-600 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">평균 시간</p>
-                  <p className="text-2xl font-bold">{avgTime}초</p>
-                </div>
-                <Zap className="h-8 w-8 text-orange-600 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* 연습 완료 화면 */}
       {practiceComplete ? (
-        <Card>
-          <CardHeader className="text-center">
-            <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
-            <CardTitle className="text-2xl">타이핑 연습 완료!</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">정확도</p>
-                  <p className="text-3xl font-bold text-blue-600">{accuracy}%</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">평균 시간</p>
-                  <p className="text-3xl font-bold">{avgTime}초</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">완료 단어</p>
-                  <p className="text-3xl font-bold">{correctCount}/{words.length}</p>
-                </div>
-              </div>
-              
-              {/* 틀린 단어 목록 */}
-              {results.filter(r => !r.correct).length > 0 && (
-                <div className="mt-6">
-                  <h3 className="font-semibold mb-3">틀린 단어</h3>
-                  <div className="space-y-2">
-                    {results.filter(r => !r.correct).map((result, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-red-50 rounded">
-                        <div>
-                          <span className="font-medium">{result.word.word}</span>
-                          <span className="text-sm text-gray-600 ml-2">
-                            (입력: {result.typed || '(비어있음)'})
-                          </span>
-                        </div>
-                        <span className="text-sm text-red-600">{result.time.toFixed(1)}초</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex gap-4 mt-6">
-                <Button className="flex-1" onClick={restartPractice}>
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  다시 연습
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => router.push('/study')}>
-                  학습 메뉴로
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <PracticeCompleteScreen
+          results={results}
+          accuracy={accuracy}
+          avgTime={avgTime}
+          avgHints={avgHints}
+          correctCount={correctCount}
+          totalWords={words.length}
+          onRestart={handleRestartPractice}
+          onGoToStudy={() => router.push('/study')}
+        />
       ) : words.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
@@ -309,26 +250,22 @@ export default function TypingPage() {
         </Card>
       ) : currentWord ? (
         <>
-          {/* 타이핑 카드 */}
+          <TypingStatsGrid
+            currentWordIndex={currentWordIndex}
+            totalWords={words.length}
+            accuracy={accuracy}
+            timeElapsed={timeElapsed}
+            nextHintIn={nextHintIn}
+          />
+
           <Card className="mb-6">
             <CardContent className="p-8">
-              <div className="text-center mb-8">
-                <p className="text-gray-600 mb-4">다음 단어를 입력하세요:</p>
-                <h2 className="text-xl font-semibold mb-2">{currentWord.definition}</h2>
-                {currentWord.etymology && (
-                  <p className="text-sm text-gray-500">{currentWord.etymology}</p>
-                )}
-                <div className="flex justify-center gap-2 mt-4">
-                  {currentWord.partOfSpeech.map(pos => (
-                    <span 
-                      key={pos}
-                      className="text-sm px-3 py-1 rounded bg-gray-100 text-gray-700"
-                    >
-                      {pos}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              <WordDisplayCard
+                word={currentWord}
+                hintLevel={hintLevel}
+                timeElapsed={timeElapsed}
+                nextHintIn={nextHintIn}
+              />
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -337,60 +274,32 @@ export default function TypingPage() {
                     type="text"
                     value={typedWord}
                     onChange={handleInputChange}
-                    placeholder="단어를 입력하세요"
-                    className={`text-center text-2xl py-6 ${
-                      showResult
-                        ? typedWord.trim().toLowerCase() === currentWord.word.toLowerCase()
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-red-500 bg-red-50'
-                        : ''
-                    }`}
+                    placeholder={`단어를 입력하세요 (${currentWord.word.length}글자)`}
+                    className={inputClassName}
                     disabled={showResult}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
+                    maxLength={currentWord.word.length + 5}
                   />
                 </div>
-                
-                {showResult && (
-                  <div className="text-center">
-                    {typedWord.trim().toLowerCase() === currentWord.word.toLowerCase() ? (
-                      <div className="flex items-center justify-center gap-2 text-green-600">
-                        <CheckCircle className="h-5 w-5" />
-                        <span>정답입니다!</span>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
-                          <XCircle className="h-5 w-5" />
-                          <span>틀렸습니다</span>
-                        </div>
-                        <p className="text-lg font-medium">정답: {currentWord.word}</p>
-                      </div>
-                    )}
-                  </div>
+
+                {showResult && currentResult && currentResult.word.word === currentWord?.word && (
+                  <TypingResultDisplay result={currentResult} />
                 )}
+
+                <div className="flex gap-4">
+                  {!showResult ? (
+                    <Button type="submit" className="flex-1">
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      확인
+                    </Button>
+                  ) : (
+                    <Button className="flex-1" onClick={handleNextWord}>
+                      {currentWordIndex < words.length - 1 ? '다음 단어' : '결과 보기'}
+                    </Button>
+                  )}
+                </div>
               </form>
             </CardContent>
           </Card>
-          
-          {/* 버튼 */}
-          <div className="flex gap-4">
-            {!showResult ? (
-              <Button 
-                className="flex-1" 
-                onClick={handleSubmit}
-                disabled={typedWord.trim().length === 0}
-              >
-                제출
-              </Button>
-            ) : (
-              <Button className="flex-1" onClick={handleNextWord}>
-                {currentWordIndex < words.length - 1 ? '다음 단어' : '결과 보기'}
-              </Button>
-            )}
-          </div>
         </>
       ) : null}
     </div>

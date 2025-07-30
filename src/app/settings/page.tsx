@@ -18,12 +18,11 @@ import {
   MessageSquare,
   Sparkles,
   DollarSign,
-  ExternalLink
+  ExternalLink,
+  Target
 } from 'lucide-react'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { vocabularyService } from '@/lib/api'
 import { UserSettingsService } from '@/lib/settings/user-settings-service'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
 
 interface VocabularySource {
   filename: string
@@ -53,6 +52,9 @@ export default function SettingsPage() {
   })
   const [generatingExamples, setGeneratingExamples] = useState(false)
   const [openAIUsage, setOpenAIUsage] = useState<any>(null)
+  const [dailyGoal, setDailyGoal] = useState(30)
+  const [updatingDailyGoal, setUpdatingDailyGoal] = useState(false)
+  const [deletingData, setDeletingData] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -63,6 +65,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (user) {
       loadSources()
+      loadUserSettings()
       checkPronunciationStats()
       checkExampleStats()
       checkOpenAIUsage()
@@ -73,18 +76,16 @@ export default function SettingsPage() {
     if (!user) return
 
     try {
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      const q = createVocabularyQuery('extracted_vocabulary', user.uid)
+      console.log('Loading vocabulary sources using new vocabulary service')
       
-      const snapshot = await getDocs(q)
-      const words = snapshot.docs.map(doc => doc.data())
+      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
+      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
       
-      // 출처별 단어 수 계산
+      console.log(`Loaded ${words.length} words for settings`)
+      
+      // 현재는 모든 단어가 V.ZIP 3K에서 왔으므로 하나의 소스로 표시
       const sourceMap = new Map<string, number>()
-      words.forEach(word => {
-        const filename = word.source?.filename || '알 수 없음'
-        sourceMap.set(filename, (sourceMap.get(filename) || 0) + 1)
-      })
+      sourceMap.set('V.ZIP 3K 단어장', words.length)
       
       // Firestore에서 사용자 설정 가져오기
       const userSettings = await settingsService.getUserSettings(user.uid)
@@ -94,7 +95,9 @@ export default function SettingsPage() {
         .map(([filename, count]) => ({ 
           filename, 
           count,
-          selected: selectedSources.length === 0 || selectedSources.includes(filename)
+          selected: selectedSources.length === 0 ? true : // 빈 배열 = 전체 선택
+                   selectedSources.includes('__none__') ? false : // '__none__' = 전체 해제
+                   selectedSources.includes(filename) // 개별 선택
         }))
         .sort((a, b) => b.count - a.count)
       
@@ -120,7 +123,12 @@ export default function SettingsPage() {
       .map(s => s.filename)
     
     if (user) {
-      await settingsService.updateSelectedVocabularies(user.uid, selectedFilenames)
+      // 아무것도 선택되지 않았으면 '__none__'으로 명시적 표시
+      if (selectedFilenames.length === 0) {
+        await settingsService.updateSelectedVocabularies(user.uid, ['__none__'])
+      } else {
+        await settingsService.updateSelectedVocabularies(user.uid, selectedFilenames)
+      }
     }
   }
 
@@ -254,6 +262,95 @@ export default function SettingsPage() {
     }
   }
 
+  const loadUserSettings = async () => {
+    if (!user) return
+
+    try {
+      const settings = await settingsService.getUserSettings(user.uid)
+      if (settings?.dailyGoal) {
+        setDailyGoal(settings.dailyGoal)
+      }
+    } catch (error) {
+      console.error('Error loading user settings:', error)
+    }
+  }
+
+  const updateDailyGoal = async (newGoal: number) => {
+    if (!user || updatingDailyGoal) return
+
+    setUpdatingDailyGoal(true)
+    try {
+      await settingsService.updateDailyGoal(user.uid, newGoal)
+      setDailyGoal(newGoal)
+      alert(`일일 학습 목표가 ${newGoal}개로 변경되었습니다.`)
+    } catch (error) {
+      console.error('Error updating daily goal:', error)
+      alert('일일 목표 변경 중 오류가 발생했습니다.')
+    } finally {
+      setUpdatingDailyGoal(false)
+    }
+  }
+
+  const deleteUserData = async () => {
+    if (!user || deletingData) return
+
+    // 이중 확인
+    const confirmMessage = `🚨 학습 데이터 삭제 확인
+
+다음 데이터가 영구적으로 삭제됩니다:
+• 학습한 단어들의 진도 기록 (정답률, 숙련도 등)
+• 북마크한 단어들
+• 개인 메모 및 노트
+• 학습 통계 및 히스토리
+• 복습 일정 및 스트릭 기록
+
+⚠️ 이 작업은 되돌릴 수 없습니다!
+⚠️ 마스터 단어 데이터는 삭제되지 않으므로 다시 학습 가능합니다.
+
+정말로 삭제하시려면 아래에 "DELETE"를 정확히 입력하세요:`
+
+    const userInput = prompt(confirmMessage)
+    
+    if (userInput !== 'DELETE') {
+      if (userInput !== null) { // null이 아니면 사용자가 취소하지 않고 잘못 입력한 것
+        alert('입력이 정확하지 않습니다. 삭제가 취소되었습니다.')
+      }
+      return
+    }
+
+    setDeletingData(true)
+
+    try {
+      const response = await fetch('/api/delete-user-data', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert(`✅ ${result.message}
+        
+삭제된 데이터:
+• 학습 기록: ${result.deleted.userWords}개
+• 단어장 구독: ${result.deleted.userVocabularies}개
+
+새롭게 시작하실 수 있습니다!`)
+        
+        // 페이지 새로고침하여 UI 업데이트
+        window.location.reload()
+      } else {
+        alert(`❌ 오류: ${result.message}`)
+      }
+    } catch (error) {
+      console.error('Error deleting user data:', error)
+      alert('데이터 삭제 중 오류가 발생했습니다.')
+    } finally {
+      setDeletingData(false)
+    }
+  }
+
   if (loading || loadingSources) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -313,6 +410,65 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* 일일 학습 목표 설정 섹션 */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            일일 학습 목표
+          </CardTitle>
+          <CardDescription>
+            하루에 학습할 단어 개수를 설정하세요
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-gray-600">현재 목표:</p>
+              <p className="text-2xl font-bold text-blue-600">{dailyGoal}개</p>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2">
+              {[10, 20, 30, 50].map((goal) => (
+                <Button
+                  key={goal}
+                  variant={dailyGoal === goal ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => updateDailyGoal(goal)}
+                  disabled={updatingDailyGoal}
+                >
+                  {goal}개
+                </Button>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="5"
+                max="100"
+                step="5"
+                value={dailyGoal}
+                onChange={(e) => setDailyGoal(Number(e.target.value))}
+                className="flex-1"
+                disabled={updatingDailyGoal}
+              />
+              <Button
+                size="sm"
+                onClick={() => updateDailyGoal(dailyGoal)}
+                disabled={updatingDailyGoal}
+              >
+                설정
+              </Button>
+            </div>
+            
+            <p className="text-xs text-gray-500">
+              추천: 초급자 10-20개, 중급자 20-30개, 고급자 30-50개
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 단어장 선택 섹션 */}
       <Card>
@@ -551,17 +707,54 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            variant="outline" 
-            className="text-red-600 hover:bg-red-50"
-            onClick={() => {
-              if (confirm('정말로 모든 단어를 삭제하시겠습니까?')) {
-                // 삭제 로직
-              }
-            }}
-          >
-            모든 단어 삭제
-          </Button>
+          <div className="space-y-4">
+            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-2">🚨 데이터 삭제 안내</p>
+                <div className="space-y-2 text-red-700">
+                  <div>
+                    <p className="font-medium">삭제되는 데이터:</p>
+                    <ul className="space-y-1 ml-2">
+                      <li>• 개인 학습 기록 (정답률, 숙련도, 진도)</li>
+                      <li>• 북마크한 단어들</li>
+                      <li>• 개인 메모 및 노트</li>
+                      <li>• 학습 통계 및 히스토리</li>
+                      <li>• 복습 일정 및 스트릭 기록</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium">유지되는 데이터:</p>
+                    <ul className="space-y-1 ml-2">
+                      <li>• 마스터 단어 데이터 (삭제 후 재학습 가능)</li>
+                      <li>• 계정 정보</li>
+                    </ul>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-red-200">
+                    <p className="font-medium">삭제 시 "DELETE" 입력이 필요합니다</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full text-red-600 hover:bg-red-50 border-red-300"
+              onClick={deleteUserData}
+              disabled={deletingData}
+            >
+              {deletingData ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  삭제 중...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  내 학습 데이터 삭제
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,0 +1,151 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 사용자 인증 확인 함수
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // 관리자 확인 함수 (vocanet@gmail.com)
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'vocanet@gmail.com';
+    }
+    
+    // 문서 소유자 확인 함수
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 단어 데이터 검증 함수
+    function isValidWordData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['word', 'createdBy', 'createdAt', 'updatedAt']) &&
+             data.word is string &&
+             data.word.size() > 0 &&
+             data.word.size() <= 50 &&
+             data.createdBy is string &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+    
+    // ======================
+    // Words 컬렉션 (마스터 단어 DB)
+    // ======================
+    match /words/{wordId} {
+      // 읽기: 모든 사용자 허용
+      allow read: if true;
+      
+      // 생성: 인증된 사용자, 유효한 데이터
+      allow create: if isAuthenticated() && 
+                    isValidWordData() &&
+                    request.resource.data.createdBy == request.auth.uid;
+      
+      // 업데이트: 단어 필드는 변경 불가, 정의 추가만 허용
+      allow update: if isAuthenticated() && 
+                    resource.data.word == request.resource.data.word &&
+                    request.resource.data.updatedAt is timestamp;
+      
+      // 삭제: 관리자만
+      allow delete: if isAdmin();
+    }
+    
+    // ======================
+    // Vocabularies 컬렉션 (단어장)
+    // ======================
+    match /vocabularies/{vocabularyId} {
+      // 읽기: 공개 단어장은 모두, 비공개는 소유자만
+      allow read: if resource.data.visibility == 'public' || 
+                    (isAuthenticated() && resource.data.ownerId == request.auth.uid) ||
+                    resource.data.type == 'system';
+      
+      // 생성: 인증된 사용자, 시스템 단어장은 관리자만
+      allow create: if isAuthenticated() && 
+                    (request.resource.data.type != 'system' || isAdmin()) &&
+                    request.resource.data.ownerId == request.auth.uid;
+      
+      // 업데이트: 소유자만, 시스템 단어장은 관리자만
+      allow update: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) ||
+                    (resource.data.type == 'system' && isAdmin());
+      
+      // 삭제: 소유자만, 시스템 단어장은 관리자만
+      allow delete: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) ||
+                    (resource.data.type == 'system' && isAdmin());
+    }
+    
+    // ======================
+    // Vocabulary Words 컬렉션 (단어장-단어 매핑)
+    // ======================
+    match /vocabulary_words/{mappingId} {
+      // 읽기: 모든 사용자 허용 (단어장 권한은 별도 체크)
+      allow read: if true;
+      
+      // 생성/수정/삭제: 해당 단어장의 소유자만
+      allow create, update, delete: if isAuthenticated() && 
+        (get(/databases/$(database)/documents/vocabularies/$(resource.data.vocabularyId)).data.ownerId == request.auth.uid ||
+         (get(/databases/$(database)/documents/vocabularies/$(resource.data.vocabularyId)).data.type == 'system' && isAdmin()));
+    }
+    
+    // ======================
+    // User Vocabularies 컬렉션 (사용자 구독)
+    // ======================
+    match /user_vocabularies/{subscriptionId} {
+      // 읽기/쓰기: 해당 사용자만
+      allow read, write: if isAuthenticated() && 
+                         resource.data.userId == request.auth.uid;
+    }
+    
+    // ======================
+    // User Words 컬렉션 (사용자 학습 진도)
+    // ======================
+    match /user_words/{userWordId} {
+      // 읽기/쓰기: 해당 사용자만
+      allow read, write: if isAuthenticated() && 
+                         resource.data.userId == request.auth.uid;
+    }
+    
+    // ======================
+    // Users 컬렉션
+    // ======================
+    match /users/{userId} {
+      // 자신의 문서만 읽기/쓰기 허용
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ======================
+    // 기존 컬렉션들 (호환성 유지)
+    // ======================
+    match /extracted_vocabulary/{docId} {
+      allow read: if true;
+      allow write: if isAdmin(); // 관리자만 수정 가능
+    }
+    
+    match /vocabulary_collections/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    
+    match /user_vocabulary_progress/{docId} {
+      allow read, write: if isAuthenticated() && 
+                         resource.data.userId == request.auth.uid;
+    }
+    
+    // ======================
+    // 기타 컬렉션들
+    // ======================
+    match /news/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /progress/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // 모든 다른 문서는 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

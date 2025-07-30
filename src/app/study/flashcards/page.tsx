@@ -17,17 +17,23 @@ import {
   Volume2,
   Sparkles
 } from 'lucide-react'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs, doc, updateDoc, Timestamp, writeBatch } from 'firebase/firestore'
-import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
-import { getSelectedSources, filterWordsBySelectedSources } from '@/lib/settings/get-selected-sources'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
+import { vocabularyService } from '@/lib/api'
+import type { VocabularyWord } from '@/types'
+// Firebase imports 제거 - 새 서비스 사용
 
 export default function FlashcardsPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [words, setWords] = useState<ExtractedVocabulary[]>([])
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [words, setWords] = useState<VocabularyWord[]>([])
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    // localStorage에서 마지막 학습 위치 가져오기
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('flashcard-progress')
+      const savedIndex = saved ? parseInt(saved, 10) : 0
+      return savedIndex
+    }
+    return 0
+  })
   const [showAnswer, setShowAnswer] = useState(false)
   const [loading, setLoading] = useState(true)
   const [studyMode, setStudyMode] = useState<'all' | 'not-studied'>('not-studied')
@@ -42,62 +48,60 @@ export default function FlashcardsPage() {
     }
   }, [user, studyMode])
 
+  // 현재 인덱스를 localStorage에 저장
+  useEffect(() => {
+    if (typeof window !== 'undefined' && words.length > 0) {
+      // 유효한 범위 내의 인덱스만 저장
+      const validIndex = Math.min(currentIndex, words.length - 1)
+      localStorage.setItem('flashcard-progress', validIndex.toString())
+    }
+  }, [currentIndex, words.length])
+
   // 현재 단어가 변경될 때마다 예문 및 어원 확인 및 생성
   useEffect(() => {
     const currentWord = words[currentIndex]
     if (currentWord && showAnswer) {
-      // 예문 먼저 생성하고, 완료되면 어원 생성
+      // 예문 생성 (한 번만 시도)
       if (!currentWord.examples?.length && !generatingExamples) {
         generateExampleForCurrentWord()
-      } else if (currentWord.examples?.length > 0 && !currentWord.realEtymology && !generatingEtymology) {
+      }
+      // 어원 생성 (한 번만 시도)
+      if (!currentWord.etymology?.meaning && !generatingEtymology) {
         generateEtymologyForCurrentWord()
       }
     }
-  }, [currentIndex, showAnswer, generatingExamples, generatingEtymology])
+  }, [currentIndex, showAnswer]) // generatingExamples, generatingEtymology 제거
 
   const loadWords = async () => {
     if (!user) return
 
     try {
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      let q = createVocabularyQuery('extracted_vocabulary', user.uid)
+      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
+      const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
       
-      const snapshot = await getDocs(q)
-      
-      let wordsData = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-        source: {
-          ...doc.data().source,
-          uploadedAt: doc.data().source?.uploadedAt?.toDate() || new Date()
-        }
-      })) as ExtractedVocabulary[]
-      
-      // Firestore에서 선택된 단어장 가져오기
-      const selectedSources = await getSelectedSources(user.uid)
-      
-      // 선택된 단어장으로 필터링
-      wordsData = filterWordsBySelectedSources(wordsData, selectedSources)
+      // 발음 정보 로드됨
       
       // 학습 모드에 따라 필터링
+      let wordsData = allWords
       if (studyMode === 'not-studied') {
-        wordsData = wordsData.filter(w => !w.studyStatus.studied)
+        wordsData = allWords.filter(w => (w.learningMetadata?.timesStudied || 0) === 0)
       }
       
-      // 번호순으로 정렬 (번호가 없는 단어는 뒤로)
-      wordsData.sort((a, b) => {
-        if (a.number && b.number) {
-          return a.number - b.number
-        }
-        if (a.number && !b.number) return -1
-        if (!a.number && b.number) return 1
-        return a.word.localeCompare(b.word)
-      })
+      // 알파벳순으로 정렬
+      wordsData.sort((a, b) => a.word.localeCompare(b.word))
       
       setWords(wordsData)
-      setCurrentIndex(0)
+      
+      // localStorage에서 저장된 진행 상황 복원
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('flashcard-progress')
+        const savedIndex = saved ? parseInt(saved, 10) : 0
+        // 유효한 범위 내의 인덱스로 설정
+        const validIndex = Math.min(savedIndex, wordsData.length - 1)
+        setCurrentIndex(Math.max(0, validIndex))
+      } else {
+        setCurrentIndex(0)
+      }
       
       // 발음 정보 가져오기
       fetchPronunciations(wordsData)
@@ -108,7 +112,7 @@ export default function FlashcardsPage() {
     }
   }
 
-  const fetchPronunciations = async (words: ExtractedVocabulary[]) => {
+  const fetchPronunciations = async (words: VocabularyWord[]) => {
     // 이미 발음이 있는 단어들도 상태에 추가
     const existingPronunciations: Record<string, string> = {}
     words.forEach(word => {
@@ -126,7 +130,7 @@ export default function FlashcardsPage() {
     const batchSize = 5
     const wordsToProcess = wordsNeedPronunciation.slice(0, batchSize)
     
-    const batch = writeBatch(db)
+    // 발음 정보를 임시로 저장
     const pronunciationUpdates: Record<string, string> = {}
     
     for (let i = 0; i < wordsToProcess.length; i++) {
@@ -149,12 +153,8 @@ export default function FlashcardsPage() {
             // 메모리에 캐싱
             pronunciationUpdates[word.word] = phonetic
             
-            // DB 업데이트 준비
-            const wordRef = doc(db, 'extracted_vocabulary', word.id)
-            batch.update(wordRef, {
-              pronunciation: phonetic,
-              updatedAt: Timestamp.now()
-            })
+            // TODO: 새 서비스의 words 컬렉션에 발음 정보 업데이트
+            // 현재는 호환성 레이어가 읽기 전용이므로 DB 업데이트 생략
           }
         }
       } catch (error) {
@@ -170,13 +170,9 @@ export default function FlashcardsPage() {
         ...pronunciationUpdates
       }))
       
-      // DB에 배치 업데이트
-      try {
-        await batch.commit()
-        console.log(`Updated pronunciation for ${Object.keys(pronunciationUpdates).length} words`)
-      } catch (error) {
-        console.error('Error updating pronunciations in DB:', error)
-      }
+      // TODO: 새 서비스로 발음 정보 업데이트
+      // 현재는 메모리 캐싱만 수행
+      console.log(`Cached pronunciation for ${Object.keys(pronunciationUpdates).length} words`)
     }
     
     // 처리하지 못한 단어가 있으면 안내
@@ -191,6 +187,10 @@ export default function FlashcardsPage() {
     setCurrentIndex(0)
     setShowAnswer(false)
     setIsShuffled(true)
+    // 셔플 시 진행 상황 초기화
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('flashcard-progress', '0')
+    }
   }
 
   const generateExampleForCurrentWord = async () => {
@@ -218,21 +218,28 @@ export default function FlashcardsPage() {
         console.log(`Examples generated:`, result)
         
         if (result.updated > 0) {
-          // 현재 단어의 예문만 업데이트
-          const q = query(
-            collection(db, 'extracted_vocabulary'),
-            where('userId', '==', user?.uid),
-            where('__name__', '==', currentWord.id)
-          )
-          const snapshot = await getDocs(q)
-          if (!snapshot.empty) {
-            const updatedWord = snapshot.docs[0].data() as ExtractedVocabulary
-            const newWords = [...words]
-            newWords[currentIndex] = {
-              ...currentWord,
-              examples: updatedWord.examples
+          // 새 DB 구조에서 예문 업데이트 구현
+          // API가 성공적으로 예문을 생성했으므로, 단어를 다시 로드
+          if (result.updated > 0 && currentWord.id) {
+            // 짧은 지연 후 현재 단어 다시 가져오기 (DB 업데이트 대기)
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            console.log('Fetching updated word with ID:', currentWord.id)
+            const updatedWord = await vocabularyService.getById(currentWord.id)
+            console.log('Updated word:', updatedWord)
+            if (updatedWord) {
+              console.log('Updated word examples:', updatedWord.examples)
+              const newWords = [...words]
+              newWords[currentIndex] = {
+                ...updatedWord,
+                // Force update to trigger re-render
+                _forceUpdate: Date.now()
+              }
+              setWords(newWords)
+              console.log('UI updated with new examples')
+            } else {
+              console.error('Failed to fetch updated word')
             }
-            setWords(newWords)
           }
         }
       } else {
@@ -248,7 +255,9 @@ export default function FlashcardsPage() {
 
   const generateEtymologyForCurrentWord = async () => {
     const currentWord = words[currentIndex]
-    if (!currentWord || !currentWord.id || currentWord.realEtymology || generatingEtymology) {
+    // Check both etymology.meaning and realEtymology
+    const hasRealEtymology = currentWord.etymology?.meaning || currentWord.realEtymology
+    if (!currentWord || !currentWord.id || hasRealEtymology || generatingEtymology) {
       return
     }
     
@@ -271,21 +280,23 @@ export default function FlashcardsPage() {
         console.log(`Etymology generated:`, result)
         
         if (result.updated > 0) {
-          // 현재 단어의 어원만 업데이트
-          const q = query(
-            collection(db, 'extracted_vocabulary'),
-            where('userId', '==', user?.uid),
-            where('__name__', '==', currentWord.id)
-          )
-          const snapshot = await getDocs(q)
-          if (!snapshot.empty) {
-            const updatedWord = snapshot.docs[0].data() as ExtractedVocabulary
-            const newWords = [...words]
-            newWords[currentIndex] = {
-              ...currentWord,
-              realEtymology: updatedWord.realEtymology
+          // 새 DB 구조에서 어원 업데이트 구현
+          // API가 성공적으로 어원을 생성했으므로, 단어를 다시 로드
+          if (result.updated > 0 && currentWord.id) {
+            // 짧은 지연 후 현재 단어 다시 가져오기
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            const updatedWord = await vocabularyService.getById(currentWord.id)
+            if (updatedWord) {
+              const newWords = [...words]
+              newWords[currentIndex] = {
+                ...updatedWord,
+                // Force update to trigger re-render
+                _forceUpdate: Date.now()
+              }
+              setWords(newWords)
+              console.log('UI updated with new etymology')
             }
-            setWords(newWords)
           }
         }
       } else {
@@ -318,35 +329,53 @@ export default function FlashcardsPage() {
     if (!currentWord || !currentWord.id) return
 
     try {
-      const wordRef = doc(db, 'extracted_vocabulary', currentWord.id)
-      const newMasteryLevel = mastered 
-        ? Math.min(currentWord.studyStatus.masteryLevel + 20, 100)
-        : Math.max(currentWord.studyStatus.masteryLevel - 10, 0)
+      // 학습 진도 업데이트
+      const increment = mastered ? 20 : 5 // 알고 있음: +20, 모름: +5
+      await vocabularyService.updateStudyProgress(
+        currentWord.id,
+        'flashcard',
+        mastered,
+        increment
+      )
+      console.log('Flashcard progress updated:', currentWord.word, mastered)
       
-      await updateDoc(wordRef, {
-        'studyStatus.studied': true,
-        'studyStatus.masteryLevel': newMasteryLevel,
-        'studyStatus.reviewCount': currentWord.studyStatus.reviewCount + 1,
-        'studyStatus.lastStudied': Timestamp.now(),
-        updatedAt: Timestamp.now()
-      })
-
-      // 로컬 상태 업데이트
       const updatedWords = [...words]
+      const currentLearningMetadata = currentWord.learningMetadata || {
+        timesStudied: 0,
+        masteryLevel: 0,
+        lastStudied: new Date(),
+        userProgress: {
+          userId: user?.uid || '',
+          wordId: currentWord.id,
+          correctAttempts: 0,
+          totalAttempts: 0,
+          streak: 0,
+          nextReviewDate: new Date()
+        }
+      }
+      
+      const newMasteryLevel = mastered 
+        ? Math.min(currentLearningMetadata.masteryLevel + 0.2, 1.0)
+        : Math.max(currentLearningMetadata.masteryLevel - 0.1, 0)
+      
       updatedWords[currentIndex] = {
         ...currentWord,
-        studyStatus: {
-          ...currentWord.studyStatus,
-          studied: true,
+        learningMetadata: {
+          ...currentLearningMetadata,
+          timesStudied: currentLearningMetadata.timesStudied + 1,
           masteryLevel: newMasteryLevel,
-          reviewCount: currentWord.studyStatus.reviewCount + 1,
           lastStudied: new Date()
         }
       }
       setWords(updatedWords)
 
-      // 다음 단어로
-      nextWord()
+      // 다음 단어로 이동 (마지막 단어가 아닌 경우만)
+      if (currentIndex < words.length - 1) {
+        nextWord()
+      } else {
+        // 마지막 단어인 경우 답 숨기기만 함
+        setShowAnswer(false)
+      }
     } catch (error) {
       console.error('Error updating word:', error)
     }
@@ -509,26 +538,25 @@ export default function FlashcardsPage() {
 
             {showAnswer ? (
               <div className="space-y-4 animate-fade-in">
-                <p className="text-xl text-gray-800 font-medium">{currentWord.definition}</p>
+                <p className="text-xl text-gray-800 font-medium">{currentWord.definitions[0]?.text || 'Definition not available'}</p>
                 
                 <div className="space-y-4 mt-6">
-                  {currentWord.etymology && (
-                    <div className="p-4 bg-blue-50 rounded-lg text-left max-w-xl mx-auto">
-                      <p className="text-sm font-semibold text-blue-800 mb-1">영어 정의:</p>
-                      <p className="text-sm text-blue-700">{currentWord.etymology}</p>
+                  {/* 영어 설명은 etymology.origin에서만 표시 */}
+                  {currentWord.etymology?.origin && (
+                    <div className="p-4 bg-yellow-50 rounded-lg text-left max-w-xl mx-auto">
+                      <p className="text-sm font-semibold text-yellow-800 mb-1">영어 설명:</p>
+                      <p className="text-sm text-yellow-700">{currentWord.etymology.origin}</p>
                     </div>
                   )}
                   
-                  {currentWord.realEtymology ? (
-                    <div className="p-4 bg-purple-50 rounded-lg text-left max-w-xl mx-auto">
-                      <p className="text-sm font-semibold text-purple-800 mb-1">어원:</p>
-                      <p className="text-sm text-purple-700">{currentWord.realEtymology}</p>
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center max-w-xl mx-auto">
-                      <p className="text-sm text-purple-600 flex items-center justify-center gap-1">
-                        <Sparkles className="h-4 w-4 animate-pulse" />
-                        AI가 어원을 분석하고 있습니다...
+                  {/* 실제 어원은 etymology.meaning 또는 realEtymology에서 표시 (빈 문자열 제외) */}
+                  {((currentWord.etymology?.meaning && currentWord.etymology.meaning.trim()) || 
+                    (currentWord.realEtymology && currentWord.realEtymology.trim())) && (
+                    <div className="p-4 bg-blue-50 rounded-lg text-left max-w-xl mx-auto">
+                      <p className="text-sm font-semibold text-blue-800 mb-1">어원:</p>
+                      <p className="text-sm text-blue-700">
+                        {(currentWord.etymology?.meaning && currentWord.etymology.meaning.trim()) || 
+                         (currentWord.realEtymology && currentWord.realEtymology.trim())}
                       </p>
                     </div>
                   )}
@@ -538,9 +566,23 @@ export default function FlashcardsPage() {
                       <p className="text-sm font-semibold text-green-800 mb-2">예문:</p>
                       <div className="space-y-2">
                         {currentWord.examples.map((example, idx) => (
-                          <p key={idx} className="text-sm text-green-700">
-                            • {example}
-                          </p>
+                          <div key={idx} className="flex items-start gap-2">
+                            <p className="text-sm text-green-700 flex-1">
+                              • {example}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                speakWord(example)
+                              }}
+                              className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100"
+                              title="예문 듣기"
+                            >
+                              <Volume2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -551,6 +593,16 @@ export default function FlashcardsPage() {
                       <p className="text-sm text-blue-600 flex items-center justify-center gap-1">
                         <Sparkles className="h-4 w-4 animate-pulse" />
                         AI가 예문을 생성하고 있습니다...
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* 어원이 없고 영어 설명만 있는 경우 AI 생성 표시 */}
+                  {!currentWord.etymology?.meaning && !currentWord.realEtymology && currentWord.etymology?.origin && (
+                    <div className="p-4 bg-gray-50 rounded-lg text-center max-w-xl mx-auto">
+                      <p className="text-sm text-purple-600 flex items-center justify-center gap-1">
+                        <Sparkles className="h-4 w-4 animate-pulse" />
+                        AI가 어원을 분석하고 있습니다...
                       </p>
                     </div>
                   )}
@@ -612,10 +664,9 @@ export default function FlashcardsPage() {
 
       {/* 현재 단어 정보 */}
       <div className="mt-6 text-center text-sm text-gray-600">
-        {currentWord.number && <p>단어 번호: #{currentWord.number}</p>}
         <p>난이도: Level {currentWord.difficulty}</p>
-        <p>숙련도: {currentWord.studyStatus.masteryLevel}%</p>
-        <p>복습 횟수: {currentWord.studyStatus.reviewCount}회</p>
+        <p>숙련도: {Math.round((currentWord.learningMetadata?.masteryLevel || 0) * 100)}%</p>
+        <p>학습 횟수: {currentWord.learningMetadata?.timesStudied || 0}회</p>
       </div>
     </div>
   )

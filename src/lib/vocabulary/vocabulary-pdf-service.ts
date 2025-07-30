@@ -11,9 +11,13 @@ import {
 import { ExtractedVocabulary } from '@/types/extracted-vocabulary'
 import VocabularyPDFExtractor, { VocabularyEntry } from '../pdf/vocabulary-pdf-extractor'
 
+/**
+ * @deprecated 이 서비스는 구 DB 구조를 사용합니다. 
+ * 새로운 PDF 업로드 기능 구현 시 새 DB 구조(words, vocabularies)를 사용하도록 수정 필요
+ */
 export class VocabularyPDFService {
   private extractor: VocabularyPDFExtractor
-  private readonly collectionName = 'extracted_vocabulary'
+  private readonly collectionName = 'extracted_vocabulary' // TODO: 새 구조로 마이그레이션 필요
 
   constructor() {
     this.extractor = new VocabularyPDFExtractor()
@@ -175,18 +179,10 @@ export class VocabularyPDFService {
   }
 
   /**
-   * 난이도 추정
+   * 난이도 추정 (학술적 방법론 기반)
    */
   private estimateDifficulty(word: string): number {
-    const length = word.length
-    const hasUncommonPatterns = /[xyz]/.test(word)
-    const syllables = word.match(/[aeiou]/gi)?.length || 0
-    
-    let difficulty = Math.min(length / 2, 5)
-    if (hasUncommonPatterns) difficulty += 2
-    if (syllables > 3) difficulty += 1
-    
-    return Math.min(Math.round(difficulty), 10)
+    return WordDifficultyCalculator.calculateDifficulty(word)
   }
 }
 

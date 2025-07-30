@@ -16,9 +16,14 @@ import {
 import { ExtractedVocabulary, VocabularyCollection } from '@/types/extracted-vocabulary'
 import { DictionaryService } from '../api/dictionary-service'
 import { MockDictionaryService } from '../api/mock-dictionary'
+import { WordDifficultyCalculator } from './word-difficulty-calculator'
 
+/**
+ * @deprecated 이 서비스는 구 DB 구조를 사용합니다.
+ * 새 DB 구조는 WordService, VocabularyService를 사용하세요.
+ */
 export class ExtractedVocabularyService {
-  private readonly collectionName = 'extracted_vocabulary'
+  private readonly collectionName = 'extracted_vocabulary' // TODO: 삭제 예정
   private readonly collectionsName = 'vocabulary_collections'
   private dictionaryService: DictionaryService | MockDictionaryService
   private useMockDictionary = true // 개발 중에는 Mock 사용
@@ -140,6 +145,29 @@ export class ExtractedVocabularyService {
   }
 
   /**
+   * 모든 단어 조회 (모든 사용자)
+   */
+  async getAllWords(limitCount?: number): Promise<ExtractedVocabulary[]> {
+    let q = query(collection(db, this.collectionName))
+    
+    if (limitCount) {
+      q = query(q, limit(limitCount))
+    }
+    
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id,
+      createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : doc.data().createdAt,
+      updatedAt: doc.data().updatedAt?.toDate ? doc.data().updatedAt.toDate() : doc.data().updatedAt,
+      source: {
+        ...doc.data().source,
+        uploadedAt: doc.data().source?.uploadedAt?.toDate ? doc.data().source.uploadedAt.toDate() : doc.data().source?.uploadedAt
+      }
+    } as ExtractedVocabulary))
+  }
+
+  /**
    * 사용자의 단어 조회
    */
   async getUserWords(
@@ -214,10 +242,18 @@ export class ExtractedVocabularyService {
     status: Partial<ExtractedVocabulary['studyStatus']>
   ): Promise<void> {
     const docRef = doc(db, this.collectionName, wordId)
-    await updateDoc(docRef, {
-      studyStatus: status,
+    
+    // studyStatus 필드를 부분적으로 업데이트하기 위해 dot notation 사용
+    const updateData: any = {
       updatedAt: Timestamp.now()
+    }
+    
+    // status 객체의 각 필드를 dot notation으로 변환
+    Object.entries(status).forEach(([key, value]) => {
+      updateData[`studyStatus.${key}`] = value
     })
+    
+    await updateDoc(docRef, updateData)
   }
 
   /**
@@ -250,18 +286,10 @@ export class ExtractedVocabularyService {
   }
 
   /**
-   * 난이도 추정 (단어 길이와 복잡도 기반)
+   * 난이도 추정 (학술적 방법론 기반)
    */
   private estimateDifficulty(word: string): number {
-    const length = word.length
-    const hasUncommonPatterns = /[xyz]/.test(word)
-    const syllables = word.match(/[aeiou]/gi)?.length || 0
-    
-    let difficulty = Math.min(length / 2, 5)
-    if (hasUncommonPatterns) difficulty += 2
-    if (syllables > 3) difficulty += 1
-    
-    return Math.min(Math.round(difficulty), 10)
+    return WordDifficultyCalculator.calculateDifficulty(word)
   }
 
   /**

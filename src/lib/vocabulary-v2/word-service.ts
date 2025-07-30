@@ -13,7 +13,8 @@ import {
   DocumentData,
   QueryConstraint,
   updateDoc,
-  increment
+  increment,
+  writeBatch
 } from 'firebase/firestore'
 import type { Word, WordDefinition } from '@/types/vocabulary-v2'
 
@@ -21,12 +22,30 @@ export class WordService {
   private readonly collectionName = 'words'
 
   /**
+   * 단어 정규화 - 일관된 형식으로 변환
+   */
+  private normalizeWord(word: string): string {
+    return word
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ') // 중복 공백 제거
+      .replace(/[^\w\s\-']/g, '') // 특수문자 제거 (하이픈, 아포스트로피 제외)
+  }
+
+  /**
    * 단어 생성 또는 업데이트
    * 동일한 단어가 이미 존재하면 정의를 추가
    */
   async createOrUpdateWord(wordData: Partial<Word> & { word: string, createdBy: string }): Promise<Word> {
+    // 단어 정규화
+    const normalizedWord = this.normalizeWord(wordData.word)
+    
+    if (!normalizedWord) {
+      throw new Error('Invalid word: empty after normalization')
+    }
+    
     // 먼저 단어가 이미 존재하는지 확인
-    const existingWord = await this.findWordByText(wordData.word)
+    const existingWord = await this.findWordByText(normalizedWord)
     
     if (existingWord) {
       // 기존 단어에 새로운 정의 추가
@@ -64,7 +83,7 @@ export class WordService {
     
     const newWord: Word = {
       id: wordId,
-      word: wordData.word.toLowerCase(),
+      word: normalizedWord,
       pronunciation: wordData.pronunciation,
       partOfSpeech: wordData.partOfSpeech || [],
       definitions: wordData.definitions?.map(def => ({
@@ -152,6 +171,7 @@ export class WordService {
    */
   async searchWords(searchTerm: string, options?: {
     limit?: number
+    offset?: number
     includeDefinitions?: boolean
     partOfSpeech?: string[]
     difficulty?: { min: number, max: number }
@@ -170,9 +190,13 @@ export class WordService {
       constraints.unshift(where('partOfSpeech', 'array-contains-any', options.partOfSpeech))
     }
     
+    console.log('[WordService.searchWords] Building query with constraints:', constraints.length)
     const q = query(collection(db, this.collectionName), ...constraints)
+    
+    console.log('[WordService.searchWords] Executing query...')
     const snapshot = await getDocs(q)
     
+    console.log(`[WordService.searchWords] Found ${snapshot.docs.length} documents`)
     let words = snapshot.docs.map(doc => this.fromFirestore({ ...doc.data(), id: doc.id }))
     
     // 클라이언트 사이드 필터링 (검색어, 난이도)
@@ -248,6 +272,156 @@ export class WordService {
   }
 
   /**
+   * 여러 단어를 배치로 추가 (중복 방지)
+   */
+  async addMultipleWords(words: Array<Partial<Word> & { word: string, createdBy: string }>): Promise<Word[]> {
+    if (words.length === 0) return []
+    
+    // 먼저 모든 단어를 정규화하고 중복 제거
+    const uniqueWords = new Map<string, typeof words[0]>()
+    
+    for (const word of words) {
+      const normalized = this.normalizeWord(word.word)
+      if (normalized && !uniqueWords.has(normalized)) {
+        uniqueWords.set(normalized, { ...word, word: normalized })
+      }
+    }
+    
+    // 기존 단어 확인
+    const existingWords = await this.checkExistingWords(Array.from(uniqueWords.keys()))
+    
+    // 새 단어만 추가
+    const newWords = Array.from(uniqueWords.entries())
+      .filter(([word]) => !existingWords.has(word))
+      .map(([, wordData]) => wordData)
+    
+    if (newWords.length === 0) {
+      console.log('모든 단어가 이미 존재합니다.')
+      return []
+    }
+    
+    // 배치로 추가
+    return this.batchCreateWords(newWords)
+  }
+
+  /**
+   * 기존 단어들 확인
+   */
+  private async checkExistingWords(words: string[]): Promise<Set<string>> {
+    if (words.length === 0) return new Set()
+    
+    const existingWords = new Set<string>()
+    
+    // Firestore의 'in' 쿼리는 최대 30개까지만 가능
+    const chunks = this.chunkArray(words, 30)
+    
+    for (const chunk of chunks) {
+      const q = query(
+        collection(db, this.collectionName),
+        where('word', 'in', chunk)
+      )
+      
+      const snapshot = await getDocs(q)
+      snapshot.forEach(doc => {
+        const data = doc.data()
+        existingWords.add(data.word)
+      })
+    }
+    
+    return existingWords
+  }
+
+  /**
+   * 배치로 단어 생성
+   */
+  private async batchCreateWords(words: Array<Partial<Word> & { word: string, createdBy: string }>): Promise<Word[]> {
+    const createdWords: Word[] = []
+    const BATCH_SIZE = 500
+    const chunks = this.chunkArray(words, BATCH_SIZE)
+    
+    for (const chunk of chunks) {
+      const batch = writeBatch(db)
+      const chunkWords: Word[] = []
+      
+      for (const wordData of chunk) {
+        const wordId = this.generateId()
+        const now = new Date()
+        
+        const newWord: Word = {
+          id: wordId,
+          word: wordData.word,
+          pronunciation: wordData.pronunciation,
+          partOfSpeech: wordData.partOfSpeech || [],
+          definitions: wordData.definitions?.map(def => ({
+            ...def,
+            id: this.generateId(),
+            createdAt: def.createdAt || now
+          })) || [],
+          etymology: wordData.etymology,
+          realEtymology: wordData.realEtymology,
+          synonyms: wordData.synonyms || [],
+          antonyms: wordData.antonyms || [],
+          difficulty: wordData.difficulty || 5,
+          frequency: wordData.frequency || 5,
+          isSAT: wordData.isSAT || false,
+          createdAt: now,
+          updatedAt: now,
+          createdBy: wordData.createdBy,
+          aiGenerated: wordData.aiGenerated
+        }
+        
+        batch.set(doc(db, this.collectionName, wordId), this.toFirestore(newWord))
+        chunkWords.push(newWord)
+      }
+      
+      await batch.commit()
+      createdWords.push(...chunkWords)
+    }
+    
+    return createdWords
+  }
+
+  /**
+   * 데이터베이스 무결성 검사
+   */
+  async checkDatabaseIntegrity(): Promise<{
+    totalWords: number
+    duplicates: Array<{ word: string, ids: string[] }>
+    malformedWords: string[]
+  }> {
+    const snapshot = await getDocs(collection(db, this.collectionName))
+    const wordMap = new Map<string, string[]>()
+    const malformedWords: string[] = []
+    
+    snapshot.forEach(doc => {
+      const data = doc.data()
+      const word = data.word
+      
+      // 단어 형식 검사
+      if (!word || typeof word !== 'string' || word.trim() === '') {
+        malformedWords.push(doc.id)
+        return
+      }
+      
+      const normalized = this.normalizeWord(word)
+      if (!wordMap.has(normalized)) {
+        wordMap.set(normalized, [])
+      }
+      wordMap.get(normalized)!.push(doc.id)
+    })
+    
+    const duplicates = Array.from(wordMap.entries())
+      .filter(([, ids]) => ids.length > 1)
+      .map(([word, ids]) => ({ word, ids }))
+    
+    return {
+      totalWords: snapshot.size,
+      duplicates,
+      malformedWords
+    }
+  }
+
+  /**
    * Firestore 데이터 변환
    */
   private toFirestore(word: Word): DocumentData {
@@ -268,7 +442,7 @@ export class WordService {
   }
 
   private fromFirestore(data: DocumentData): Word {
-    return {
+    const word = {
       ...data,
       createdAt: data.createdAt?.toDate() || new Date(),
       updatedAt: data.updatedAt?.toDate() || new Date(),
@@ -281,7 +455,17 @@ export class WordService {
         generatedAt: data.aiGenerated.generatedAt?.toDate() || null
       } : undefined
     } as Word
+    
+    // 디버깅용 로그 (첫 번째 단어만)
+    if (!this.loggedFirstWord) {
+      console.log('[WordService.fromFirestore] Sample word data:', word)
+      this.loggedFirstWord = true
+    }
+    
+    return word
   }
+  
+  private loggedFirstWord = false
 
   private generateId(): string {
     return doc(collection(db, 'temp')).id

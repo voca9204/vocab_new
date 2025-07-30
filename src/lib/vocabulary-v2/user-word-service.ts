@@ -69,7 +69,13 @@ export class UserWordService {
         totalReviews: 0,
         correctCount: 0,
         incorrectCount: 0,
-        streakCount: 0
+        streakCount: 0,
+        activityStats: {
+          flashcard: { count: 0 },
+          quiz: { count: 0 },
+          typing: { count: 0 },
+          review: { count: 0 }
+        }
       },
       isBookmarked: false,
       createdAt: now,
@@ -117,6 +123,29 @@ export class UserWordService {
       updates['studyStatus.nextReviewDate'] = Timestamp.fromDate(
         this.calculateNextReviewDate(userWord.studyStatus.streakCount + 1)
       )
+    }
+    
+    // 활동별 통계 업데이트 (Firestore 중첩 필드 업데이트 방식)
+    const currentActivityStats = userWord.studyStatus.activityStats || {}
+    const currentActivityCount = currentActivityStats[activityType]?.count || 0
+    
+    // activityStats가 없으면 초기화
+    if (!userWord.studyStatus.activityStats) {
+      updates['studyStatus.activityStats'] = {
+        flashcard: { count: 0 },
+        quiz: { count: 0 },
+        typing: { count: 0 },
+        review: { count: 0 }
+      }
+    }
+    
+    // 각 활동 타입별로 필드 개별 업데이트
+    updates[`studyStatus.activityStats.${activityType}.count`] = currentActivityCount + 1
+    updates[`studyStatus.activityStats.${activityType}.lastUsed`] = Timestamp.fromDate(new Date())
+    updates['studyStatus.lastActivity'] = activityType
+    
+    if (result === 'correct') {
+      // 정답 처리는 이미 위에서 완료
     } else if (result === 'incorrect') {
       updates['studyStatus.incorrectCount'] = increment(1)
       updates['studyStatus.streakCount'] = 0
@@ -196,35 +225,27 @@ export class UserWordService {
       limit?: number
     }
   ): Promise<UserWord[]> {
+    // 복합 인덱스를 피하기 위해 userId로만 먼저 쿼리
     const constraints = [
-      where('userId', '==', userId),
-      where('studyStatus.studied', '==', true)
+      where('userId', '==', userId)
     ]
     
-    if (options?.bookmarkedOnly) {
-      constraints.push(where('isBookmarked', '==', true))
-    }
-    
-    if (options?.confidence) {
-      constraints.push(where('studyStatus.confidence', '==', options.confidence))
-    }
-    
-    // 정렬
+    // 정렬 (인덱스가 있는 필드로만)
     switch (options?.sortBy) {
       case 'recent':
-        constraints.push(orderBy('studyStatus.lastStudied', 'desc'))
+        constraints.push(orderBy('updatedAt', 'desc'))
         break
       case 'mastery':
-        constraints.push(orderBy('studyStatus.masteryLevel', 'desc'))
+        constraints.push(orderBy('updatedAt', 'desc'))
         break
       case 'review':
-        constraints.push(orderBy('studyStatus.nextReviewDate', 'asc'))
+        constraints.push(orderBy('updatedAt', 'desc'))
         break
       default:
         constraints.push(orderBy('updatedAt', 'desc'))
     }
     
-    if (options?.limit) {
+    if (options?.limit && !options?.bookmarkedOnly && !options?.confidence && !options?.masteryLevel) {
       constraints.push(limit(options.limit))
     }
     
@@ -235,12 +256,49 @@ export class UserWordService {
       this.fromFirestore({ ...doc.data(), id: doc.id })
     )
     
-    // 클라이언트 사이드 필터링 (숙련도 범위)
+    // 클라이언트 사이드 필터링
+    // studied = true인 단어만
+    userWords = userWords.filter(uw => uw.studyStatus.studied === true)
+    
+    if (options?.bookmarkedOnly) {
+      userWords = userWords.filter(uw => uw.isBookmarked === true)
+    }
+    
+    if (options?.confidence) {
+      userWords = userWords.filter(uw => uw.studyStatus.confidence === options.confidence)
+    }
+    
     if (options?.masteryLevel) {
       userWords = userWords.filter(uw => 
         uw.studyStatus.masteryLevel >= options.masteryLevel!.min &&
         uw.studyStatus.masteryLevel <= options.masteryLevel!.max
       )
+    }
+    
+    // 클라이언트 사이드 정렬
+    switch (options?.sortBy) {
+      case 'recent':
+        userWords.sort((a, b) => {
+          const aDate = a.studyStatus.lastStudied || a.updatedAt
+          const bDate = b.studyStatus.lastStudied || b.updatedAt
+          return new Date(bDate).getTime() - new Date(aDate).getTime()
+        })
+        break
+      case 'mastery':
+        userWords.sort((a, b) => b.studyStatus.masteryLevel - a.studyStatus.masteryLevel)
+        break
+      case 'review':
+        userWords.sort((a, b) => {
+          const aDate = a.studyStatus.nextReviewDate || new Date(9999, 11, 31)
+          const bDate = b.studyStatus.nextReviewDate || new Date(9999, 11, 31)
+          return new Date(aDate).getTime() - new Date(bDate).getTime()
+        })
+        break
+    }
+    
+    // 클라이언트 사이드 limit
+    if (options?.limit) {
+      userWords = userWords.slice(0, options.limit)
     }
     
     return userWords
@@ -250,21 +308,41 @@ export class UserWordService {
    * 복습이 필요한 단어 목록 조회
    */
   async getWordsForReview(userId: string, limit: number = 20): Promise<UserWord[]> {
-    const now = Timestamp.fromDate(new Date())
+    const now = new Date()
     
+    // 복합 인덱스를 피하기 위해 userId로만 쿼리
     const q = query(
       collection(db, this.collectionName),
       where('userId', '==', userId),
-      where('studyStatus.studied', '==', true),
-      where('studyStatus.nextReviewDate', '<=', now),
-      orderBy('studyStatus.nextReviewDate', 'asc'),
-      limit(limit)
+      orderBy('updatedAt', 'desc')
     )
     
     const snapshot = await getDocs(q)
-    return snapshot.docs.map(doc => 
+    let userWords = snapshot.docs.map(doc => 
       this.fromFirestore({ ...doc.data(), id: doc.id })
     )
+    
+    // 클라이언트 사이드 필터링
+    userWords = userWords.filter(uw => {
+      if (!uw.studyStatus.studied) return false
+      if (!uw.studyStatus.nextReviewDate) return false
+      
+      const reviewDate = uw.studyStatus.nextReviewDate instanceof Date 
+        ? uw.studyStatus.nextReviewDate 
+        : new Date(uw.studyStatus.nextReviewDate)
+        
+      return reviewDate <= now
+    })
+    
+    // 복습 날짜 순으로 정렬
+    userWords.sort((a, b) => {
+      const aDate = a.studyStatus.nextReviewDate || new Date(9999, 11, 31)
+      const bDate = b.studyStatus.nextReviewDate || new Date(9999, 11, 31)
+      return new Date(aDate).getTime() - new Date(bDate).getTime()
+    })
+    
+    // limit 적용
+    return userWords.slice(0, limit)
   }
 
   /**
@@ -279,7 +357,8 @@ export class UserWordService {
   }> {
     const q = query(
       collection(db, this.collectionName),
-      where('userId', '==', userId)
+      where('userId', '==', userId),
+      orderBy('updatedAt', 'desc')
     )
     
     const snapshot = await getDocs(q)

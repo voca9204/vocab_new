@@ -4,10 +4,9 @@ import { collection, query, limit, getDocs, orderBy } from 'firebase/firestore'
 
 export async function GET(request: Request) {
   try {
-    // 최근 저장된 단어 5개 가져오기
+    // words 컬렉션에서 단어 5개 가져오기
     const q = query(
-      collection(db, 'veterans_vocabulary'),
-      orderBy('createdAt', 'desc'),
+      collection(db, 'words'),
       limit(5)
     )
     

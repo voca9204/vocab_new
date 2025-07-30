@@ -17,16 +17,13 @@ import {
   Volume2,
   Sparkles
 } from 'lucide-react'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs, doc, updateDoc, Timestamp, writeBatch } from 'firebase/firestore'
-import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
-import { getSelectedSources, filterWordsBySelectedSources } from '@/lib/settings/get-selected-sources'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
+import { vocabularyService } from '@/lib/api'
+import type { VocabularyWord } from '@/types'
 
 interface QuizQuestion {
-  word: ExtractedVocabulary
+  word: VocabularyWord
   options: string[]
-  optionWords: ExtractedVocabulary[] // 각 선택지에 해당하는 단어 정보
+  optionWords: VocabularyWord[] // 각 선택지에 해당하는 단어 정보
   correctAnswer: number
 }
 
@@ -39,7 +36,7 @@ interface QuizResult {
 export default function QuizPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [words, setWords] = useState<ExtractedVocabulary[]>([])
+  const [words, setWords] = useState<VocabularyWord[]>([])
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
@@ -62,29 +59,21 @@ export default function QuizPage() {
     if (!user) return
 
     try {
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      const q = createVocabularyQuery('extracted_vocabulary', user.uid)
+      console.log('Loading words for quiz using new vocabulary service')
       
-      const snapshot = await getDocs(q)
-      let wordsData = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-        source: {
-          ...doc.data().source,
-          uploadedAt: doc.data().source?.uploadedAt?.toDate() || new Date()
-        }
-      })) as ExtractedVocabulary[]
+      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
+      const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
       
-      // Firestore에서 선택된 단어장 가져오기
-      const selectedSources = await getSelectedSources(user.uid)
-      wordsData = filterWordsBySelectedSources(wordsData, selectedSources)
+      console.log(`Loaded ${allWords.length} words for quiz`)
       
-      setWords(wordsData)
+      // 학습하지 않은 단어들을 우선적으로 선택
+      const notStudiedWords = allWords.filter(w => (w.learningMetadata?.timesStudied || 0) === 0)
+      const wordsForQuiz = notStudiedWords.length >= 20 ? notStudiedWords : allWords
+      
+      setWords(wordsForQuiz)
       
       // 퀴즈 문제 생성
-      generateQuiz(wordsData)
+      generateQuiz(wordsForQuiz)
     } catch (error) {
       console.error('Error loading words:', error)
     } finally {
@@ -92,7 +81,7 @@ export default function QuizPage() {
     }
   }
 
-  const generateQuiz = (allWords: ExtractedVocabulary[]) => {
+  const generateQuiz = (allWords: VocabularyWord[]) => {
     if (allWords.length < 4) {
       alert('퀴즈를 만들기 위해서는 최소 4개 이상의 단어가 필요합니다.')
       return
@@ -117,7 +106,7 @@ export default function QuizPage() {
       
       return {
         word,
-        options: shuffledOptionWords.map(w => w.definition),
+        options: shuffledOptionWords.map(w => w.definitions[0]?.text || 'No definition'),
         optionWords: shuffledOptionWords,
         correctAnswer: correctIndex
       }
@@ -130,7 +119,7 @@ export default function QuizPage() {
     fetchPronunciations(quizWords)
   }
 
-  const fetchPronunciations = async (words: ExtractedVocabulary[]) => {
+  const fetchPronunciations = async (words: VocabularyWord[]) => {
     const wordsNeedPronunciation = words.filter(w => !w.pronunciation && w.id)
     if (wordsNeedPronunciation.length === 0) return
     
@@ -138,7 +127,7 @@ export default function QuizPage() {
     const batchSize = 5
     const wordsToProcess = wordsNeedPronunciation.slice(0, batchSize)
     
-    const batch = writeBatch(db)
+    // 배치 업데이트는 새 서비스로 처리 예정
     const pronunciationUpdates: Record<string, string> = {}
     
     for (let i = 0; i < wordsToProcess.length; i++) {
@@ -161,12 +150,8 @@ export default function QuizPage() {
             // 메모리에 캐싱
             pronunciationUpdates[word.word] = phonetic
             
-            // DB 업데이트 준비
-            const wordRef = doc(db, 'extracted_vocabulary', word.id)
-            batch.update(wordRef, {
-              pronunciation: phonetic,
-              updatedAt: Timestamp.now()
-            })
+            // 호환성 레이어는 읽기 전용이므로 DB 업데이트 생략
+            // 나중에 새 서비스로 처리할 예정
           }
         }
       } catch (error) {
@@ -182,13 +167,8 @@ export default function QuizPage() {
         ...pronunciationUpdates
       }))
       
-      // DB에 배치 업데이트
-      try {
-        await batch.commit()
-        console.log(`Updated pronunciation for ${Object.keys(pronunciationUpdates).length} words`)
-      } catch (error) {
-        console.error('Error updating pronunciations in DB:', error)
-      }
+      // 새 서비스로 처리 예정
+      console.log(`Fetched pronunciation for ${Object.keys(pronunciationUpdates).length} words`)
     }
   }
 
@@ -242,20 +222,9 @@ export default function QuizPage() {
   const reloadWords = async () => {
     if (!user) return []
     
-    // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-    const q = createVocabularyQuery('extracted_vocabulary', user.uid)
-    
-    const snapshot = await getDocs(q)
-    return snapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id,
-      createdAt: doc.data().createdAt?.toDate() || new Date(),
-      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-      source: {
-        ...doc.data().source,
-        uploadedAt: doc.data().source?.uploadedAt?.toDate() || new Date()
-      }
-    })) as ExtractedVocabulary[]
+    // 새 서비스를 사용하여 사용자 선택 단어장의 단어 다시 로드
+    const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
+    return words
   }
 
   const handleSubmitAnswer = async () => {
@@ -273,19 +242,22 @@ export default function QuizPage() {
     
     // 단어 숙련도 업데이트
     if (currentQuestion.word.id) {
-      const wordRef = doc(db, 'extracted_vocabulary', currentQuestion.word.id)
-      const increment = isCorrect ? 10 : -5
-      const newMasteryLevel = Math.max(0, Math.min(100, 
-        currentQuestion.word.studyStatus.masteryLevel + increment
-      ))
+      const increment = isCorrect ? 10 : -5 // 백분율로 변경
+      const currentMastery = currentQuestion.word.learningMetadata?.masteryLevel || 0
+      const newMasteryLevel = Math.max(0, Math.min(100, currentMastery + increment))
       
-      await updateDoc(wordRef, {
-        'studyStatus.masteryLevel': newMasteryLevel,
-        'studyStatus.quizCount': (currentQuestion.word.studyStatus.quizCount || 0) + 1,
-        'studyStatus.lastStudied': Timestamp.now(),
-        'studyStatus.studied': true,
-        updatedAt: Timestamp.now()
-      })
+      try {
+        // vocabularyService의 updateStudyProgress 메서드 호출
+        await vocabularyService.updateStudyProgress(
+          currentQuestion.word.id,
+          'quiz',
+          isCorrect,
+          increment
+        )
+        console.log('Quiz progress updated:', currentQuestion.word.word, isCorrect, newMasteryLevel)
+      } catch (error) {
+        console.error('Failed to update quiz progress:', error)
+      }
     }
     
     setShowResult(true)
@@ -545,10 +517,10 @@ export default function QuizPage() {
               
               {showResult && (
                 <div className="space-y-4 mt-6">
-                  {currentQuestion.word.etymology && (
+                  {currentQuestion.word.etymology?.origin && (
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <p className="text-sm font-semibold text-blue-800 mb-1">영어 정의:</p>
-                      <p className="text-sm text-blue-700">{currentQuestion.word.etymology}</p>
+                      <p className="text-sm text-blue-700">{currentQuestion.word.etymology.origin}</p>
                     </div>
                   )}
                   
@@ -557,9 +529,20 @@ export default function QuizPage() {
                       <p className="text-sm font-semibold text-green-800 mb-2">예문:</p>
                       <div className="space-y-2">
                         {currentQuestion.word.examples.map((example, idx) => (
-                          <p key={idx} className="text-sm text-green-700">
-                            • {example}
-                          </p>
+                          <div key={idx} className="flex items-start gap-2">
+                            <p className="text-sm text-green-700 flex-1">
+                              • {example}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => speakWord(example)}
+                              className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100"
+                              title="예문 듣기"
+                            >
+                              <Volume2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         ))}
                       </div>
                     </div>

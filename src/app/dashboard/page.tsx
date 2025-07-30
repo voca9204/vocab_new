@@ -15,13 +15,10 @@ import {
   Edit2,
   Sparkles
 } from 'lucide-react'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { getSelectedSources, filterWordsBySelectedSources } from '@/lib/settings/get-selected-sources'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
+import { vocabularyService } from '@/lib/api'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
-import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
+import type { VocabularyWord } from '@/types'
 
 export default function DashboardPage() {
   const { user, appUser, loading } = useAuth()
@@ -33,7 +30,7 @@ export default function DashboardPage() {
     masteryAverage: 0
   })
   const [sources, setSources] = useState<{filename: string, count: number}[]>([])
-  const [recentWords, setRecentWords] = useState<ExtractedVocabulary[]>([])
+  const [recentWords, setRecentWords] = useState<VocabularyWord[]>([])
   const {
     selectedWord,
     openModal,
@@ -90,72 +87,56 @@ export default function DashboardPage() {
     if (!user) return
 
     try {
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      const q = createVocabularyQuery('extracted_vocabulary', user.uid)
+      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
+      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid) // 충분히 많은 수
       
-      const snapshot = await getDocs(q)
-      let words = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      })) as ExtractedVocabulary[]
+      // 사용자의 학습 통계 가져오기 (user_words 컬렉션에서)
+      const { UserWordService } = await import('@/lib/vocabulary-v2/user-word-service')
+      const userWordService = new UserWordService()
+      const userStats = await userWordService.getUserStudyStats(user.uid)
+      const userStudiedWords = await userWordService.getUserStudiedWords(user.uid)
       
-      // Firestore에서 선택된 단어장 가져오기
-      const selectedSources = await getSelectedSources(user.uid)
-      
-      // 선택된 단어장으로 필터링
-      let filteredWords = filterWordsBySelectedSources(words, selectedSources)
+      console.log(`Dashboard stats: ${userStats.totalStudied} studied, ${userStats.totalMastered} mastered`)
       
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       
-      const studiedWords = filteredWords.filter(w => w.studyStatus?.studied).length
-      const todayWords = filteredWords.filter(w => {
-        const lastStudied = w.studyStatus?.lastStudied?.toDate ? 
-          w.studyStatus.lastStudied.toDate() : 
-          w.studyStatus?.lastStudied
-        return lastStudied && new Date(lastStudied) >= today
+      // 오늘 학습한 단어 수 계산
+      const todayWords = userStudiedWords.filter(userWord => {
+        const lastStudied = userWord.studyStatus?.lastStudied
+        if (!lastStudied) return false
+        
+        // Firestore Timestamp 처리
+        let studiedDate: Date
+        if (lastStudied instanceof Date) {
+          studiedDate = lastStudied
+        } else if (lastStudied.toDate && typeof lastStudied.toDate === 'function') {
+          studiedDate = lastStudied.toDate()
+        } else if (lastStudied.seconds) {
+          studiedDate = new Date(lastStudied.seconds * 1000)
+        } else {
+          studiedDate = new Date(lastStudied)
+        }
+        
+        return studiedDate >= today
       }).length
       
-      const masterySum = filteredWords.reduce((sum, w) => 
-        sum + (w.studyStatus?.masteryLevel || 0), 0
-      )
-      const masteryAverage = filteredWords.length > 0 ? 
-        Math.round(masterySum / filteredWords.length) : 0
-      
       setStats({
-        totalWords: filteredWords.length,
-        studiedWords,
-        todayWords,
-        masteryAverage
+        totalWords: words.length,
+        studiedWords: userStats.totalStudied,
+        todayWords: todayWords,
+        masteryAverage: userStats.averageMastery
       })
       
-      // 출처별 단어 수 계산
-      const sourceMap = new Map<string, number>()
-      words.forEach(word => {
-        const filename = word.source?.filename || '알 수 없음'
-        sourceMap.set(filename, (sourceMap.get(filename) || 0) + 1)
-      })
+      // V.ZIP 단어장 정보로 출처 설정
+      setSources([{ filename: 'V.ZIP 3K 단어장', count: words.length }])
       
-      const sourceList = Array.from(sourceMap.entries())
-        .map(([filename, count]) => ({ filename, count }))
-        .sort((a, b) => b.count - a.count)
-      
-      setSources(sourceList)
-      
-      // 최근 학습하지 않은 단어 10개 가져오기  
-      const notStudiedWords = filteredWords
-        .filter(w => !w.studyStatus?.studied)
+      // 최근 학습하지 않은 단어 10개 가져오기 (user_words에 없는 단어들)
+      const studiedWordIds = new Set(userStudiedWords.map(uw => uw.wordId))
+      const notStudiedWords = words
+        .filter(w => !studiedWordIds.has(w.id))
         .sort(() => Math.random() - 0.5)
         .slice(0, 10)
-        .map(w => ({
-          ...w,
-          createdAt: w.createdAt instanceof Date ? w.createdAt : (w.createdAt as any).toDate(),
-          updatedAt: w.updatedAt instanceof Date ? w.updatedAt : (w.updatedAt as any).toDate(),
-          source: {
-            ...w.source,
-            uploadedAt: w.source.uploadedAt instanceof Date ? w.source.uploadedAt : (w.source.uploadedAt as any).toDate()
-          }
-        }))
       
       setRecentWords(notStudiedWords)
     } catch (error) {
@@ -273,7 +254,7 @@ export default function DashboardPage() {
               >
                 <div className="text-center">
                   <p className="font-bold text-lg mb-1">{word.word}</p>
-                  <p className="text-sm text-gray-600 line-clamp-2">{word.definition}</p>
+                  <p className="text-sm text-gray-600 line-clamp-2">{word.definitions[0]?.text || 'No definition available'}</p>
                 </div>
               </Card>
             ))}

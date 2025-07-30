@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs, writeBatch, doc, Timestamp } from 'firebase/firestore'
-import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
+import { WordService } from '@/lib/vocabulary-v2/word-service'
+import type { Word } from '@/types/vocabulary-v2'
 import OpenAI from 'openai'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
 
 // OpenAI 클라이언트 초기화
 const openai = new OpenAI({
@@ -35,29 +33,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 사용자의 단어 가져오기
-    let q
+    // WordService 인스턴스 생성
+    const wordService = new WordService()
+    
+    // 단어 가져오기
+    let words: Word[]
     if (wordIds && wordIds.length > 0) {
       // 특정 단어들만 처리
-      q = query(
-        collection(db, 'extracted_vocabulary'),
-        where('userId', '==', userId),
-        where('__name__', 'in', wordIds)
-      )
+      words = await wordService.getWordsByIds(wordIds)
     } else {
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      q = createVocabularyQuery('extracted_vocabulary', userId)
+      // 모든 단어 가져오기 (realEtymology가 없는 것만)
+      const allWords = await wordService.searchWords('', { limit: 1000 })
+      words = allWords.filter(w => !w.realEtymology).slice(0, limit)
     }
-    
-    const snapshot = await getDocs(q)
-    let words = snapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id
-    })) as ExtractedVocabulary[]
-    
-    // 실제 어원이 없는 단어들만 필터링 (realEtymology 필드가 없거나 비어있는 경우)
-    words = words.filter(w => !w.realEtymology)
-      .slice(0, limit)
     
     if (words.length === 0) {
       return NextResponse.json({
@@ -67,7 +55,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const batch = writeBatch(db)
     let updatedCount = 0
     const failedWords: string[] = []
     
@@ -89,7 +76,7 @@ Example format:
 "From Latin 'confidere' (con- 'with' + fidere 'to trust'), meaning 'to trust fully'. The word entered English through Old French in the 14th century, originally meaning 'to have full trust'."
 
 Word: ${word.word}
-Definition: ${word.definition}
+Definition: ${word.definitions[0]?.definition || 'No definition available'}
 ${word.etymology ? `English definition: ${word.etymology}` : ''}`
 
         const completion = await openai.chat.completions.create({
@@ -111,11 +98,13 @@ ${word.etymology ? `English definition: ${word.etymology}` : ''}`
         const content = completion.choices[0]?.message?.content
         
         if (content && word.id) {
-          const wordRef = doc(db, 'extracted_vocabulary', word.id)
-          batch.update(wordRef, {
-            realEtymology: content.trim(),
-            updatedAt: Timestamp.now()
+          await wordService.updateWord(word.id, {
+            realEtymology: content.trim()
           })
+          
+          // AI 생성 표시
+          await wordService.markAsAIGenerated(word.id, 'etymology')
+          
           updatedCount++
         }
       } catch (error) {
@@ -127,11 +116,6 @@ ${word.etymology ? `English definition: ${word.etymology}` : ''}`
       if (!singleWord) {
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
-    }
-    
-    // 배치 업데이트 실행
-    if (updatedCount > 0) {
-      await batch.commit()
     }
     
     return NextResponse.json({
@@ -168,11 +152,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-    const q = createVocabularyQuery('extracted_vocabulary', userId)
-    
-    const snapshot = await getDocs(q)
-    const words = snapshot.docs.map(doc => doc.data()) as ExtractedVocabulary[]
+    // WordService로 모든 단어 가져오기
+    const wordService = new WordService()
+    const words = await wordService.searchWords('', { limit: 2000 })
     
     const wordsWithoutEtymology = words.filter(w => !w.realEtymology)
     const wordsWithEtymology = words.filter(w => w.realEtymology)

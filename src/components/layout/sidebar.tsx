@@ -40,7 +40,14 @@ export function Sidebar() {
   const { user, signOut, isAdmin } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    // localStorage에서 사이드바 상태 읽기
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-collapsed')
+      return saved === 'true'
+    }
+    return false
+  })
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   // 사이드바 상태를 부모 컴포넌트에 전달하기 위한 이벤트
@@ -49,6 +56,11 @@ export function Sidebar() {
       detail: { isCollapsed } 
     })
     window.dispatchEvent(event)
+    
+    // localStorage에 상태 저장
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebar-collapsed', isCollapsed.toString())
+    }
   }, [isCollapsed])
 
   const handleLogout = async () => {

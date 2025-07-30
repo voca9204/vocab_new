@@ -158,9 +158,18 @@ export interface UserWord {
     incorrectCount: number
     streakCount: number
     
+    // 활동별 통계
+    activityStats?: {
+      flashcard: { count: number, lastUsed?: Date }
+      quiz: { count: number, lastUsed?: Date }
+      typing: { count: number, lastUsed?: Date }
+      review: { count: number, lastUsed?: Date }
+    }
+    
     // 마지막 학습
     lastStudied?: Date
     lastResult?: 'correct' | 'incorrect' | 'skipped'
+    lastActivity?: StudyActivityType
   }
   
   // 개인 메모 및 커스터마이징

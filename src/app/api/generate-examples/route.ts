@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs, writeBatch, doc, Timestamp } from 'firebase/firestore'
-import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
+import { WordService } from '@/lib/vocabulary-v2/word-service'
+import type { Word } from '@/types/vocabulary-v2'
 import OpenAI from 'openai'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
 
 // OpenAI 클라이언트 초기화
 const openai = new OpenAI({
@@ -35,29 +33,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 사용자의 단어 가져오기
-    let q
+    // WordService 인스턴스 생성
+    const wordService = new WordService()
+    
+    // 단어 가져오기
+    let words: Word[]
     if (wordIds && wordIds.length > 0) {
       // 특정 단어들만 처리
-      q = query(
-        collection(db, 'extracted_vocabulary'),
-        where('userId', '==', userId),
-        where('__name__', 'in', wordIds)
-      )
+      words = await wordService.getWordsByIds(wordIds)
     } else {
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      q = createVocabularyQuery('extracted_vocabulary', userId)
+      // 모든 단어 가져오기 (예문이 없는 것만)
+      const allWords = await wordService.searchWords('', { limit: 1000 })
+      words = allWords.filter(w => {
+        // 정의에 예문이 없는 단어만 필터링
+        return !w.definitions.some(def => def.examples && def.examples.length > 0)
+      }).slice(0, limit)
     }
-    
-    const snapshot = await getDocs(q)
-    let words = snapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id
-    })) as ExtractedVocabulary[]
-    
-    // 예문이 없는 단어들만 필터링
-    words = words.filter(w => !w.examples || w.examples.length === 0)
-      .slice(0, limit)
     
     if (words.length === 0) {
       return NextResponse.json({
@@ -67,16 +58,19 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const batch = writeBatch(db)
     let updatedCount = 0
     const failedWords: string[] = []
     
     // 각 단어에 대해 예문 생성
     for (const word of words) {
       try {
+        // 첫 번째 정의 가져오기
+        const firstDef = word.definitions[0]
+        const defText = firstDef?.definition || 'No definition available'
+        
         // OpenAI API 호출
         const prompt = `Generate 3 clear and educational example sentences for the SAT vocabulary word "${word.word}" (${word.partOfSpeech.join(', ')}). 
-Definition: ${word.definition}
+Definition: ${defText}
 ${word.etymology ? `Etymology: ${word.etymology}` : ''}
 
 Requirements:
@@ -111,11 +105,19 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
             const examples = JSON.parse(content)
             
             if (Array.isArray(examples) && examples.length > 0 && word.id) {
-              const wordRef = doc(db, 'extracted_vocabulary', word.id)
-              batch.update(wordRef, {
-                examples: examples.slice(0, 3), // 최대 3개만 저장
-                updatedAt: Timestamp.now()
+              // 첫 번째 정의에 예문 추가
+              const updatedDefinitions = [...word.definitions]
+              if (updatedDefinitions[0]) {
+                updatedDefinitions[0].examples = examples.slice(0, 3)
+              }
+              
+              await wordService.updateWord(word.id, {
+                definitions: updatedDefinitions
               })
+              
+              // AI 생성 표시
+              await wordService.markAsAIGenerated(word.id, 'examples')
+              
               updatedCount++
             }
           } catch (parseError) {
@@ -132,11 +134,6 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
       if (!singleWord) {
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
-    }
-    
-    // 배치 업데이트 실행
-    if (updatedCount > 0) {
-      await batch.commit()
     }
     
     return NextResponse.json({
@@ -173,14 +170,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-    const q = createVocabularyQuery('extracted_vocabulary', userId)
+    // WordService로 모든 단어 가져오기
+    const wordService = new WordService()
+    const words = await wordService.searchWords('', { limit: 2000 })
     
-    const snapshot = await getDocs(q)
-    const words = snapshot.docs.map(doc => doc.data()) as ExtractedVocabulary[]
-    
-    const wordsWithoutExamples = words.filter(w => !w.examples || w.examples.length === 0)
-    const wordsWithExamples = words.filter(w => w.examples && w.examples.length > 0)
+    const wordsWithoutExamples = words.filter(w => 
+      !w.definitions.some(def => def.examples && def.examples.length > 0)
+    )
+    const wordsWithExamples = words.filter(w => 
+      w.definitions.some(def => def.examples && def.examples.length > 0)
+    )
     
     return NextResponse.json({
       success: true,

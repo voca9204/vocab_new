@@ -14,13 +14,16 @@ import {
   Flame,
   Calendar,
   TrendingUp,
-  Clock
+  Clock,
+  BookOpen,
+  Brain,
+  Keyboard
 } from 'lucide-react'
-import { db } from '@/lib/firebase/config'
-import { collection, query, where, getDocs, doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore'
-import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
-import { getSelectedSources, filterWordsBySelectedSources } from '@/lib/settings/get-selected-sources'
-import { createVocabularyQuery } from '@/lib/vocabulary/vocabulary-query-utils'
+import { vocabularyService } from '@/lib/api'
+import type { VocabularyWord } from '@/types'
+import { UserSettingsService } from '@/lib/settings/user-settings-service'
+
+const settingsService = new UserSettingsService()
 
 interface DailyGoal {
   targetWords: number
@@ -51,7 +54,7 @@ export default function DailyGoalPage() {
       typingPracticed: 0
     }
   })
-  const [suggestedWords, setSuggestedWords] = useState<ExtractedVocabulary[]>([])
+  const [suggestedWords, setSuggestedWords] = useState<VocabularyWord[]>([])
   const [todayStats, setTodayStats] = useState({
     totalTime: 0,
     accuracy: 0,
@@ -71,69 +74,177 @@ export default function DailyGoalPage() {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       
-      // 사용자의 단어와 관리자가 업로드한 단어 모두 가져오기
-      const q = createVocabularyQuery('extracted_vocabulary', user.uid)
+      console.log('Loading daily progress using new vocabulary service')
       
-      const snapshot = await getDocs(q)
-      let allWords = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-        source: {
-          ...doc.data().source,
-          uploadedAt: doc.data().source?.uploadedAt?.toDate() || new Date()
-        }
-      })) as ExtractedVocabulary[]
+      // 사용자 설정에서 일일 목표 가져오기
+      const userSettings = await settingsService.getUserSettings(user.uid)
+      const targetWords = userSettings?.dailyGoal || 30
       
-      // 선택된 단어장으로 필터링
-      const selectedSources = await getSelectedSources(user.uid)
-      allWords = filterWordsBySelectedSources(allWords, selectedSources)
+      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
+      const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
+      
+      console.log(`Loaded ${allWords.length} words for daily goal`)
+      
+      // 사용자의 학습 기록 가져오기 (user_words 컬렉션에서)
+      const { UserWordService } = await import('@/lib/vocabulary-v2/user-word-service')
+      const userWordService = new UserWordService()
+      const userStudiedWords = await userWordService.getUserStudiedWords(user.uid)
+      
+      console.log(`User has studied ${userStudiedWords.length} words total`)
       
       // 오늘 학습한 단어 찾기
-      const todayWords = allWords.filter(w => {
-        const lastStudied = w.studyStatus?.lastStudied
+      const todayWords = userStudiedWords.filter(userWord => {
+        const lastStudied = userWord.studyStatus?.lastStudied
         if (!lastStudied) return false
-        const studiedDate = lastStudied instanceof Date ? lastStudied : (lastStudied as any).toDate()
+        
+        // Firestore Timestamp 처리
+        let studiedDate: Date
+        if (lastStudied instanceof Date) {
+          studiedDate = lastStudied
+        } else if (lastStudied.toDate && typeof lastStudied.toDate === 'function') {
+          studiedDate = lastStudied.toDate()
+        } else if (lastStudied.seconds) {
+          studiedDate = new Date(lastStudied.seconds * 1000)
+        } else {
+          studiedDate = new Date(lastStudied)
+        }
+        
+        // 오늘 날짜와 비교
         return studiedDate >= today
       })
       
-      // 오늘의 진행 상황 계산
-      const newWords = todayWords.filter(w => w.studyStatus.reviewCount === 0).length
-      const reviewedWords = todayWords.filter(w => w.studyStatus.reviewCount > 0).length
-      const quizzesTaken = todayWords.filter(w => w.studyStatus.quizCount && w.studyStatus.quizCount > 0).length
-      const typingPracticed = todayWords.filter(w => w.studyStatus.typingCount && w.studyStatus.typingCount > 0).length
+      console.log(`Today's studied words: ${todayWords.length}`)
+      
+      // 마스터 단어 정보와 매칭 (활동별 통계 포함)
+      const todayWordsWithDetails = todayWords.map(userWord => {
+        const masterWord = allWords.find(w => w.id === userWord.wordId)
+        if (masterWord) {
+          const activityStats = userWord.studyStatus.activityStats || {
+            flashcard: { count: 0 },
+            quiz: { count: 0 },
+            typing: { count: 0 },
+            review: { count: 0 }
+          }
+          
+          // 학습 정보를 마스터 단어에 합쳐서 반환
+          return {
+            ...masterWord,
+            studyStatus: {
+              studied: true,
+              lastStudied: userWord.studyStatus.lastStudied,
+              masteryLevel: userWord.studyStatus.masteryLevel,
+              reviewCount: userWord.studyStatus.totalReviews,
+              activityStats: activityStats,
+              lastActivity: userWord.studyStatus.lastActivity
+            }
+          }
+        }
+        return null
+      }).filter(Boolean) as VocabularyWord[]
+      
+      console.log(`Today's studied words: ${todayWords.length}`)
+      
+      // 활동별 통계 디버깅
+      console.log('Sample word with activity stats:', todayWordsWithDetails[0]?.studyStatus?.activityStats)
+      
+      // 오늘의 진행 상황 계산 (활동 타입별로 정확히 구분)
+      const newWords = todayWordsWithDetails.filter(w => w.studyStatus.reviewCount === 1).length // 첫 학습
+      const reviewedWords = todayWordsWithDetails.filter(w => w.studyStatus.reviewCount > 1).length // 복습
+      
+      // 활동별 통계 집계 (오늘 사용된 활동만)
+      const todayForStats = new Date()
+      todayForStats.setHours(0, 0, 0, 0)
+      
+      const quizzesTaken = todayWordsWithDetails.filter(w => {
+        const quizStats = w.studyStatus.activityStats?.quiz
+        if (!quizStats?.lastUsed) return false
+        
+        // Firestore Timestamp 처리
+        let lastUsed: Date
+        if (quizStats.lastUsed instanceof Date) {
+          lastUsed = quizStats.lastUsed
+        } else if (quizStats.lastUsed.toDate && typeof quizStats.lastUsed.toDate === 'function') {
+          lastUsed = quizStats.lastUsed.toDate()
+        } else if (quizStats.lastUsed.seconds) {
+          lastUsed = new Date(quizStats.lastUsed.seconds * 1000)
+        } else {
+          lastUsed = new Date(quizStats.lastUsed)
+        }
+        
+        const isToday = lastUsed >= todayForStats
+        if (isToday) {
+          console.log(`Quiz word found: ${w.word}, lastUsed: ${lastUsed}, count: ${quizStats.count}`)
+        }
+        return isToday
+      }).length
+      
+      console.log(`Quiz statistics: ${quizzesTaken} words with quiz activity today`)
+      
+      const typingPracticed = todayWordsWithDetails.filter(w => {
+        const typingStats = w.studyStatus.activityStats?.typing
+        if (!typingStats?.lastUsed) return false
+        
+        // Firestore Timestamp 처리
+        let lastUsed: Date
+        if (typingStats.lastUsed instanceof Date) {
+          lastUsed = typingStats.lastUsed
+        } else if (typingStats.lastUsed.toDate && typeof typingStats.lastUsed.toDate === 'function') {
+          lastUsed = typingStats.lastUsed.toDate()
+        } else if (typingStats.lastUsed.seconds) {
+          lastUsed = new Date(typingStats.lastUsed.seconds * 1000)
+        } else {
+          lastUsed = new Date(typingStats.lastUsed)
+        }
+        
+        return lastUsed >= todayForStats
+      }).length
       
       // 학습 스트릭 계산 (간단하게 구현)
-      const yesterday = new Date(today)
+      const yesterday = new Date(todayForStats)
       yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayWords = allWords.filter(w => {
-        const lastStudied = w.studyStatus?.lastStudied
+      const yesterdayWords = userStudiedWords.filter(userWord => {
+        const lastStudied = userWord.studyStatus?.lastStudied
         if (!lastStudied) return false
-        const studiedDate = lastStudied instanceof Date ? lastStudied : (lastStudied as any).toDate()
+        
+        let studiedDate: Date
+        if (lastStudied instanceof Date) {
+          studiedDate = lastStudied
+        } else if (lastStudied.toDate && typeof lastStudied.toDate === 'function') {
+          studiedDate = lastStudied.toDate()
+        } else if (lastStudied.seconds) {
+          studiedDate = new Date(lastStudied.seconds * 1000)
+        } else {
+          studiedDate = new Date(lastStudied)
+        }
+        
         return studiedDate >= yesterday && studiedDate < today
       })
       
       const studyStreak = yesterdayWords.length > 0 ? 1 : 0 // 실제로는 DB에서 관리해야 함
       
-      // 추천 단어 선택 (아직 학습하지 않았거나 숙련도가 낮은 단어)
-      const unstudiedWords = allWords.filter(w => !w.studyStatus.studied)
-      const lowMasteryWords = allWords.filter(w => 
-        w.studyStatus.studied && w.studyStatus.masteryLevel < 50
-      )
+      // 추천 단어 선택 (아직 학습하지 않은 단어)
+      const studiedWordIds = new Set(userStudiedWords.map(uw => uw.wordId))
+      const unstudiedWords = allWords.filter(w => !studiedWordIds.has(w.id))
+      
+      // 숙련도가 낮은 단어 찾기
+      const lowMasteryUserWords = userStudiedWords.filter(uw => uw.studyStatus.masteryLevel < 50)
+      const lowMasteryWords = lowMasteryUserWords.map(uw => {
+        const word = allWords.find(w => w.id === uw.wordId)
+        return word ? { ...word, studyStatus: { ...word.studyStatus, masteryLevel: uw.studyStatus.masteryLevel } } : null
+      }).filter(Boolean) as VocabularyWord[]
       
       const suggested = [
         ...unstudiedWords.slice(0, 10),
         ...lowMasteryWords.slice(0, 10)
-      ].slice(0, Math.max(0, 30 - todayWords.length))
+      ].slice(0, Math.max(0, targetWords - todayWordsWithDetails.length))
       
       setSuggestedWords(suggested)
       
       setDailyGoal({
-        targetWords: 30,
-        completedWords: todayWords.length,
+        targetWords,
+        completedWords: todayWordsWithDetails.length,
         studyStreak,
-        lastStudyDate: todayWords.length > 0 ? new Date() : null,
+        lastStudyDate: todayWordsWithDetails.length > 0 ? new Date() : null,
         todayProgress: {
           newWords,
           reviewedWords,
@@ -143,8 +254,8 @@ export default function DailyGoalPage() {
       })
       
       // 통계 계산
-      const avgMastery = todayWords.length > 0
-        ? todayWords.reduce((sum, w) => sum + w.studyStatus.masteryLevel, 0) / todayWords.length
+      const avgMastery = todayWordsWithDetails.length > 0
+        ? todayWordsWithDetails.reduce((sum, w) => sum + (w.studyStatus?.masteryLevel || 0), 0) / todayWordsWithDetails.length
         : 0
         
       setTodayStats({
@@ -381,5 +492,3 @@ export default function DailyGoalPage() {
   )
 }
 
-// 필요한 임포트 추가
-import { BookOpen, Brain, Keyboard } from 'lucide-react'
