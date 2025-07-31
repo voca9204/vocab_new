@@ -45,7 +45,7 @@ service cloud.firestore {
     }
     
     // 사용자 설정 - 본인만 접근 가능
-    match /user_settings/{userId} {
+    match /userSettings/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
