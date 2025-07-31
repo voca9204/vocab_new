@@ -31,6 +31,13 @@ const initAdmin = () => {
       const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n')
 
       console.log('Initializing Firebase Admin with service account')
+      console.log('Admin Config Check:', {
+        hasProjectId: !!projectId,
+        hasClientEmail: !!clientEmail,
+        hasPrivateKey: !!privateKey,
+        privateKeyLength: privateKey?.length || 0,
+        privateKeyStart: privateKey?.substring(0, 50) || 'NO_KEY'
+      })
       
       app = initializeApp({
         credential: cert({
