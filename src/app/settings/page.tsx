@@ -19,7 +19,8 @@ import {
   Sparkles,
   DollarSign,
   ExternalLink,
-  Target
+  Target,
+  Type
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import { UserSettingsService } from '@/lib/settings/user-settings-service'
@@ -55,6 +56,8 @@ export default function SettingsPage() {
   const [dailyGoal, setDailyGoal] = useState(30)
   const [updatingDailyGoal, setUpdatingDailyGoal] = useState(false)
   const [deletingData, setDeletingData] = useState(false)
+  const [textSize, setTextSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [updatingTextSize, setUpdatingTextSize] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -270,6 +273,9 @@ export default function SettingsPage() {
       if (settings?.dailyGoal) {
         setDailyGoal(settings.dailyGoal)
       }
+      if (settings?.textSize) {
+        setTextSize(settings.textSize)
+      }
     } catch (error) {
       console.error('Error loading user settings:', error)
     }
@@ -288,6 +294,23 @@ export default function SettingsPage() {
       alert('일일 목표 변경 중 오류가 발생했습니다.')
     } finally {
       setUpdatingDailyGoal(false)
+    }
+  }
+
+  const updateTextSize = async (newSize: 'small' | 'medium' | 'large') => {
+    if (!user || updatingTextSize) return
+
+    setUpdatingTextSize(true)
+    try {
+      await settingsService.updateTextSize(user.uid, newSize)
+      setTextSize(newSize)
+      // 설정이 변경되었음을 알리는 이벤트 발생
+      window.dispatchEvent(new Event('settings-updated'))
+    } catch (error) {
+      console.error('Error updating text size:', error)
+      alert('텍스트 크기 변경 중 오류가 발생했습니다.')
+    } finally {
+      setUpdatingTextSize(false)
     }
   }
 
@@ -466,6 +489,63 @@ export default function SettingsPage() {
             <p className="text-xs text-gray-500">
               추천: 초급자 10-20개, 중급자 20-30개, 고급자 30-50개
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 텍스트 크기 설정 섹션 */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Type className="h-5 w-5" />
+            텍스트 크기 설정
+          </CardTitle>
+          <CardDescription>
+            영어 설명, 어원, 예문의 글자 크기를 조절하세요
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant={textSize === 'small' ? "default" : "outline"}
+                onClick={() => updateTextSize('small')}
+                disabled={updatingTextSize}
+                className="flex flex-col gap-1 h-auto py-3"
+              >
+                <span className="text-xs">작게</span>
+                <span className="text-sm">Aa</span>
+              </Button>
+              <Button
+                variant={textSize === 'medium' ? "default" : "outline"}
+                onClick={() => updateTextSize('medium')}
+                disabled={updatingTextSize}
+                className="flex flex-col gap-1 h-auto py-3"
+              >
+                <span className="text-xs">보통</span>
+                <span className="text-base">Aa</span>
+              </Button>
+              <Button
+                variant={textSize === 'large' ? "default" : "outline"}
+                onClick={() => updateTextSize('large')}
+                disabled={updatingTextSize}
+                className="flex flex-col gap-1 h-auto py-3"
+              >
+                <span className="text-xs">크게</span>
+                <span className="text-lg">Aa</span>
+              </Button>
+            </div>
+            
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">미리보기:</p>
+              <p className={`text-blue-700 ${
+                textSize === 'small' ? 'text-sm' : 
+                textSize === 'large' ? 'text-lg' : 
+                'text-base'
+              }`}>
+                From Latin "abominari" (ab- 'away from' + ominari 'to foresee'), literally meaning 'to deprecate as an ill omen'.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

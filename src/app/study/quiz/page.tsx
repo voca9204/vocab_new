@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 import { Button } from '@/components/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import type { VocabularyWord } from '@/types'
+import { cn } from '@/lib/utils'
 
 interface QuizQuestion {
   word: VocabularyWord
@@ -36,6 +38,7 @@ interface QuizResult {
 export default function QuizPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { textSize } = useSettings()
   const [words, setWords] = useState<VocabularyWord[]>([])
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -520,7 +523,7 @@ export default function QuizPage() {
                   {currentQuestion.word.etymology?.origin && (
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <p className="text-sm font-semibold text-blue-800 mb-1">영어 정의:</p>
-                      <p className="text-sm text-blue-700">{currentQuestion.word.etymology.origin}</p>
+                      <p className={cn("text-blue-700", getTextSizeClass(textSize))}>{currentQuestion.word.etymology.origin}</p>
                     </div>
                   )}
                   
@@ -530,7 +533,7 @@ export default function QuizPage() {
                       <div className="space-y-2">
                         {currentQuestion.word.examples.map((example, idx) => (
                           <div key={idx} className="flex items-start gap-2">
-                            <p className="text-sm text-green-700 flex-1">
+                            <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
                               • {example}
                             </p>
                             <Button

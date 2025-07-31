@@ -52,13 +52,26 @@ export function WordDisplayCard({
             💡 힌트 ({hintLevel}/{word.word.length} 글자)
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-mono text-purple-600">
-              {getHintDots(timeElapsed)}
-            </span>
+            {/* 시각적 타이머 - 5개 박스, 1초마다 하나씩 비워짐 */}
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-3 h-3 transition-all duration-300 ${
+                    index < nextHintIn
+                      ? 'bg-gray-800'
+                      : 'bg-gray-300'
+                  }`}
+                  style={{
+                    borderRadius: '2px'
+                  }}
+                />
+              ))}
+            </div>
             <span className="text-sm text-purple-600 font-medium">
               {hintLevel >= word.word.length 
                 ? '완료!' 
-                : `${nextHintIn}초`}
+                : '힌트!'}
             </span>
           </div>
         </div>

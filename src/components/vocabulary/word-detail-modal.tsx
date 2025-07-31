@@ -7,6 +7,7 @@ import { X, Volume2, Sparkles, BookOpen, Brain, Target } from 'lucide-react'
 import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
 import type { VocabularyWord } from '@/types'
 import { cn } from '@/lib/utils'
+import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 
 type ModalWord = ExtractedVocabulary | VocabularyWord
 
@@ -38,6 +39,10 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
   }, ref) => {
     // Track which word IDs we've already triggered API calls for
     const processedWords = React.useRef<Set<string>>(new Set())
+    const { textSize } = useSettings()
+    
+    // 디버깅: 텍스트 크기 확인
+    console.log('[WordDetailModal] Current text size:', textSize)
     
     React.useEffect(() => {
       // Only process when modal opens with a new word
@@ -150,33 +155,33 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
           <div className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-1">
                   <h2 className="text-2xl font-bold">{word.word}</h2>
-                  {onPlayPronunciation && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePronunciationClick}
-                      className="p-2"
+                  {word.partOfSpeech.map(pos => (
+                    <span 
+                      key={pos}
+                      className={`text-sm px-2 py-0.5 rounded ${getPartOfSpeechColor(pos)}`}
                     >
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                      {pos}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-3">
                   {fetchingPronunciation ? (
                     <span className="text-sm text-gray-500 italic">발음 정보 가져오는 중...</span>
                   ) : word.pronunciation ? (
                     <span className="text-lg text-gray-600">[{word.pronunciation}]</span>
                   ) : null}
-                </div>
-                <div className="flex gap-2">
-                  {word.partOfSpeech.map(pos => (
-                    <span 
-                      key={pos}
-                      className={`text-sm px-3 py-1 rounded ${getPartOfSpeechColor(pos)}`}
+                  {onPlayPronunciation && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handlePronunciationClick}
+                      className="p-1.5"
                     >
-                      {pos}
-                    </span>
-                  ))}
+                      <Volume2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
               <Button
@@ -189,8 +194,10 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
             </div>
 
             <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-1">뜻</h3>
+              <div className="flex items-start gap-3">
+                <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium shrink-0">
+                  뜻
+                </span>
                 <p className="text-lg">{
                   'definition' in word 
                     ? word.definition 
@@ -201,7 +208,7 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
               {('etymology' in word && typeof word.etymology === 'string' ? word.etymology : word.etymology?.origin) && (
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="font-semibold text-blue-800 mb-1">영어 정의</h3>
-                  <p className="text-blue-700">{
+                  <p className={cn("text-blue-700", getTextSizeClass(textSize))}>{
                     'etymology' in word && typeof word.etymology === 'string' 
                       ? word.etymology 
                       : word.etymology?.origin
@@ -212,7 +219,7 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
               {('realEtymology' in word ? word.realEtymology : word.etymology?.meaning) ? (
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <h3 className="font-semibold text-purple-800 mb-1">어원</h3>
-                  <p className="text-purple-700">{
+                  <p className={cn("text-purple-700", getTextSizeClass(textSize))}>{
                     'realEtymology' in word ? word.realEtymology : word.etymology?.meaning
                   }</p>
                 </div>
@@ -235,7 +242,7 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                   <div className="space-y-2">
                     {word.examples.map((example, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <p className="text-green-700 flex-1">
+                        <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
                           • {example}
                         </p>
                         {onPlayPronunciation && (

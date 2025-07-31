@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 import { Button } from '@/components/ui'
 import { Card } from '@/components/ui/card'
 import { 
@@ -19,11 +20,13 @@ import {
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import type { VocabularyWord } from '@/types'
+import { cn } from '@/lib/utils'
 // Firebase imports 제거 - 새 서비스 사용
 
 export default function FlashcardsPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { textSize } = useSettings()
   const [words, setWords] = useState<VocabularyWord[]>([])
   const [currentIndex, setCurrentIndex] = useState(() => {
     // localStorage에서 마지막 학습 위치 가져오기
@@ -328,57 +331,57 @@ export default function FlashcardsPage() {
     const currentWord = words[currentIndex]
     if (!currentWord || !currentWord.id) return
 
-    try {
-      // 학습 진도 업데이트
-      const increment = mastered ? 20 : 5 // 알고 있음: +20, 모름: +5
-      await vocabularyService.updateStudyProgress(
-        currentWord.id,
-        'flashcard',
-        mastered,
-        increment
-      )
-      console.log('Flashcard progress updated:', currentWord.word, mastered)
-      
-      const updatedWords = [...words]
-      const currentLearningMetadata = currentWord.learningMetadata || {
-        timesStudied: 0,
-        masteryLevel: 0,
-        lastStudied: new Date(),
-        userProgress: {
-          userId: user?.uid || '',
-          wordId: currentWord.id,
-          correctAttempts: 0,
-          totalAttempts: 0,
-          streak: 0,
-          nextReviewDate: new Date()
-        }
+    // 먼저 UI 업데이트 (즉시 반응)
+    const updatedWords = [...words]
+    const currentLearningMetadata = currentWord.learningMetadata || {
+      timesStudied: 0,
+      masteryLevel: 0,
+      lastStudied: new Date(),
+      userProgress: {
+        userId: user?.uid || '',
+        wordId: currentWord.id,
+        correctAttempts: 0,
+        totalAttempts: 0,
+        streak: 0,
+        nextReviewDate: new Date()
       }
-      
-      const newMasteryLevel = mastered 
-        ? Math.min(currentLearningMetadata.masteryLevel + 0.2, 1.0)
-        : Math.max(currentLearningMetadata.masteryLevel - 0.1, 0)
-      
-      updatedWords[currentIndex] = {
-        ...currentWord,
-        learningMetadata: {
-          ...currentLearningMetadata,
-          timesStudied: currentLearningMetadata.timesStudied + 1,
-          masteryLevel: newMasteryLevel,
-          lastStudied: new Date()
-        }
-      }
-      setWords(updatedWords)
-
-      // 다음 단어로 이동 (마지막 단어가 아닌 경우만)
-      if (currentIndex < words.length - 1) {
-        nextWord()
-      } else {
-        // 마지막 단어인 경우 답 숨기기만 함
-        setShowAnswer(false)
-      }
-    } catch (error) {
-      console.error('Error updating word:', error)
     }
+    
+    const newMasteryLevel = mastered 
+      ? Math.min(currentLearningMetadata.masteryLevel + 0.2, 1.0)
+      : Math.max(currentLearningMetadata.masteryLevel - 0.1, 0)
+    
+    updatedWords[currentIndex] = {
+      ...currentWord,
+      learningMetadata: {
+        ...currentLearningMetadata,
+        timesStudied: currentLearningMetadata.timesStudied + 1,
+        masteryLevel: newMasteryLevel,
+        lastStudied: new Date()
+      }
+    }
+    setWords(updatedWords)
+
+    // 다음 단어로 즉시 이동 (마지막 단어가 아닌 경우만)
+    if (currentIndex < words.length - 1) {
+      nextWord()
+    } else {
+      // 마지막 단어인 경우 답 숨기기만 함
+      setShowAnswer(false)
+    }
+
+    // DB 업데이트는 백그라운드에서 처리 (await 없이)
+    const increment = mastered ? 20 : 5 // 알고 있음: +20, 모름: +5
+    vocabularyService.updateStudyProgress(
+      currentWord.id,
+      'flashcard',
+      mastered,
+      increment
+    ).then(() => {
+      console.log('Flashcard progress updated:', currentWord.word, mastered)
+    }).catch((error) => {
+      console.error('Error updating word:', error)
+    })
   }
 
   const speakWord = (text: string) => {
@@ -545,7 +548,7 @@ export default function FlashcardsPage() {
                   {currentWord.etymology?.origin && (
                     <div className="p-4 bg-yellow-50 rounded-lg text-left max-w-xl mx-auto">
                       <p className="text-sm font-semibold text-yellow-800 mb-1">영어 설명:</p>
-                      <p className="text-sm text-yellow-700">{currentWord.etymology.origin}</p>
+                      <p className={cn("text-yellow-700", getTextSizeClass(textSize))}>{currentWord.etymology.origin}</p>
                     </div>
                   )}
                   
@@ -554,7 +557,7 @@ export default function FlashcardsPage() {
                     (currentWord.realEtymology && currentWord.realEtymology.trim())) && (
                     <div className="p-4 bg-blue-50 rounded-lg text-left max-w-xl mx-auto">
                       <p className="text-sm font-semibold text-blue-800 mb-1">어원:</p>
-                      <p className="text-sm text-blue-700">
+                      <p className={cn("text-blue-700", getTextSizeClass(textSize))}>
                         {(currentWord.etymology?.meaning && currentWord.etymology.meaning.trim()) || 
                          (currentWord.realEtymology && currentWord.realEtymology.trim())}
                       </p>
@@ -567,7 +570,7 @@ export default function FlashcardsPage() {
                       <div className="space-y-2">
                         {currentWord.examples.map((example, idx) => (
                           <div key={idx} className="flex items-start gap-2">
-                            <p className="text-sm text-green-700 flex-1">
+                            <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
                               • {example}
                             </p>
                             <Button
