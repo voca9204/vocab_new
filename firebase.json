@@ -5,6 +5,7 @@
   "targets": {},
   "etags": {},
   "hosting": {
+    "site": "vocabulary-app-new",
     "public": "out",
     "ignore": [
       "firebase.json",
@@ -14,7 +15,7 @@
     "rewrites": [
       {
         "source": "**",
-        "destination": "/index.html"
+        "function": "nextjsFunc"
       }
     ]
   },
@@ -24,7 +25,8 @@
   },
   "functions": {
     "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run build"
+      "npm run build",
+      "npm --prefix \"$RESOURCE_DIR\" install"
     ],
     "source": "functions"
   },

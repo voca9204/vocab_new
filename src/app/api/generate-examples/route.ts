@@ -3,11 +3,6 @@ import { WordService } from '@/lib/vocabulary-v2/word-service'
 import type { Word } from '@/types/vocabulary-v2'
 import OpenAI from 'openai'
 
-// OpenAI 클라이언트 초기화
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
 interface GenerateExamplesRequest {
   userId: string
   wordIds?: string[]
@@ -26,12 +21,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
       return NextResponse.json(
         { success: false, message: 'OpenAI API key not configured' },
         { status: 500 }
       )
     }
+
+    // OpenAI 클라이언트를 런타임에 초기화
+    const openai = new OpenAI({
+      apiKey: apiKey,
+    })
 
     // WordService 인스턴스 생성
     const wordService = new WordService()

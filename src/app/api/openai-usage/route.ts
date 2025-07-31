@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
 export async function GET(request: NextRequest) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
       return NextResponse.json(
         { success: false, message: 'OpenAI API key not configured' },
         { status: 500 }
