@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { WordServiceAdmin } from '@/lib/vocabulary-v2/word-service-admin'
+import { FirestoreREST } from '@/lib/firebase/firestore-rest'
 import type { Word } from '@/types/vocabulary-v2'
 import OpenAI from 'openai'
 
