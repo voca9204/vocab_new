@@ -50,7 +50,10 @@ npm run type-check
 # Build for production
 npm run build
 
-# Deploy to Firebase
+# Deploy to Vercel (Primary hosting)
+vercel
+
+# Deploy to Firebase (Deprecated - replaced by Vercel)
 npm run firebase:deploy
 ```
 
@@ -237,3 +240,116 @@ V.ZIP 3K PDF에서 추출한 단어들을 저장하는 전용 컬렉션입니다
 - `other_pdf_vocabulary/` - 다른 PDF 단어장에서 추출한 단어들
 
 각 출처별로 별도의 컬렉션을 사용하여 명확한 구분과 관리가 가능합니다.
+
+## Deployment Configuration
+
+### Hosting Architecture
+- **Primary Hosting**: Vercel (Next.js optimized)
+- **Backend Services**: Firebase (Firestore, Authentication, Functions)
+- **Previous Setup**: Firebase Hosting (deprecated after moving to Next.js)
+
+### Vercel Configuration
+
+**Project Information**:
+- Project ID: `prj_9y70edy1upkm7eWLW5NKC8nUqkJ6`
+- Organization ID: `team_bKsPYU9jfI2JvCtdptfYbS2I`
+- Production URL: https://voca-*.vercel.app
+
+**Configuration File** (`vercel.json`):
+```json
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "functions": {
+    "src/app/api/health/route.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/test-env/route.ts": {
+      "maxDuration": 10
+    }
+  }
+}
+```
+
+**Required Environment Variables**:
+```bash
+# Firebase Admin SDK
+FIREBASE_ADMIN_PROJECT_ID=vocabulary-app-new
+FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-*@vocabulary-app-new.iam.gserviceaccount.com
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# OpenAI API
+OPENAI_API_KEY=sk-...
+
+# Firebase Client SDK (Public)
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=vocabulary-app-new.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=vocabulary-app-new
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=vocabulary-app-new.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=203198017310
+NEXT_PUBLIC_FIREBASE_APP_ID=1:203198017310:web:...
+```
+
+### Firebase Configuration
+
+**Firebase Services Used**:
+- Firestore Database
+- Authentication
+- Cloud Functions (for server-side operations)
+- Storage (for PDF uploads)
+
+**Configuration File** (`firebase.json`):
+```json
+{
+  "projects": {
+    "default": "vocabulary-app-new"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "emulators": {
+    "auth": { "port": 9199 },
+    "firestore": { "port": 8181 },
+    "functions": { "port": 5501 },
+    "storage": { "port": 9299 }
+  }
+}
+```
+
+### Deployment History
+
+1. **Initial Setup**: Firebase Hosting for static site
+2. **Migration to Next.js**: Switched to Vercel for better Next.js support
+3. **Key Fixes**:
+   - OpenAI API initialization moved to runtime (commit: 496519d)
+   - Added debugging endpoints for Vercel environment (commit: 7138f19)
+   - Firebase Admin SDK integration for server-side operations
+
+### Deployment Commands
+
+```bash
+# Deploy to Vercel
+vercel                    # Deploy to preview
+vercel --prod            # Deploy to production
+
+# Local development with Firebase emulators
+npm run dev:emulators    # Start both Next.js and Firebase emulators
+
+# Firebase-only deployment (if needed)
+firebase deploy --only firestore:rules    # Deploy Firestore rules
+firebase deploy --only functions          # Deploy Cloud Functions
+```
+
+### Important Notes
+
+- Vercel handles Next.js hosting and API routes
+- Firebase provides backend services (database, auth, storage)
+- Environment variables must be configured in Vercel dashboard
+- Firebase Admin SDK private key needs proper formatting in Vercel (use quotes and \n for line breaks)

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Sidebar } from './sidebar'
 import { cn } from '@/lib/utils'
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(() => {
     // localStorage에서 초기 상태 읽기
     if (typeof window !== 'undefined') {
@@ -13,6 +15,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
     return false
   })
+
+  // 사이드바를 숨길 경로들
+  const hideSidebarPaths = ['/', '/login']
+  const shouldHideSidebar = hideSidebarPaths.includes(pathname)
 
   useEffect(() => {
     const handleSidebarToggle = (event: CustomEvent) => {
@@ -25,6 +31,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       window.removeEventListener('sidebar-toggle', handleSidebarToggle as EventListener)
     }
   }, [])
+
+  if (shouldHideSidebar) {
+    return <>{children}</>
+  }
 
   return (
     <div className="flex min-h-screen">
