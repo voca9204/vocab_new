@@ -35,7 +35,20 @@ export async function POST(request: NextRequest) {
     })
 
     // WordServiceAdmin 인스턴스 생성
-    const wordService = new WordServiceAdmin()
+    let wordService: WordServiceAdmin
+    try {
+      wordService = new WordServiceAdmin()
+    } catch (error) {
+      console.error('Failed to initialize WordServiceAdmin:', error)
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Failed to initialize database service',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        },
+        { status: 500 }
+      )
+    }
     
     // 단어 가져오기
     let words: Word[]
