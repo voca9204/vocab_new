@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { WordServiceAdmin } from '@/lib/vocabulary-v2/word-service-admin'
-import { FirestoreREST } from '@/lib/firebase/firestore-rest'
+import { WordServiceServer } from '@/lib/vocabulary-v2/word-service-server'
 import type { Word } from '@/types/vocabulary-v2'
 import OpenAI from 'openai'
 
@@ -35,21 +34,8 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     })
 
-    // WordServiceAdmin 인스턴스 생성
-    let wordService: WordServiceAdmin
-    try {
-      wordService = new WordServiceAdmin()
-    } catch (error) {
-      console.error('Failed to initialize WordServiceAdmin:', error)
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Failed to initialize database service',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        },
-        { status: 500 }
-      )
-    }
+    // WordServiceServer 인스턴스 생성
+    const wordService = new WordServiceServer()
     
     // 단어 가져오기
     let words: Word[]
@@ -116,8 +102,16 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
         
         if (content) {
           try {
+            // Remove markdown code blocks if present
+            let cleanContent = content
+            if (content.includes('```json')) {
+              cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+            } else if (content.includes('```')) {
+              cleanContent = content.replace(/```\n?/g, '').trim()
+            }
+            
             // JSON 파싱 시도
-            const examples = JSON.parse(content)
+            const examples = JSON.parse(cleanContent)
             
             if (Array.isArray(examples) && examples.length > 0 && word.id) {
               // 첫 번째 정의에 예문 추가
@@ -185,8 +179,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // WordService로 모든 단어 가져오기
-    const wordService = new WordService()
+    // WordServiceServer로 모든 단어 가져오기
+    const wordService = new WordServiceServer()
     const words = await wordService.searchWords('', { limit: 2000 })
     
     const wordsWithoutExamples = words.filter(w => 
