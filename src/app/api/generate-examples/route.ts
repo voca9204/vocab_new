@@ -12,6 +12,15 @@ interface GenerateExamplesRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Log environment info for debugging
+    console.log('[generate-examples] Environment:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasAdminProjectId: !!process.env.FIREBASE_ADMIN_PROJECT_ID,
+      hasAdminEmail: !!process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+      hasAdminKey: !!process.env.FIREBASE_ADMIN_PRIVATE_KEY,
+      hasOpenAI: !!process.env.OPENAI_API_KEY
+    })
+    
     const { userId, wordIds, limit = 10, singleWord = false } = await request.json() as GenerateExamplesRequest
     
     if (!userId) {
@@ -155,11 +164,24 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
     
   } catch (error) {
     console.error('Error in generate-examples:', error)
+    
+    // More detailed error info for debugging
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined,
+      type: error?.constructor?.name,
+      env: {
+        hasAdminCreds: !!process.env.FIREBASE_ADMIN_PROJECT_ID,
+        hasOpenAI: !!process.env.OPENAI_API_KEY
+      }
+    }
+    
     return NextResponse.json(
       { 
         success: false, 
         message: 'Failed to generate examples',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorDetails.message,
+        details: errorDetails
       },
       { status: 500 }
     )
