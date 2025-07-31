@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { WordService } from '@/lib/vocabulary-v2/word-service'
+import { WordServiceAdmin } from '@/lib/vocabulary-v2/word-service-admin'
 import type { Word } from '@/types/vocabulary-v2'
 import OpenAI from 'openai'
 
@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     })
 
-    // WordService 인스턴스 생성
-    const wordService = new WordService()
+    // WordServiceAdmin 인스턴스 생성
+    const wordService = new WordServiceAdmin()
     
     // 단어 가져오기
     let words: Word[]

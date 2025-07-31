@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { WordService } from '@/lib/vocabulary-v2/word-service'
+import { WordServiceAdmin } from '@/lib/vocabulary-v2/word-service-admin'
 
 // Dictionary API로 발음 정보 가져오기
 async function fetchPronunciation(word: string): Promise<string | null> {
@@ -29,8 +29,8 @@ export async function GET(request: Request) {
   try {
     console.log('Checking pronunciation stats...')
     
-    // WordService 인스턴스 생성
-    const wordService = new WordService()
+    // WordServiceAdmin 인스턴스 생성
+    const wordService = new WordServiceAdmin()
     
     // 모든 단어 가져오기
     const allWords = await wordService.searchWords('', { limit: 2000 })
@@ -66,8 +66,8 @@ export async function POST(request: Request) {
     
     console.log(`Starting pronunciation update for up to ${limit} words`)
     
-    // WordService 인스턴스 생성
-    const wordService = new WordService()
+    // WordServiceAdmin 인스턴스 생성
+    const wordService = new WordServiceAdmin()
     
     // 발음이 없는 단어들 찾기
     const allWords = await wordService.searchWords('', { limit: 2000 })
