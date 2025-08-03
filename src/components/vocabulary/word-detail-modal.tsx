@@ -261,29 +261,37 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
               </div>
 
               {/* 유사어 섹션 추가 */}
-              <div className="overflow-x-auto mb-4">
-                <div className="flex items-center gap-3 whitespace-nowrap">
-                  <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium">
+              <div className="mb-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium flex-shrink-0">
                     유사어
                   </span>
-                  {generatingSynonyms ? (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <Sparkles className="h-4 w-4 animate-pulse" />
-                      AI가 유사어를 생성하고 있습니다...
-                    </span>
-                  ) : synonyms.length > 0 ? (
-                    synonyms.map((synonym, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => onSynonymClick?.(synonym)}
-                        className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100 transition-colors cursor-pointer"
-                      >
-                        {synonym}
-                      </button>
-                    ))
-                  ) : (
-                    <span className="text-sm text-gray-500 italic">유사어를 불러오는 중...</span>
-                  )}
+                  <div className="flex-1">
+                    {generatingSynonyms ? (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <Sparkles className="h-4 w-4 animate-pulse" />
+                        AI가 유사어를 생성하고 있습니다...
+                      </span>
+                    ) : synonyms.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {synonyms.map((synonym, idx) => (
+                          <button
+                            key={idx}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              console.log('Synonym clicked:', synonym)
+                              onSynonymClick?.(synonym)
+                            }}
+                            className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100 transition-colors cursor-pointer"
+                          >
+                            {synonym}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500 italic">유사어를 불러오는 중...</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
