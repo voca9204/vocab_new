@@ -42,6 +42,8 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     const [showEtymology, setShowEtymology] = React.useState(false)
     const [generatingSynonyms, setGeneratingSynonyms] = React.useState(false)
     const [synonyms, setSynonyms] = React.useState<string[]>([])
+    const [translations, setTranslations] = React.useState<{ [key: number]: string }>({})
+    const [translatingIndex, setTranslatingIndex] = React.useState<number | null>(null)
     // Track which word IDs we've already triggered API calls for
     const processedWords = React.useRef<Set<string>>(new Set())
     const processedSynonyms = React.useRef<Set<string>>(new Set())
@@ -52,6 +54,8 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
       if (word && open) {
         setShowEtymology(false) // Close etymology when switching words
         setSynonyms([]) // Clear synonyms from previous word
+        setTranslations({}) // Clear translations from previous word
+        setTranslatingIndex(null) // Reset translating state
       }
     }, [word?.id, open])
     
@@ -352,26 +356,70 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
 
               {word.examples && word.examples.length > 0 ? (
                 <div className="p-4 bg-green-50 rounded-lg">
-                  <h3 className="font-semibold text-green-800 mb-2">예문</h3>
-                  <div className="space-y-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-green-800">예문</h3>
+                  </div>
+                  <div className="space-y-3">
                     {word.examples.slice(0, 2).map((example, idx) => (
-                      <div key={idx} className="flex items-start gap-2">
-                        <span className="text-green-700">•</span>
-                        <div className="flex-1 flex items-start gap-2">
-                          <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
-                            {example}
-                          </p>
-                          {onPlayPronunciation && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onPlayPronunciation(example)}
-                              className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 flex-shrink-0"
-                              title="예문 듣기"
-                            >
-                              <Volume2 className="h-3 w-3" />
-                            </Button>
-                          )}
+                      <div key={idx}>
+                        <div className="flex items-start gap-2">
+                          <span className="text-green-700">•</span>
+                          <div className="flex-1">
+                            <div className="flex items-start gap-2">
+                              <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
+                                {example}
+                              </p>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                {onPlayPronunciation && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onPlayPronunciation(example)}
+                                    className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                    title="예문 듣기"
+                                  >
+                                    <Volume2 className="h-3 w-3" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={async () => {
+                                    if (translatingIndex !== null || translations[idx]) return
+                                    setTranslatingIndex(idx)
+                                    try {
+                                      const response = await fetch('/api/translate-example', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ example })
+                                      })
+                                      if (response.ok) {
+                                        const { translation } = await response.json()
+                                        setTranslations(prev => ({ ...prev, [idx]: translation }))
+                                      }
+                                    } catch (error) {
+                                      console.error('Translation error:', error)
+                                    } finally {
+                                      setTranslatingIndex(null)
+                                    }
+                                  }}
+                                  disabled={translatingIndex === idx}
+                                  className="text-xs px-2 py-1 h-6 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                >
+                                  {translatingIndex === idx ? (
+                                    <Sparkles className="h-3 w-3 animate-pulse" />
+                                  ) : (
+                                    '번역'
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                            {translations[idx] && (
+                              <p className={cn("text-green-600 text-sm mt-1 pl-4", getTextSizeClass(textSize))}>
+                                → {translations[idx]}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
