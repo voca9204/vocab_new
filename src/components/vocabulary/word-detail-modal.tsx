@@ -196,33 +196,33 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
           <div className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <h2 className="text-2xl font-bold">{word.word}</h2>
-                  {word.partOfSpeech.map(pos => (
-                    <span 
-                      key={pos}
-                      className={`text-sm px-2 py-0.5 rounded ${getPartOfSpeechColor(pos)}`}
-                    >
-                      {pos}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-3">
-                  {fetchingPronunciation ? (
-                    <span className="text-sm text-gray-500 italic">발음 정보 가져오는 중...</span>
-                  ) : word.pronunciation ? (
-                    <span className="text-lg text-gray-600">[{word.pronunciation}]</span>
-                  ) : null}
-                  {onPlayPronunciation && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePronunciationClick}
-                      className="p-1.5"
-                    >
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                <div className="overflow-x-auto">
+                  <div className="flex items-center gap-3 whitespace-nowrap">
+                    <h2 className="text-2xl font-bold">{word.word}</h2>
+                    {word.partOfSpeech.map(pos => (
+                      <span 
+                        key={pos}
+                        className={`text-sm px-2 py-0.5 rounded ${getPartOfSpeechColor(pos)}`}
+                      >
+                        {pos}
+                      </span>
+                    ))}
+                    {fetchingPronunciation ? (
+                      <span className="text-sm text-gray-500 italic">발음 정보 가져오는 중...</span>
+                    ) : word.pronunciation ? (
+                      <span className="text-lg text-gray-600">[{word.pronunciation}]</span>
+                    ) : null}
+                    {onPlayPronunciation && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handlePronunciationClick}
+                        className="p-1.5"
+                      >
+                        <Volume2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
               <Button
@@ -235,12 +235,12 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium inline-block">
-                  뜻
-                </span>
-                <div className="overflow-x-auto">
-                  <p className={cn("text-lg whitespace-nowrap inline-block", getTextSizeClass(textSize))}>{
+              <div className="overflow-x-auto mb-4">
+                <div className="flex items-center gap-3 whitespace-nowrap">
+                  <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium">
+                    뜻
+                  </span>
+                  <p className={cn("text-lg", getTextSizeClass(textSize))}>{
                     'definition' in word 
                       ? word.definition 
                       : word.definitions && word.definitions.length > 0
@@ -251,28 +251,26 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
               </div>
 
               {/* 유사어 섹션 추가 */}
-              <div className="space-y-2">
-                <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium inline-block">
-                  유사어
-                </span>
-                {generatingSynonyms ? (
-                  <p className="text-sm text-green-600 flex items-center gap-1">
-                    <Sparkles className="h-4 w-4 animate-pulse" />
-                    AI가 유사어를 생성하고 있습니다...
-                  </p>
-                ) : synonyms.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <div className="flex gap-2 whitespace-nowrap">
-                      {synonyms.map((synonym, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
-                          {synonym}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">유사어를 불러오는 중...</p>
-                )}
+              <div className="overflow-x-auto mb-4">
+                <div className="flex items-center gap-3 whitespace-nowrap">
+                  <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium">
+                    유사어
+                  </span>
+                  {generatingSynonyms ? (
+                    <span className="text-sm text-green-600 flex items-center gap-1">
+                      <Sparkles className="h-4 w-4 animate-pulse" />
+                      AI가 유사어를 생성하고 있습니다...
+                    </span>
+                  ) : synonyms.length > 0 ? (
+                    synonyms.map((synonym, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                        {synonym}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500 italic">유사어를 불러오는 중...</span>
+                  )}
+                </div>
               </div>
 
               {('etymology' in word && typeof word.etymology === 'string' ? word.etymology : word.etymology?.origin) && (
