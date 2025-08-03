@@ -38,7 +38,7 @@ export default function MigratePage() {
       console.log('Results set to state:', data)
     } catch (error) {
       console.error('Error:', error)
-      setError(error.message || 'An error occurred')
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }

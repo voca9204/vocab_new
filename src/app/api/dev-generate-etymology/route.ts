@@ -44,16 +44,16 @@ export async function POST(request: NextRequest) {
       normalizedWord: 'ubiquitous',
       partOfSpeech: ['adjective'],
       definitions: [{
-        partOfSpeech: 'adjective',
+        id: 'test-def-1',
         definition: 'present, appearing, or found everywhere',
         examples: ['His ubiquitous influence was felt by all the family.'],
-        source: 'test'
+        source: 'dictionary' as const,
+        language: 'en' as const,
+        partOfSpeech: 'adjective',
+        createdAt: new Date()
       }],
       etymology: 'existing or being everywhere at the same time',
-      pronunciation: {
-        audio: '',
-        text: '/juːˈbɪkwɪtəs/'
-      },
+      pronunciation: '/juːˈbɪkwɪtəs/',
       difficulty: 7,
       frequency: 5000,
       isSAT: true,

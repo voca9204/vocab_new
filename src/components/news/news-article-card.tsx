@@ -70,7 +70,6 @@ export const NewsArticleCard = React.forwardRef<HTMLDivElement, NewsArticleCardP
     return (
       <Card
         ref={ref}
-        variant="interactive"
         className={cn(
           "group transition-all duration-200 hover:shadow-lg",
           compact && "p-4",

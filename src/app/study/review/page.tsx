@@ -488,21 +488,24 @@ export default function ReviewPage() {
                         <div className="space-y-1">
                           {currentWord.examples.map((example, idx) => (
                             <div key={idx} className="flex items-start gap-2">
-                              <p className="text-gray-600 flex-1">
-                                • {example}
-                              </p>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  speakWord(example)
-                                }}
-                                className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100"
-                                title="예문 듣기"
-                              >
-                                <Volume2 className="h-3 w-3" />
-                              </Button>
+                              <span className="text-gray-600">•</span>
+                              <div className="flex-1 flex items-start gap-2">
+                                <p className="text-gray-600 flex-1">
+                                  {example}
+                                </p>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    speakWord(example)
+                                  }}
+                                  className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 flex-shrink-0"
+                                  title="예문 듣기"
+                                >
+                                  <Volume2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           ))}
                         </div>

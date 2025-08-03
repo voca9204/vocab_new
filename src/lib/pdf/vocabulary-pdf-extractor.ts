@@ -61,7 +61,7 @@ export class VocabularyPDFExtractor {
     console.log('슬래시 형식에서 단어를 찾지 못함. V.ZIP 형식 파싱 시도...')
     
     // V.ZIP 형식 파싱 (번호 word품사 / 영어정의 / 한글뜻)
-    const entries: VocabularyEntry[] = []
+    let entries: VocabularyEntry[] = []
     const lines = pdfText.split('\n').map(line => line.trim()).filter(line => line.length > 0)
     
     // V.ZIP 형식 파싱: 번호 + 단어품사가 한 줄에 (다양한 형식 지원)
@@ -266,6 +266,18 @@ export class VocabularyPDFExtractor {
       })
     }
     
+    // 수능 기출 형식 시도
+    if (entries.length === 0) {
+      console.log('V.ZIP 형식 실패, 수능 기출 형식 시도...')
+      entries = this.extractSuneungFormat(pdfText)
+    }
+    
+    // TOEFL 형식 시도
+    if (entries.length === 0) {
+      console.log('수능 형식 실패, TOEFL 형식 시도...')
+      entries = this.extractTOEFLFormat(pdfText)
+    }
+    
     // 다른 패턴들 시도
     if (entries.length === 0) {
       const patterns = [
@@ -332,6 +344,151 @@ export class VocabularyPDFExtractor {
     }
     }
     
+    return entries
+  }
+
+  /**
+   * 수능 기출 형식 추출
+   * 형식:
+   * 번호
+   * (연도) 영어 표현
+   * 한글 번역
+   * 단어
+   * [발음]
+   * (품사) 정의
+   */
+  extractSuneungFormat(text: string): VocabularyEntry[] {
+    const lines = text.split('\n').filter(line => line.trim().length > 0)
+    const entries: VocabularyEntry[] = []
+    
+    console.log('=== 수능 기출 형식 추출 시도 ===')
+    
+    let i = 0
+    while (i < lines.length) {
+      const line = lines[i].trim()
+      
+      // 숫자로만 된 라인 찾기
+      if (/^\d+$/.test(line)) {
+        const number = line
+        
+        // 다음 라인들 확인
+        if (i + 5 < lines.length) {
+          const expressionLine = lines[i + 1].trim() // (연도) 영어 표현
+          const koreanLine = lines[i + 2].trim()     // 한글 번역
+          const wordLine = lines[i + 3].trim()       // 단어
+          const pronunciationLine = lines[i + 4].trim() // [발음]
+          const definitionLine = lines[i + 5].trim()    // (품사) 정의
+          
+          // 단어 추출 (알파벳으로만 구성)
+          if (/^[a-zA-Z]+$/.test(wordLine) && wordLine.length > 2) {
+            // 품사와 정의 추출
+            const posMatch = definitionLine.match(/^\((동|형|명|부)\)\s*(.+)$/)
+            let partOfSpeech = 'n.'
+            let definition = definitionLine
+            
+            if (posMatch) {
+              // 한글 품사를 영어로 변환
+              const posMap: Record<string, string> = {
+                '동': 'v.',
+                '형': 'adj.',
+                '명': 'n.',
+                '부': 'adv.'
+              }
+              partOfSpeech = posMap[posMatch[1]] || 'n.'
+              definition = posMatch[2]
+            }
+            
+            entries.push({
+              number: number,
+              word: wordLine.toLowerCase(),
+              partOfSpeech: partOfSpeech,
+              definition: koreanLine, // 한글 번역을 주 정의로
+              englishDefinition: definition, // 상세 정의
+              example: expressionLine // 예문으로 사용
+            })
+            
+            if (entries.length <= 5) {
+              console.log(`추출: ${number}. ${wordLine} (${partOfSpeech}) - ${koreanLine}`)
+            }
+            
+            i += 6
+            continue
+          }
+        }
+      }
+      i++
+    }
+    
+    console.log(`수능 기출 형식으로 추출된 단어: ${entries.length}개`)
+    return entries
+  }
+
+  /**
+   * TOEFL/일반 단어장 형식 추출
+   * 형식: 
+   * word
+   * pos. definition
+   * pos. definition
+   */
+  extractTOEFLFormat(text: string): VocabularyEntry[] {
+    const lines = text.split('\n').filter(line => line.trim().length > 0)
+    const entries: VocabularyEntry[] = []
+    
+    console.log('=== TOEFL 형식 추출 시도 ===')
+    
+    let i = 0
+    while (i < lines.length) {
+      const line = lines[i].trim()
+      
+      // 단어인지 확인 (알파벳으로만 구성된 한 단어)
+      if (/^[a-zA-Z]+$/.test(line) && line.length > 2) {
+        const word = line.toLowerCase()
+        const definitions: { pos: string; def: string }[] = []
+        
+        // 다음 줄들에서 정의 찾기
+        let j = i + 1
+        while (j < lines.length) {
+          const defLine = lines[j].trim()
+          
+          // 품사로 시작하는 정의 라인 (예: "v. forsake, leave behind")
+          const defMatch = defLine.match(/^([a-z]+)\. (.+)$/)
+          if (defMatch) {
+            definitions.push({
+              pos: defMatch[1],
+              def: defMatch[2]
+            })
+            j++
+          } else if (/^[a-zA-Z]+$/.test(defLine) && defLine.length > 2) {
+            // 새로운 단어를 만나면 중단
+            break
+          } else {
+            // 정의의 연속이거나 다른 내용
+            j++
+          }
+        }
+        
+        // 정의가 있으면 추가
+        if (definitions.length > 0) {
+          entries.push({
+            word: word,
+            partOfSpeech: definitions[0].pos + '.',
+            definition: definitions.map(d => d.def).join('; '),
+            englishDefinition: definitions[0].def,
+            example: ''
+          })
+          
+          if (entries.length <= 5) {
+            console.log(`추출: ${word} (${definitions[0].pos}.) - ${definitions[0].def.substring(0, 50)}...`)
+          }
+        }
+        
+        i = j
+      } else {
+        i++
+      }
+    }
+    
+    console.log(`TOEFL 형식으로 추출된 단어: ${entries.length}개`)
     return entries
   }
 

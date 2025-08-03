@@ -42,14 +42,14 @@ export async function POST(request: Request) {
         console.log('Invalid action:', action)
         return NextResponse.json({ error: 'Invalid action', action }, { status: 400 })
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Migration error:', error)
-    console.error('Error stack:', error.stack)
+    console.error('Error stack:', error instanceof Error ? error.stack : undefined)
     return NextResponse.json(
       { 
         error: 'Migration failed', 
-        details: error.message,
-        stack: error.stack 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined 
       }, 
       { status: 500 }
     )
@@ -160,17 +160,13 @@ async function migrateCollections() {
         type: 'system',
         ownerType: 'system',
         ownerId: 'system',
-        isPublic: true,
-        isOfficial: true,
-        language: 'en',
-        targetLevel: 'SAT',
+        visibility: 'public' as const,
         category: 'SAT',
         level: 'advanced',
         tags: ['SAT', 'Veterans', '3000', 'vocabulary'],
         source: {
-          type: 'pdf',
-          filename: 'V.ZIP 3K.pdf',
-          uploadedBy: 'admin'
+          type: 'pdf' as const,
+          filename: 'V.ZIP 3K.pdf'
         }
       })
       vocabularyId = newVocab.id
@@ -260,16 +256,12 @@ async function migrateCollections() {
         await vocabularyWordService.addWordToVocabulary(
           vocabularyId,
           newWordId,
-          'system',
-          {
-            order: order++,
-            tags: ['SAT', 'Veterans']
-          }
+          'system'
         )
         results.mappingsCreated++
       } catch (error) {
         console.error(`Error mapping word ${newWordId}:`, error)
-        results.errors.push(`Failed to map word ${newWordId}`)
+        results.errors.push(`Failed to map word ${newWordId}` as never)
       }
     }
     
@@ -280,12 +272,12 @@ async function migrateCollections() {
     })
   } catch (error) {
     console.error('Migration failed:', error)
-    results.errors.push(error.message)
+    results.errors.push((error instanceof Error ? error.message : 'Unknown error') as never)
     return NextResponse.json({ 
       success: false, 
       message: 'Migration failed',
       results,
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error' 
     }, { status: 500 })
   }
 }
@@ -322,11 +314,11 @@ async function cleanupOldCollections() {
         if (batchCount > 0) {
           await batch.commit()
           totalDeleted += batchCount
-          results.deletedCounts[collectionName] = totalDeleted
+          results.deletedCounts[collectionName as keyof typeof results.deletedCounts] = totalDeleted
         }
       }
       
-      console.log(`Deleted ${results.deletedCounts[collectionName]} documents from ${collectionName}`)
+      console.log(`Deleted ${results.deletedCounts[collectionName as keyof typeof results.deletedCounts]} documents from ${collectionName}`)
     }
     
     return NextResponse.json({ 
@@ -336,12 +328,12 @@ async function cleanupOldCollections() {
     })
   } catch (error) {
     console.error('Cleanup failed:', error)
-    results.errors.push(error.message)
+    results.errors.push((error instanceof Error ? error.message : 'Unknown error') as never)
     return NextResponse.json({ 
       success: false, 
       message: 'Cleanup failed',
       results,
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error' 
     }, { status: 500 })
   }
 }

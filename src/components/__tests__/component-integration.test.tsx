@@ -9,28 +9,31 @@ import type { VocabularyWord } from '@/types'
 const mockWord: VocabularyWord = {
   id: 'test-word-1',
   word: 'sophisticated',
-  definition: 'Having a refined knowledge of the ways of the world cultivated especially through wide experience.',
-  partOfSpeech: 'adjective',
-  example: 'The sophisticated restaurant attracted discerning diners.',
-  pronunciation: '/səˈfɪstɪˌkeɪtɪd/',
+  definitions: [{
+    text: 'Having a refined knowledge of the ways of the world cultivated especially through wide experience.',
+    source: 'dictionary',
+    partOfSpeech: 'adjective'
+  }],
+  examples: ['The sophisticated restaurant attracted discerning diners.'],
+  partOfSpeech: ['adjective'],
   difficulty: 8,
   frequency: 7,
   satLevel: true,
-  synonyms: ['refined', 'cultured', 'worldly'],
-  antonyms: ['naive', 'simple'],
-  audioUrl: 'https://example.com/audio.mp3',
-  createdAt: '2025-06-12T00:00:00Z',
-  updatedAt: '2025-06-12T00:00:00Z',
-  tags: ['advanced', 'adjective', 'has-examples'],
-  masteryLevel: 65,
-  studyCount: 5,
-  correctCount: 3,
-  lastStudied: '2025-06-11T00:00:00Z',
-  metadata: {
-    apiSource: 'FreeDictionary',
-    sourceUrls: ['https://api.dictionaryapi.dev'],
-    processingTime: 1250,
-    fetchedAt: '2025-06-12T00:00:00Z'
+  pronunciation: '/səˈfɪstɪˌkeɪtɪd/',
+  etymology: {
+    origin: 'Latin',
+    language: 'English',
+    meaning: 'From Latin sophisticatus, past participle of sophisticare'
+  },
+  categories: ['advanced', 'adjective'],
+  sources: ['dictionary'],
+  apiSource: 'FreeDictionary',
+  createdAt: new Date('2025-06-12T00:00:00Z'),
+  updatedAt: new Date('2025-06-12T00:00:00Z'),
+  learningMetadata: {
+    timesStudied: 5,
+    masteryLevel: 0.65,
+    lastStudied: new Date('2025-06-11T00:00:00Z')
   }
 }
 describe('Component Integration Tests', () => {

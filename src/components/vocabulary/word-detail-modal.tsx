@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Button } from '@/components/ui'
 import { Card } from '@/components/ui/card'
-import { X, Volume2, Sparkles, BookOpen, Brain, Target } from 'lucide-react'
+import { X, Volume2, Sparkles, BookOpen, Brain, Target, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ExtractedVocabulary } from '@/types/extracted-vocabulary'
 import type { VocabularyWord } from '@/types'
 import { cn } from '@/lib/utils'
@@ -37,8 +37,12 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     generatingEtymology = false,
     fetchingPronunciation = false
   }, ref) => {
+    const [showEtymology, setShowEtymology] = React.useState(false)
+    const [generatingSynonyms, setGeneratingSynonyms] = React.useState(false)
+    const [synonyms, setSynonyms] = React.useState<string[]>([])
     // Track which word IDs we've already triggered API calls for
     const processedWords = React.useRef<Set<string>>(new Set())
+    const processedSynonyms = React.useRef<Set<string>>(new Set())
     const { textSize } = useSettings()
     
     // 디버깅: 텍스트 크기 확인
@@ -117,6 +121,43 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     }, [word, open, onFetchPronunciation, onGenerateExamples, onGenerateEtymology, 
         fetchingPronunciation, generatingExamples, generatingEtymology])
 
+    // Generate synonyms when modal opens with a new word
+    React.useEffect(() => {
+      if (word && open && !processedSynonyms.current.has(word.id)) {
+        processedSynonyms.current.add(word.id)
+        setSynonyms([]) // Reset synonyms for new word
+        
+        // Generate synonyms using AI
+        const generateSynonyms = async () => {
+          setGeneratingSynonyms(true)
+          try {
+            const response = await fetch('/api/generate-synonyms', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                word: word.word, 
+                definition: 'definition' in word 
+                  ? word.definition 
+                  : word.definitions?.[0]?.definition || word.definitions?.[0]?.text || ''
+              })
+            })
+            
+            if (response.ok) {
+              const data = await response.json()
+              setSynonyms(data.synonyms || [])
+            }
+          } catch (error) {
+            console.error('Error generating synonyms:', error)
+          } finally {
+            setGeneratingSynonyms(false)
+          }
+        }
+        
+        // Delay synonym generation to prioritize other content
+        setTimeout(generateSynonyms, 1500)
+      }
+    }, [word, open])
+
     const handlePronunciationClick = () => {
       if (!word) return
       onPlayPronunciation?.(word.word)
@@ -149,7 +190,7 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
       >
         <Card 
           ref={ref}
-          className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          className="max-w-3xl w-full max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6">
@@ -194,15 +235,40 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium shrink-0">
+              <div className="space-y-2">
+                <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium inline-block">
                   뜻
                 </span>
-                <p className="text-lg">{
+                <p className={cn("text-lg whitespace-nowrap overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300", getTextSizeClass(textSize))}>{
                   'definition' in word 
                     ? word.definition 
-                    : word.definitions[0]?.text || 'No definition available'
+                    : word.definitions && word.definitions.length > 0
+                      ? word.definitions[0]?.definition || word.definitions[0]?.text || 'No definition available'
+                      : 'No definition available'
                 }</p>
+              </div>
+
+              {/* 유사어 섹션 추가 */}
+              <div className="space-y-2">
+                <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium inline-block">
+                  유사어
+                </span>
+                {generatingSynonyms ? (
+                  <p className="text-sm text-green-600 flex items-center gap-1">
+                    <Sparkles className="h-4 w-4 animate-pulse" />
+                    AI가 유사어를 생성하고 있습니다...
+                  </p>
+                ) : synonyms.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {synonyms.map((synonym, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                        {synonym}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">유사어를 불러오는 중...</p>
+                )}
               </div>
 
               {('etymology' in word && typeof word.etymology === 'string' ? word.etymology : word.etymology?.origin) && (
@@ -216,14 +282,38 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                 </div>
               )}
 
-              {('realEtymology' in word ? word.realEtymology : word.etymology?.meaning) ? (
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <h3 className="font-semibold text-purple-800 mb-1">어원</h3>
-                  <p className={cn("text-purple-700", getTextSizeClass(textSize))}>{
-                    'realEtymology' in word ? word.realEtymology : word.etymology?.meaning
-                  }</p>
-                </div>
-              ) : (
+              {/* 어원 - 클릭하면 표시 */}
+              <div className="border border-purple-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setShowEtymology(!showEtymology)}
+                  className="w-full p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
+                >
+                  <h3 className="font-semibold text-purple-800">어원</h3>
+                  {showEtymology ? (
+                    <ChevronUp className="h-4 w-4 text-purple-600" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-purple-600" />
+                  )}
+                </button>
+                {showEtymology && (
+                  <div className="p-4 bg-white border-t border-purple-200">
+                    {('realEtymology' in word ? word.realEtymology : word.etymology?.meaning) ? (
+                      <p className={cn("text-purple-700", getTextSizeClass(textSize))}>{
+                        'realEtymology' in word ? word.realEtymology : word.etymology?.meaning
+                      }</p>
+                    ) : generatingEtymology ? (
+                      <p className="text-sm text-purple-600 flex items-center gap-1">
+                        <Sparkles className="h-4 w-4 animate-pulse" />
+                        AI가 어원을 분석하고 있습니다...
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">어원 정보가 없습니다</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {false && (
                 <div className="p-4 bg-gray-50 rounded-lg text-center">
                   {generatingEtymology ? (
                     <p className="text-sm text-purple-600 flex items-center justify-center gap-1">
@@ -240,22 +330,25 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                 <div className="p-4 bg-green-50 rounded-lg">
                   <h3 className="font-semibold text-green-800 mb-2">예문</h3>
                   <div className="space-y-2">
-                    {word.examples.map((example, idx) => (
+                    {word.examples.slice(0, 2).map((example, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
-                          • {example}
-                        </p>
-                        {onPlayPronunciation && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onPlayPronunciation(example)}
-                            className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100"
-                            title="예문 듣기"
-                          >
-                            <Volume2 className="h-3 w-3" />
-                          </Button>
-                        )}
+                        <span className="text-green-700">•</span>
+                        <div className="flex-1 flex items-start gap-2">
+                          <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
+                            {example}
+                          </p>
+                          {onPlayPronunciation && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onPlayPronunciation(example)}
+                              className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 flex-shrink-0"
+                              title="예문 듣기"
+                            >
+                              <Volume2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, Keyboard, CheckCircle } from 'lucide-react'
+import { ChevronLeft, Keyboard, CheckCircle, Volume2 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import { prepareWordsForTyping } from '@/lib/typing-utils'
 import { useTypingPractice } from '@/hooks/use-typing-practice'
@@ -19,12 +19,30 @@ import {
 } from '@/components/typing'
 import { LoadingSkeleton } from '@/components/typing/loading-skeleton'
 import { ErrorFallback } from '@/components/typing/error-fallback'
+import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
+import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
 
 export default function TypingPage() {
   const router = useRouter()
   const { user } = useAuth()
   const inputRef = useRef<HTMLInputElement>(null)
   const sessionCountRef = useRef(0)
+  const [showPreview, setShowPreview] = useState(true)
+  const [practiceStarted, setPracticeStarted] = useState(false)
+  
+  // Word detail modal hook
+  const {
+    selectedWord,
+    openModal,
+    closeModal,
+    generateExamples,
+    generateEtymology,
+    fetchPronunciation,
+    generatingExamples,
+    generatingEtymology,
+    fetchingPronunciation,
+    speakWord
+  } = useWordDetailModal()
   
   const {
     words,
@@ -89,9 +107,9 @@ export default function TypingPage() {
       // 전체 단어를 필터링하고 정렬
       const filteredWords = wordsData.filter(w => w.word.length >= 3 && w.word.length <= 12)
       
-      // 셔플하여 랜덤하게 선택
+      // 셔플하여 랜덤하게 선택 - 10개만 선택
       const shuffled = [...filteredWords].sort(() => Math.random() - 0.5)
-      const selectedWords = shuffled.slice(0, 20)
+      const selectedWords = shuffled.slice(0, 10)
       
       if (selectedWords.length === 0) {
         setError('타이핑 연습에 적합한 단어가 없습니다. (3-12글자 단어 필요)')
@@ -99,15 +117,14 @@ export default function TypingPage() {
         return
       }
       
-      console.log(`세션 ${sessionCountRef.current}: ${selectedWords.length}개 단어 로드`)
+      console.log(`세션 ${sessionCountRef.current}: ${selectedWords.length}개 단어 로드 (미리보기)`)
       
       setWords(selectedWords)
       resetTimer()
       
-      // Start new session after words are loaded
-      setTimeout(() => {
-        startNewSession()
-      }, 0)
+      // 미리보기 모드로 시작
+      setShowPreview(true)
+      setPracticeStarted(false)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '단어를 불러오는 중 오류가 발생했습니다.'
       setError(errorMessage)
@@ -128,10 +145,10 @@ export default function TypingPage() {
 
   // Focus input field when appropriate
   useEffect(() => {
-    if (words.length > 0 && !practiceComplete && inputRef.current && !showResult) {
+    if (words.length > 0 && !practiceComplete && inputRef.current && !showResult && practiceStarted && !showPreview) {
       inputRef.current.focus()
     }
-  }, [words.length, practiceComplete, currentWordIndex, showResult])
+  }, [words.length, practiceComplete, currentWordIndex, showResult, practiceStarted, showPreview])
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!showResult) {
@@ -153,8 +170,21 @@ export default function TypingPage() {
     restartPractice()
     resetTimer()
     clearError()
+    setShowPreview(true)
+    setPracticeStarted(false)
     loadWords()
   }, [restartPractice, resetTimer, loadWords, clearError])
+
+  const handleStartPractice = useCallback(() => {
+    setShowPreview(false)
+    setPracticeStarted(true)
+    startNewSession()
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+    }, 100)
+  }, [startNewSession])
 
   const handleRetry = useCallback(() => {
     clearError()
@@ -227,7 +257,45 @@ export default function TypingPage() {
         </div>
       </div>
 
-      {practiceComplete ? (
+      {showPreview && words.length > 0 ? (
+        // 단어 미리보기 화면
+        <Card>
+          <CardContent className="p-8">
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold mb-2">오늘의 타이핑 연습 단어</h2>
+              <p className="text-gray-600">아래 10개 단어를 연습합니다. 준비되셨나요?</p>
+              <p className="text-sm text-gray-500 mt-1">💡 단어를 클릭하면 뜻과 발음을 확인할 수 있어요!</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+              {words.map((word, index) => (
+                <div 
+                  key={word.id} 
+                  className="p-4 bg-gray-50 rounded-lg text-center hover:bg-blue-50 hover:border-blue-200 border border-transparent transition-all cursor-pointer group"
+                  onClick={() => openModal(word)}
+                >
+                  <div className="text-lg font-medium text-gray-800 group-hover:text-blue-700">{word.word}</div>
+                  <div className="text-sm text-gray-500 mt-1">{word.word.length}글자</div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-center gap-4">
+              <Button size="lg" onClick={handleStartPractice}>
+                <Keyboard className="h-5 w-5 mr-2" />
+                시작할까요?
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => router.push('/study')}
+              >
+                돌아가기
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : practiceComplete ? (
         <PracticeCompleteScreen
           results={results}
           accuracy={accuracy}
@@ -248,7 +316,7 @@ export default function TypingPage() {
             </p>
           </CardContent>
         </Card>
-      ) : currentWord ? (
+      ) : currentWord && practiceStarted && !showPreview ? (
         <>
           <TypingStatsGrid
             currentWordIndex={currentWordIndex}
@@ -302,6 +370,20 @@ export default function TypingPage() {
           </Card>
         </>
       ) : null}
+      
+      {/* Word Detail Modal */}
+      <WordDetailModal
+        open={!!selectedWord}
+        onClose={closeModal}
+        word={selectedWord}
+        onPlayPronunciation={speakWord}
+        onGenerateExamples={generateExamples}
+        onGenerateEtymology={generateEtymology}
+        onFetchPronunciation={fetchPronunciation}
+        generatingExamples={generatingExamples}
+        generatingEtymology={generatingEtymology}
+        fetchingPronunciation={fetchingPronunciation}
+      />
     </div>
   )
 }

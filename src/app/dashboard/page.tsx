@@ -110,12 +110,12 @@ export default function DashboardPage() {
         let studiedDate: Date
         if (lastStudied instanceof Date) {
           studiedDate = lastStudied
-        } else if (lastStudied.toDate && typeof lastStudied.toDate === 'function') {
-          studiedDate = lastStudied.toDate()
-        } else if (lastStudied.seconds) {
-          studiedDate = new Date(lastStudied.seconds * 1000)
+        } else if (typeof lastStudied === 'object' && lastStudied !== null && 'toDate' in lastStudied && typeof (lastStudied as any).toDate === 'function') {
+          studiedDate = (lastStudied as any).toDate()
+        } else if (typeof lastStudied === 'object' && lastStudied !== null && 'seconds' in lastStudied) {
+          studiedDate = new Date((lastStudied as any).seconds * 1000)
         } else {
-          studiedDate = new Date(lastStudied)
+          studiedDate = new Date(lastStudied as any)
         }
         
         return studiedDate >= today

@@ -7,3 +7,5 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 export { LoadingSpinner } from './loading-spinner'
 export { Modal } from './modal'
 export { ProgressBar } from './progress-bar'
+export { Alert, AlertDescription } from './alert'
+export { Badge, badgeVariants, DifficultyBadge, MasteryBadge } from './badge'

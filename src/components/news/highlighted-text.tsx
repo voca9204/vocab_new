@@ -1,7 +1,7 @@
 // News Components - Highlighted Text
 
 import * as React from 'react'
-import { Modal, ModalBody, ModalHeader, ModalTitle } from '@/components/ui/modal'
+import { Modal } from '@/components/ui/modal'
 import { Badge, DifficultyBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { NewsHighlight, VocabularyWord } from '@/types'

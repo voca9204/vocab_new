@@ -44,7 +44,7 @@ export interface LearningMetadata {
   timesStudied: number
   masteryLevel: number // 0-1 scale
   lastStudied: Date
-  userProgress: UserProgress
+  userProgress?: UserProgress
 }
 
 export interface UserProgress {

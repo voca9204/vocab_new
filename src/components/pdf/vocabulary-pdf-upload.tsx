@@ -44,21 +44,14 @@ export function VocabularyPDFUpload({ onExtractComplete }: VocabularyPDFUploadPr
 
     setIsLoading(true)
     setError('')
-    setProgress('PDF에서 텍스트 추출 중...')
+    setProgress('PDF 단어장 분석 중...')
 
     try {
-      // 1. PDF에서 텍스트 추출
-      const pdfService = new PDFVisionService()
-      const result = await pdfService.extractTextFromPDF(file)
-
-      setProgress(`텍스트 추출 완료. 단어장 형식 분석 중...`)
-
-      // 2. 단어장 형식으로 파싱하여 DB에 저장
+      // 하이브리드 방식으로 직접 처리
       const vocabularyService = new VocabularyPDFService()
-      const processedWords = await vocabularyService.processVocabularyPDF(
-        result.text,
+      const processedWords = await vocabularyService.processVocabularyPDFHybrid(
+        file,
         user.uid,
-        { filename: file.name },
         isAdmin // 관리자 여부 전달
       )
 

@@ -101,12 +101,12 @@ export default function DailyGoalPage() {
         let studiedDate: Date
         if (lastStudied instanceof Date) {
           studiedDate = lastStudied
-        } else if (lastStudied.toDate && typeof lastStudied.toDate === 'function') {
-          studiedDate = lastStudied.toDate()
-        } else if (lastStudied.seconds) {
-          studiedDate = new Date(lastStudied.seconds * 1000)
+        } else if (typeof lastStudied === 'object' && lastStudied !== null && 'toDate' in lastStudied && typeof (lastStudied as any).toDate === 'function') {
+          studiedDate = (lastStudied as any).toDate()
+        } else if (typeof lastStudied === 'object' && lastStudied !== null && 'seconds' in lastStudied) {
+          studiedDate = new Date((lastStudied as any).seconds * 1000)
         } else {
-          studiedDate = new Date(lastStudied)
+          studiedDate = new Date(lastStudied as any)
         }
         
         // 오늘 날짜와 비교
@@ -140,7 +140,7 @@ export default function DailyGoalPage() {
           }
         }
         return null
-      }).filter(Boolean) as VocabularyWord[]
+      }).filter(Boolean) as any[]
       
       console.log(`Today's studied words: ${todayWords.length}`)
       
@@ -163,12 +163,12 @@ export default function DailyGoalPage() {
         let lastUsed: Date
         if (quizStats.lastUsed instanceof Date) {
           lastUsed = quizStats.lastUsed
-        } else if (quizStats.lastUsed.toDate && typeof quizStats.lastUsed.toDate === 'function') {
-          lastUsed = quizStats.lastUsed.toDate()
-        } else if (quizStats.lastUsed.seconds) {
-          lastUsed = new Date(quizStats.lastUsed.seconds * 1000)
+        } else if (typeof quizStats.lastUsed === 'object' && quizStats.lastUsed !== null && 'toDate' in quizStats.lastUsed && typeof (quizStats.lastUsed as any).toDate === 'function') {
+          lastUsed = (quizStats.lastUsed as any).toDate()
+        } else if (typeof quizStats.lastUsed === 'object' && quizStats.lastUsed !== null && 'seconds' in quizStats.lastUsed) {
+          lastUsed = new Date((quizStats.lastUsed as any).seconds * 1000)
         } else {
-          lastUsed = new Date(quizStats.lastUsed)
+          lastUsed = new Date(quizStats.lastUsed as any)
         }
         
         const isToday = lastUsed >= todayForStats
@@ -188,12 +188,12 @@ export default function DailyGoalPage() {
         let lastUsed: Date
         if (typingStats.lastUsed instanceof Date) {
           lastUsed = typingStats.lastUsed
-        } else if (typingStats.lastUsed.toDate && typeof typingStats.lastUsed.toDate === 'function') {
-          lastUsed = typingStats.lastUsed.toDate()
-        } else if (typingStats.lastUsed.seconds) {
-          lastUsed = new Date(typingStats.lastUsed.seconds * 1000)
+        } else if (typeof typingStats.lastUsed === 'object' && typingStats.lastUsed !== null && 'toDate' in typingStats.lastUsed && typeof (typingStats.lastUsed as any).toDate === 'function') {
+          lastUsed = (typingStats.lastUsed as any).toDate()
+        } else if (typeof typingStats.lastUsed === 'object' && typingStats.lastUsed !== null && 'seconds' in typingStats.lastUsed) {
+          lastUsed = new Date((typingStats.lastUsed as any).seconds * 1000)
         } else {
-          lastUsed = new Date(typingStats.lastUsed)
+          lastUsed = new Date(typingStats.lastUsed as any)
         }
         
         return lastUsed >= todayForStats
@@ -209,12 +209,12 @@ export default function DailyGoalPage() {
         let studiedDate: Date
         if (lastStudied instanceof Date) {
           studiedDate = lastStudied
-        } else if (lastStudied.toDate && typeof lastStudied.toDate === 'function') {
-          studiedDate = lastStudied.toDate()
-        } else if (lastStudied.seconds) {
-          studiedDate = new Date(lastStudied.seconds * 1000)
+        } else if (typeof lastStudied === 'object' && lastStudied !== null && 'toDate' in lastStudied && typeof (lastStudied as any).toDate === 'function') {
+          studiedDate = (lastStudied as any).toDate()
+        } else if (typeof lastStudied === 'object' && lastStudied !== null && 'seconds' in lastStudied) {
+          studiedDate = new Date((lastStudied as any).seconds * 1000)
         } else {
-          studiedDate = new Date(lastStudied)
+          studiedDate = new Date(lastStudied as any)
         }
         
         return studiedDate >= yesterday && studiedDate < today
@@ -231,7 +231,7 @@ export default function DailyGoalPage() {
       const lowMasteryWords = lowMasteryUserWords.map(uw => {
         const word = allWords.find(w => w.id === uw.wordId)
         return word ? { ...word, studyStatus: { ...word.studyStatus, masteryLevel: uw.studyStatus.masteryLevel } } : null
-      }).filter(Boolean) as VocabularyWord[]
+      }).filter(Boolean) as any[]
       
       const suggested = [
         ...unstudiedWords.slice(0, 10),

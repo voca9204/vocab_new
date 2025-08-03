@@ -17,6 +17,25 @@ export interface PDFExtractionResult {
   pages: number
   satWords: string[]
   allWords: string[] // 모든 추출된 단어
+  images?: string[] // base64 encoded images
+  metadata?: {
+    title?: string
+    author?: string
+    subject?: string
+    keywords?: string
+  }
+}
+
+export interface CompleteExtractionResult {
+  text: string
+  pages: number
+  images: string[] // base64 encoded images
+  metadata?: {
+    title?: string
+    author?: string
+    subject?: string
+    keywords?: string
+  }
 }
 
 export class PDFVisionService {
@@ -296,6 +315,271 @@ export class PDFVisionService {
       words: (result.words || []).map((w: string) => ({ word: w.toLowerCase(), confidence: 1 }))
     }
   }
+
+  /**
+   * PDF에서 텍스트와 이미지를 모두 추출
+   */
+  async extractCompleteContent(file: File, maxPages?: number): Promise<CompleteExtractionResult> {
+    const result = maxPages 
+      ? await this.extractTextFromLargePDF(file, maxPages)
+      : await this.extractTextFromPDF(file)
+    return {
+      text: result.text,
+      pages: result.pages,
+      images: [], // 이미지 추출은 필요시 구현
+      metadata: {}
+    }
+  }
+
+  /**
+   * 구조화된 텍스트 추출 (레이아웃 보존)
+   */
+  private extractStructuredText(textContent: any): string {
+    const items = textContent.items
+    if (!items || items.length === 0) return ''
+
+    // 아이템을 Y 좌표로 그룹화 (같은 줄)
+    const lines = new Map<number, any[]>()
+    
+    items.forEach((item: any) => {
+      const y = Math.round(item.transform[5]) // Y 좌표
+      if (!lines.has(y)) {
+        lines.set(y, [])
+      }
+      lines.get(y)!.push(item)
+    })
+
+    // Y 좌표로 정렬 (위에서 아래로)
+    const sortedLines = Array.from(lines.entries())
+      .sort((a, b) => b[0] - a[0]) // PDF는 아래에서 위로 좌표가 증가
+
+    // 각 줄을 X 좌표로 정렬하고 텍스트 추출
+    const textLines = sortedLines.map(([y, items]) => {
+      const sortedItems = items.sort((a, b) => a.transform[4] - b.transform[4]) // X 좌표로 정렬
+      
+      let lineText = ''
+      let lastX = 0
+      
+      sortedItems.forEach((item, index) => {
+        const x = item.transform[4]
+        const text = item.str
+        
+        // 단어 간 공백 추가 (X 좌표 차이가 크면)
+        if (index > 0 && x - lastX > item.width * 0.2) {
+          lineText += ' '
+        }
+        
+        lineText += text
+        lastX = x + item.width
+      })
+      
+      return lineText.trim()
+    })
+
+    return textLines.filter(line => line.length > 0).join('\n')
+  }
+
+  /**
+   * 단어장 형식 자동 감지
+   */
+  detectVocabularyFormat(text: string): string {
+    const lines = text.split('\n').slice(0, 100) // 처음 100줄만 분석
+    
+    // 각 형식의 패턴 매칭 점수
+    const scores = {
+      SLASH: 0,
+      VZIP: 0,
+      TABLE: 0,
+      NUMBERED: 0,
+      DEFINITION: 0
+    }
+    
+    lines.forEach(line => {
+      // 슬래시 형식
+      if (/^\d+\/\w+\/\w+\.?\//.test(line)) {
+        scores.SLASH++
+      }
+      
+      // V.ZIP 형식
+      if (/^\d+\s+[a-zA-Z]+[a-z]+\.$/.test(line)) {
+        scores.VZIP++
+      }
+      
+      // 표 형식 (탭이나 여러 공백으로 구분)
+      if (/\w+\s{2,}\w+\s{2,}/.test(line) || /\w+\t\w+/.test(line)) {
+        scores.TABLE++
+      }
+      
+      // 번호가 있는 형식
+      if (/^\d+\.\s+\w+/.test(line)) {
+        scores.NUMBERED++
+      }
+      
+      // 정의 형식 (단어: 설명 또는 단어 - 설명)
+      if (/^\w+\s*[:：-]\s*.+/.test(line)) {
+        scores.DEFINITION++
+      }
+    })
+    
+    // 가장 높은 점수의 형식 반환
+    const maxScore = Math.max(...Object.values(scores))
+    const detectedFormat = Object.entries(scores).find(([_, score]) => score === maxScore)?.[0] || 'UNKNOWN'
+    
+    console.log('형식 감지 점수:', scores)
+    console.log('감지된 형식:', detectedFormat)
+    
+    return detectedFormat
+  }
 }
 
+
 export default PDFVisionService
+
+/**
+ * PDF에서 단어를 추출하는 헬퍼 함수 (테스트 모드 지원)
+ */
+export async function extractVocabularyFromPDF(
+  file: File,
+  options?: {
+    maxPages?: number
+    testMode?: boolean
+  }
+): Promise<import('../../types/extracted-vocabulary').ExtractedVocabulary[]> {
+  const hybridExtractor = new (await import('./hybrid-pdf-extractor')).HybridPDFExtractor()
+  const vocabularyExtractor = new (await import('./vocabulary-pdf-extractor')).default()
+  
+  try {
+    // 테스트 모드인 경우 처음 몇 페이지만 처리
+    if (options?.testMode && options.maxPages) {
+      // PDF.js로 직접 텍스트 추출
+      const pdfjsLib = (await import('pdfjs-dist')) as any
+      
+      if (typeof window !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+      }
+
+      const arrayBuffer = await file.arrayBuffer()
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      
+      const pagesToProcess = Math.min(pdf.numPages, options.maxPages)
+      let fullText = ''
+      
+      for (let i = 1; i <= pagesToProcess; i++) {
+        const page = await pdf.getPage(i)
+        const textContent = await page.getTextContent()
+        
+        // 줄 단위로 텍스트 재구성
+        let currentLine = ''
+        let currentY = null
+        const lines: string[] = []
+        
+        for (const item of textContent.items) {
+          // Y 좌표가 변경되면 새로운 줄
+          if (currentY !== null && Math.abs(item.transform[5] - currentY) > 2) {
+            if (currentLine.trim()) {
+              lines.push(currentLine.trim())
+            }
+            currentLine = ''
+          }
+          currentY = item.transform[5]
+          currentLine += item.str
+        }
+        
+        // 마지막 줄 추가
+        if (currentLine.trim()) {
+          lines.push(currentLine.trim())
+        }
+        
+        fullText += lines.join('\n') + '\n'
+      }
+      
+      // V.ZIP 형식으로 단어 추출
+      const entries = vocabularyExtractor.extractWithFlexibleFormat(fullText)
+      
+      // ExtractedWord 형식으로 변환
+      return entries.map(entry => ({
+        word: entry.word,
+        definition: entry.definition,
+        etymology: entry.englishDefinition,
+        partOfSpeech: entry.partOfSpeech ? [entry.partOfSpeech] : [],
+        examples: entry.example ? [entry.example] : [],
+        pronunciation: null,
+        difficulty: estimateDifficulty(entry.word),
+        frequency: Math.floor(Math.random() * 10) + 1,
+        isSAT: vocabularyExtractor.isSATWord(entry.word),
+        userId: 'test-user',
+        source: {
+          type: 'pdf' as const,
+          filename: file.name,
+          uploadedAt: new Date()
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        studyStatus: {
+          studied: false,
+          masteryLevel: 0,
+          reviewCount: 0
+        }
+      } as import('../../types/extracted-vocabulary').ExtractedVocabulary))
+    }
+    
+    // 일반 모드는 하이브리드 추출기 사용 (AI 형식 감지 포함)
+    const result = await hybridExtractor.extract(file, {
+      useAI: true, // AI 형식 감지 활성화
+      useVision: false,
+      fallbackToRegex: true
+    })
+    
+    return result.entries.map(entry => ({
+      word: entry.word,
+      definition: entry.definition,
+      etymology: entry.englishDefinition,
+      partOfSpeech: entry.partOfSpeech ? [entry.partOfSpeech] : [],
+      examples: entry.example ? [entry.example] : [],
+      pronunciation: null,
+      difficulty: estimateDifficulty(entry.word),
+      frequency: Math.floor(Math.random() * 10) + 1,
+      isSAT: vocabularyExtractor.isSATWord(entry.word),
+      source: {
+        type: 'pdf' as const,
+        filename: file.name,
+        uploadedAt: new Date()
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      studyStatus: {
+        studied: false,
+        masteryLevel: 0,
+        reviewCount: 0
+      }
+    } as any))
+    
+  } catch (error) {
+    console.error('PDF 단어 추출 오류:', error)
+    throw error
+  }
+}
+
+// 난이도 추정 함수
+function estimateDifficulty(word: string): number {
+  const length = word.length
+  let difficulty = Math.min(10, Math.floor(length / 2))
+  
+  const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with']
+  if (commonWords.includes(word.toLowerCase())) {
+    difficulty = 1
+  }
+  
+  const academicPrefixes = ['anti', 'dis', 'un', 'pre', 'post', 'sub', 'super', 'trans']
+  const academicSuffixes = ['tion', 'sion', 'ment', 'ness', 'ity', 'ous', 'ive', 'ary']
+  
+  if (academicPrefixes.some(prefix => word.startsWith(prefix))) {
+    difficulty = Math.min(10, difficulty + 1)
+  }
+  
+  if (academicSuffixes.some(suffix => word.endsWith(suffix))) {
+    difficulty = Math.min(10, difficulty + 1)
+  }
+  
+  return difficulty
+}

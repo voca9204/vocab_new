@@ -6,6 +6,7 @@
 export interface Word {
   id: string
   word: string
+  normalizedWord?: string  // Normalized version for search
   pronunciation?: string
   partOfSpeech: string[]
   
@@ -22,6 +23,7 @@ export interface Word {
   difficulty: number  // 1-10
   frequency: number
   isSAT: boolean
+  source?: string  // Source of the word (pdf, manual, etc.)
   
   // 생성/수정 정보
   createdAt: Date
@@ -42,6 +44,7 @@ export interface WordDefinition {
   examples: string[]
   source: 'dictionary' | 'ai' | 'manual' | 'pdf'
   language: 'en' | 'ko'  // 영어 또는 한국어
+  partOfSpeech?: string  // Optional part of speech for specific definitions
   createdAt: Date
 }
 
@@ -54,6 +57,10 @@ export interface Vocabulary {
   // 단어장 타입
   type: 'system' | 'personal' | 'shared'
   visibility: 'public' | 'private'
+  isPublic?: boolean  // Legacy support
+  isOfficial?: boolean  // Official vocabulary marker
+  language?: string  // Vocabulary language
+  targetLevel?: string  // Target proficiency level
   
   // 소유자 정보
   ownerId: string  // 'system' for system vocabularies
@@ -91,17 +98,17 @@ export interface VocabularyWord {
   vocabularyId: string
   wordId: string
   
-  // 단어장 내 순서
-  order?: number
-  
   // 단어장 내 추가 정보
   addedAt: Date
   addedBy: string
-  notes?: string  // 개인 메모
-  customDefinition?: string  // 사용자 정의 뜻
   
-  // 단어장별 태그
-  tags?: string[]
+  // 확장 가능한 메타데이터
+  metadata?: {
+    order?: number  // 단어장 내 순서
+    notes?: string  // 개인 메모
+    customDefinition?: string  // 사용자 정의 뜻
+    tags?: string[]  // 단어장별 태그
+  }
 }
 
 // 4. 사용자 단어장 구독/학습 상태 (user_vocabularies 컬렉션)
