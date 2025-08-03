@@ -239,13 +239,15 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                 <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium inline-block">
                   뜻
                 </span>
-                <p className={cn("text-lg whitespace-nowrap overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300", getTextSizeClass(textSize))}>{
-                  'definition' in word 
-                    ? word.definition 
-                    : word.definitions && word.definitions.length > 0
-                      ? word.definitions[0]?.definition || word.definitions[0]?.text || 'No definition available'
-                      : 'No definition available'
-                }</p>
+                <div className="overflow-x-auto">
+                  <p className={cn("text-lg whitespace-nowrap inline-block", getTextSizeClass(textSize))}>{
+                    'definition' in word 
+                      ? word.definition 
+                      : word.definitions && word.definitions.length > 0
+                        ? word.definitions[0]?.definition || word.definitions[0]?.text || 'No definition available'
+                        : 'No definition available'
+                  }</p>
+                </div>
               </div>
 
               {/* 유사어 섹션 추가 */}
@@ -259,12 +261,14 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                     AI가 유사어를 생성하고 있습니다...
                   </p>
                 ) : synonyms.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {synonyms.map((synonym, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
-                        {synonym}
-                      </span>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <div className="flex gap-2 whitespace-nowrap">
+                      {synonyms.map((synonym, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                          {synonym}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500 italic">유사어를 불러오는 중...</p>
