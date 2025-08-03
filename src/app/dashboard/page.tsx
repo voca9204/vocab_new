@@ -43,6 +43,7 @@ export default function DashboardPage() {
     fetchingPronunciation,
     speakWord
   } = useWordDetailModal()
+  const [allWords, setAllWords] = useState<VocabularyWord[]>([])
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
   useEffect(() => {
@@ -89,6 +90,7 @@ export default function DashboardPage() {
     try {
       // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
       const { words } = await vocabularyService.getAll(undefined, 2000, user.uid) // 충분히 많은 수
+      setAllWords(words) // Store all words for synonym lookup
       
       // 사용자의 학습 통계 가져오기 (user_words 컬렉션에서)
       const { UserWordService } = await import('@/lib/vocabulary-v2/user-word-service')
@@ -285,6 +287,27 @@ export default function DashboardPage() {
         generatingExamples={generatingExamples}
         generatingEtymology={generatingEtymology}
         fetchingPronunciation={fetchingPronunciation}
+        onSynonymClick={async (synonymWord) => {
+          // Find the word in all words list
+          let synonymWordData = allWords.find(w => w.word.toLowerCase() === synonymWord.toLowerCase())
+          
+          // If not found in current list, try to fetch from database
+          if (!synonymWordData && user) {
+            try {
+              const { words: searchResults } = await vocabularyService.search(synonymWord, user.uid)
+              synonymWordData = searchResults[0]
+            } catch (error) {
+              console.error('Error searching for synonym:', error)
+            }
+          }
+          
+          if (synonymWordData) {
+            closeModal()
+            setTimeout(() => {
+              openModal(synonymWordData)
+            }, 100)
+          }
+        }}
       />
     </div>
   )

@@ -22,6 +22,7 @@ export interface WordDetailModalProps {
   generatingExamples?: boolean
   generatingEtymology?: boolean
   fetchingPronunciation?: boolean
+  onSynonymClick?: (synonymWord: string) => void
 }
 
 export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalProps>(
@@ -35,7 +36,8 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     onFetchPronunciation,
     generatingExamples = false,
     generatingEtymology = false,
-    fetchingPronunciation = false
+    fetchingPronunciation = false,
+    onSynonymClick
   }, ref) => {
     const [showEtymology, setShowEtymology] = React.useState(false)
     const [generatingSynonyms, setGeneratingSynonyms] = React.useState(false)
@@ -44,6 +46,14 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     const processedWords = React.useRef<Set<string>>(new Set())
     const processedSynonyms = React.useRef<Set<string>>(new Set())
     const { textSize } = useSettings()
+    
+    // Reset state when word changes
+    React.useEffect(() => {
+      if (word && open) {
+        setShowEtymology(false) // Close etymology when switching words
+        setSynonyms([]) // Clear synonyms from previous word
+      }
+    }, [word?.id, open])
     
     // 디버깅: 텍스트 크기 확인
     console.log('[WordDetailModal] Current text size:', textSize)
@@ -263,9 +273,13 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                     </span>
                   ) : synonyms.length > 0 ? (
                     synonyms.map((synonym, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                      <button
+                        key={idx}
+                        onClick={() => onSynonymClick?.(synonym)}
+                        className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100 transition-colors cursor-pointer"
+                      >
                         {synonym}
-                      </span>
+                      </button>
                     ))
                   ) : (
                     <span className="text-sm text-gray-500 italic">유사어를 불러오는 중...</span>

@@ -383,6 +383,16 @@ export default function TypingPage() {
         generatingExamples={generatingExamples}
         generatingEtymology={generatingEtymology}
         fetchingPronunciation={fetchingPronunciation}
+        onSynonymClick={(synonymWord) => {
+          // Find the word in the current words list
+          const synonymWordData = words.find(w => w.word.toLowerCase() === synonymWord.toLowerCase())
+          if (synonymWordData) {
+            closeModal()
+            setTimeout(() => {
+              openModal(synonymWordData)
+            }, 100)
+          }
+        }}
       />
     </div>
   )
