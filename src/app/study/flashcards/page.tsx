@@ -489,10 +489,18 @@ export default function FlashcardsPage() {
           onClick={() => setShowAnswer(!showAnswer)}
         >
           <div className="text-center">
-            <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="flex items-center justify-center gap-3 mb-4">
               <h2 className="text-3xl md:text-4xl font-bold">
                 {currentWord.word}
               </h2>
+              {currentWord.partOfSpeech.map(pos => (
+                <span 
+                  key={pos}
+                  className="text-sm px-3 py-1 rounded bg-gray-100 text-gray-700"
+                >
+                  {pos}
+                </span>
+              ))}
               <Button
                 variant="outline"
                 size="sm"
@@ -507,21 +515,10 @@ export default function FlashcardsPage() {
             </div>
             
             {(currentWord.pronunciation || pronunciations[currentWord.word]) && (
-              <p className="text-lg text-gray-600 mb-3">
+              <p className="text-lg text-gray-600 mb-6">
                 [{currentWord.pronunciation || pronunciations[currentWord.word]}]
               </p>
             )}
-            
-            <div className="flex justify-center gap-2 mb-6">
-              {currentWord.partOfSpeech.map(pos => (
-                <span 
-                  key={pos}
-                  className="text-sm px-3 py-1 rounded bg-gray-100 text-gray-700"
-                >
-                  {pos}
-                </span>
-              ))}
-            </div>
 
             {showAnswer ? (
               <div className="space-y-4 animate-fade-in">
@@ -549,7 +546,10 @@ export default function FlashcardsPage() {
                   {/* 어원 - 클릭하면 표시 */}
                   <div className="border border-purple-200 rounded-lg overflow-hidden max-w-xl mx-auto">
                     <button
-                      onClick={() => setShowEtymology(!showEtymology)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowEtymology(!showEtymology)
+                      }}
                       className="w-full p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
                     >
                       <h3 className="font-semibold text-purple-800">어원</h3>
