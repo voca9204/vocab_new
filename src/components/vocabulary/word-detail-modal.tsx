@@ -366,17 +366,17 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                           <span className="text-green-700 mt-0.5">•</span>
                           <div className="flex-1">
                             <div className="space-y-1">
-                              <div className="flex items-end gap-2">
-                                <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
+                              <div>
+                                <p className={cn("text-green-700 inline", getTextSizeClass(textSize))}>
                                   {example}
                                 </p>
-                                <div className="flex items-center gap-1 flex-shrink-0 mb-0.5">
+                                <span className="inline-flex items-center gap-1 ml-2">
                                   {onPlayPronunciation && (
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => onPlayPronunciation(example)}
-                                      className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                      className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex"
                                       title="예문 듣기"
                                     >
                                       <Volume2 className="h-3 w-3" />
@@ -405,7 +405,7 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                                       }
                                     }}
                                     disabled={translatingIndex === idx}
-                                    className="text-xs px-2 py-1 h-6 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                    className="text-xs px-2 py-1 h-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex items-center"
                                   >
                                     {translatingIndex === idx ? (
                                       <Sparkles className="h-3 w-3 animate-pulse" />
@@ -413,7 +413,7 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                                       '번역'
                                     )}
                                   </Button>
-                                </div>
+                                </span>
                               </div>
                               {translations[idx] && (
                                 <p className={cn("text-green-600 text-sm", getTextSizeClass(textSize))}>
