@@ -200,7 +200,7 @@ export default function FlashcardsPage() {
 
   const generateExampleForCurrentWord = async () => {
     const currentWord = words[currentIndex]
-    const hasExamples = currentWord?.definitions?.some(def => def.examples?.length > 0)
+    const hasExamples = currentWord?.examples && currentWord.examples.length > 0
     if (!currentWord || !currentWord.id || hasExamples || generatingExamples) {
       return
     }
@@ -538,11 +538,11 @@ export default function FlashcardsPage() {
                     </div>
                   )}
                   
-                  {currentWord.definitions?.some(def => def.examples?.length > 0) && (
+                  {currentWord.examples && currentWord.examples.length > 0 && (
                     <div className="p-4 bg-green-50 rounded-lg text-left max-w-xl mx-auto">
                       <p className="text-sm font-semibold text-green-800 mb-2">예문:</p>
                       <div className="space-y-2">
-                        {currentWord.definitions.flatMap(def => def.examples || []).map((example: string, idx: number) => (
+                        {currentWord.examples.slice(0, 2).map((example: string, idx: number) => (
                           <div key={idx} className="flex items-start gap-2">
                             <span className="text-green-700">•</span>
                             <div className="flex-1 flex items-start gap-2">
@@ -568,7 +568,7 @@ export default function FlashcardsPage() {
                     </div>
                   )}
                   
-                  {!currentWord.definitions?.some(def => def.examples?.length > 0) && (
+                  {(!currentWord.examples || currentWord.examples.length === 0) && (
                     <div className="p-4 bg-gray-50 rounded-lg text-center max-w-xl mx-auto">
                       <p className="text-sm text-blue-600 flex items-center justify-center gap-1">
                         <Sparkles className="h-4 w-4 animate-pulse" />
