@@ -520,7 +520,11 @@ export default function FlashcardsPage() {
                   {currentWord.etymology && (
                     <div className="p-4 bg-yellow-50 rounded-lg text-left max-w-xl mx-auto">
                       <p className="text-sm font-semibold text-yellow-800 mb-1">영어 설명:</p>
-                      <p className={cn("text-yellow-700", getTextSizeClass(textSize))}>{currentWord.etymology}</p>
+                      <p className={cn("text-yellow-700", getTextSizeClass(textSize))}>
+                        {typeof currentWord.etymology === 'string' 
+                          ? currentWord.etymology 
+                          : currentWord.etymology.origin || currentWord.etymology.meaning || ''}
+                      </p>
                     </div>
                   )}
                   
