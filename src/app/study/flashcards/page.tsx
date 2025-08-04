@@ -513,7 +513,13 @@ export default function FlashcardsPage() {
 
             {showAnswer ? (
               <div className="space-y-4 animate-fade-in">
-                <p className="text-xl text-gray-800 font-medium">{currentWord.definitions[0]?.definition || 'Definition not available'}</p>
+                <p className="text-xl text-gray-800 font-medium">{
+                  'definition' in currentWord 
+                    ? currentWord.definition 
+                    : currentWord.definitions && currentWord.definitions.length > 0
+                      ? currentWord.definitions[0]?.definition || currentWord.definitions[0]?.text || 'Definition not available'
+                      : 'Definition not available'
+                }</p>
                 
                 <div className="space-y-4 mt-6">
                   {/* 영어 설명 표시 */}
