@@ -16,7 +16,9 @@ import {
   EyeOff,
   Shuffle,
   Volume2,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import type { Word } from '@/types/vocabulary-v2'
@@ -44,6 +46,9 @@ export default function FlashcardsPage() {
   const [pronunciations, setPronunciations] = useState<Record<string, string>>({})
   const [generatingExamples, setGeneratingExamples] = useState(false)
   const [generatingEtymology, setGeneratingEtymology] = useState(false)
+  const [showEtymology, setShowEtymology] = useState(false)
+  const [translations, setTranslations] = useState<{ [key: number]: string }>({})
+  const [translatingIndex, setTranslatingIndex] = useState<number | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -59,6 +64,13 @@ export default function FlashcardsPage() {
       localStorage.setItem('flashcard-progress', validIndex.toString())
     }
   }, [currentIndex, words.length])
+
+  // 카드가 바뀔 때 상태 초기화
+  useEffect(() => {
+    setShowEtymology(false)
+    setTranslations({})
+    setTranslatingIndex(null)
+  }, [currentIndex])
 
   // 현재 단어가 변경될 때마다 예문 및 어원 확인 및 생성
   useEffect(() => {
@@ -534,39 +546,103 @@ export default function FlashcardsPage() {
                     </div>
                   )}
                   
-                  {/* 실제 어원 표시 (빈 문자열 제외) */}
-                  {currentWord.realEtymology && currentWord.realEtymology.trim() && (
-                    <div className="p-4 bg-blue-50 rounded-lg text-left max-w-xl mx-auto">
-                      <p className="text-sm font-semibold text-blue-800 mb-1">어원:</p>
-                      <p className={cn("text-blue-700", getTextSizeClass(textSize))}>
-                        {currentWord.realEtymology.trim()}
-                      </p>
-                    </div>
-                  )}
+                  {/* 어원 - 클릭하면 표시 */}
+                  <div className="border border-purple-200 rounded-lg overflow-hidden max-w-xl mx-auto">
+                    <button
+                      onClick={() => setShowEtymology(!showEtymology)}
+                      className="w-full p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
+                    >
+                      <h3 className="font-semibold text-purple-800">어원</h3>
+                      {showEtymology ? (
+                        <ChevronUp className="h-4 w-4 text-purple-600" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-purple-600" />
+                      )}
+                    </button>
+                    {showEtymology && (
+                      <div className="p-4 bg-white border-t border-purple-200">
+                        {currentWord.realEtymology && currentWord.realEtymology.trim() ? (
+                          <p className={cn("text-purple-700", getTextSizeClass(textSize))}>
+                            {currentWord.realEtymology.trim()}
+                          </p>
+                        ) : generatingEtymology ? (
+                          <p className="text-sm text-purple-600 flex items-center gap-1">
+                            <Sparkles className="h-4 w-4 animate-pulse" />
+                            AI가 어원을 분석하고 있습니다...
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">어원 정보가 없습니다</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   
                   {currentWord.examples && currentWord.examples.length > 0 && (
                     <div className="p-4 bg-green-50 rounded-lg text-left max-w-xl mx-auto">
                       <p className="text-sm font-semibold text-green-800 mb-2">예문:</p>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {currentWord.examples.slice(0, 2).map((example: string, idx: number) => (
-                          <div key={idx} className="flex items-start gap-2">
-                            <span className="text-green-700">•</span>
-                            <div className="flex-1 flex items-start gap-2">
-                              <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
-                                {example}
-                              </p>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  speakWord(example)
-                                }}
-                                className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 flex-shrink-0"
-                                title="예문 듣기"
-                              >
-                                <Volume2 className="h-3 w-3" />
-                              </Button>
+                          <div key={idx}>
+                            <div className="flex gap-2">
+                              <span className="text-green-700 mt-0.5">•</span>
+                              <div className="flex-1">
+                                <div>
+                                  <p className={cn("text-green-700 inline", getTextSizeClass(textSize))}>
+                                    {example}
+                                  </p>
+                                  <span className="inline-flex items-center gap-1 ml-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        speakWord(example)
+                                      }}
+                                      className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex"
+                                      title="예문 듣기"
+                                    >
+                                      <Volume2 className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={async (e) => {
+                                        e.stopPropagation()
+                                        if (translatingIndex !== null || translations[idx]) return
+                                        setTranslatingIndex(idx)
+                                        try {
+                                          const response = await fetch('/api/translate-example', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ example })
+                                          })
+                                          if (response.ok) {
+                                            const { translation } = await response.json()
+                                            setTranslations(prev => ({ ...prev, [idx]: translation }))
+                                          }
+                                        } catch (error) {
+                                          console.error('Translation error:', error)
+                                        } finally {
+                                          setTranslatingIndex(null)
+                                        }
+                                      }}
+                                      disabled={translatingIndex === idx}
+                                      className="text-xs px-2 py-1 h-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex items-center"
+                                    >
+                                      {translatingIndex === idx ? (
+                                        <Sparkles className="h-3 w-3 animate-pulse" />
+                                      ) : (
+                                        '번역'
+                                      )}
+                                    </Button>
+                                  </span>
+                                </div>
+                                {translations[idx] && (
+                                  <p className={cn("text-green-600 text-sm mt-1", getTextSizeClass(textSize))}>
+                                    → {translations[idx]}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
