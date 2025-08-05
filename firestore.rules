@@ -72,6 +72,28 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // word_relationships - 단어 간 관계
+    match /word_relationships/{relationshipId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        (request.auth.uid == resource.data.createdBy || 
+         request.auth.uid in resource.data.verifiedBy);
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.createdBy;
+    }
+    
+    // definition_variants - 다중 정의
+    match /definition_variants/{variantId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        (request.auth.uid == resource.data.createdBy || 
+         request.auth.uid == resource.data.verifiedBy);
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.createdBy;
+    }
+    
     // === 기존 컬렉션들 (호환성 유지) ===
     
     // 사용자 프로필 데이터 - 본인만 접근 가능

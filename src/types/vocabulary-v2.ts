@@ -23,7 +23,7 @@ export interface Word {
   difficulty: number  // 1-10
   frequency: number
   isSAT: boolean
-  source?: string  // Source of the word (pdf, manual, etc.)
+  source?: WordSource  // 단어 출처 정보
   
   // 생성/수정 정보
   createdAt: Date
@@ -46,6 +46,59 @@ export interface WordDefinition {
   language: 'en' | 'ko'  // 영어 또는 한국어
   partOfSpeech?: string  // Optional part of speech for specific definitions
   createdAt: Date
+}
+
+// 단어 출처 정보
+export interface WordSource {
+  type: 'veterans_pdf' | 'online_dictionary' | 'user_upload' | 'community' | 'ai_generated'
+  origin: string  // 구체적인 출처 (파일명, URL, 사용자 ID 등)
+  addedAt: Date
+  uploadedBy?: string  // 업로드한 사용자 ID
+  metadata?: {
+    fileName?: string
+    url?: string
+    version?: string
+    [key: string]: any
+  }
+}
+
+// 단어 간 관계 정보 (word_relationships 컬렉션)
+export interface WordRelationship {
+  id: string
+  wordId: string  // 주 단어 ID
+  relatedWordId: string  // 관련 단어 ID
+  relationshipType: 'synonym' | 'antonym' | 'related' | 'derived' | 'root'
+  strength: number  // 0-1, 관계의 강도
+  bidirectional: boolean  // 양방향 관계 여부
+  source: 'user' | 'ai' | 'dictionary' | 'manual'
+  verifiedBy?: string[]  // 검증한 사용자 ID 목록
+  createdAt: Date
+  createdBy: string
+}
+
+// 다중 정의 변형 (definition_variants 컬렉션)
+export interface DefinitionVariant {
+  id: string
+  wordId: string  // 단어 ID
+  wordText: string  // 단어 텍스트 (빠른 조회용)
+  definition: string
+  language: 'en' | 'ko'
+  source: {
+    type: 'dictionary' | 'community' | 'ai' | 'manual'
+    name: string  // 구체적인 출처 이름
+    url?: string
+    credibility: number  // 0-1, 신뢰도
+  }
+  votes: {
+    up: number
+    down: number
+    voters: string[]  // 투표한 사용자 ID
+  }
+  isPreferred: boolean  // 선호 정의 여부
+  createdAt: Date
+  createdBy: string
+  verifiedAt?: Date
+  verifiedBy?: string
 }
 
 // 2. 단어장 (vocabularies 컬렉션)
