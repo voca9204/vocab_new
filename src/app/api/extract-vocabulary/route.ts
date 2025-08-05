@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     console.log(`[extract-vocabulary] Processing chunk ${chunkIndex}/${totalChunks}, format: ${format}`)
 
     // 형식별 프롬프트 설정
-    let systemPrompt = `다음 형식(${format})의 단어장에서 단어 정보를 추출해주세요.
+    const systemPrompt = `다음 형식(${format})의 단어장에서 단어 정보를 추출해주세요.
 
 각 단어에 대해 다음 정보를 추출하세요:
 - number: 번호 (있는 경우)

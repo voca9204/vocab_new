@@ -250,7 +250,7 @@ async function migrateCollections() {
     }
     
     // 2.4. vocabulary_words에 매핑 생성
-    let order = 1
+    const order = 1
     for (const [oldId, newWordId] of wordIdMap) {
       try {
         await vocabularyWordService.addWordToVocabulary(

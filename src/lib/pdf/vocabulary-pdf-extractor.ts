@@ -9,6 +9,93 @@ export interface VocabularyEntry {
 
 export class VocabularyPDFExtractor {
   /**
+   * 한글 정의에서 혼재된 영어 단어들 제거 (개선된 버전)
+   */
+  private cleanKoreanDefinition(koreanText: string, currentWord: string): string {
+    if (!koreanText) return ''
+    
+    // 영어 단어를 구분자로 사용하여 텍스트를 분할
+    const suspiciousEnglishWords = koreanText.match(/\b[a-zA-Z]{4,}\b/g) || []
+    
+    // 현재 단어가 아닌 영어 단어들 찾기 (기본 영어 단어는 제외)
+    const foreignWords = suspiciousEnglishWords.filter(word => 
+      word.toLowerCase() !== currentWord.toLowerCase() &&
+      !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will', 'were', 'said', 'each', 'which', 'their', 'time', 'word', 'look', 'like', 'into', 'such', 'more', 'very', 'what', 'know', 'just', 'first', 'over', 'after', 'back', 'other', 'many', 'than', 'then', 'them', 'these', 'some', 'come', 'could', 'only', 'long', 'make', 'when', 'also', 'find'].includes(word.toLowerCase())
+    )
+    
+    if (foreignWords.length === 0) {
+      return koreanText // 의심스러운 단어가 없으면 원본 반환
+    }
+    
+    let cleanedText = koreanText
+    
+    // 각 의심스러운 영어 단어와 그 주변 텍스트를 제거
+    for (const foreignWord of foreignWords) {
+      console.log(`[cleanKoreanDefinition] Removing foreign word "${foreignWord}" from "${koreanText}"`)
+      
+      // 해당 영어 단어와 그 직후의 한글 정의 부분을 제거
+      // 패턴: 영어단어 + 공백 + 한글정의
+      const contextPattern = new RegExp(`\\s*\\b${foreignWord}\\b\\s*[가-힣][^a-zA-Z]*`, 'gi')
+      cleanedText = cleanedText.replace(contextPattern, '')
+      
+      // 남은 영어 단어만 제거
+      cleanedText = cleanedText.replace(new RegExp(`\\b${foreignWord}\\b`, 'gi'), '')
+    }
+    
+    // 연속된 공백과 구두점 정리
+    cleanedText = cleanedText
+      .replace(/\s+/g, ' ')           // 연속 공백을 하나로
+      .replace(/\s*,\s*/g, ', ')      // 쉼표 앞뒤 공백 정리
+      .replace(/^\s*,\s*/, '')        // 시작부분 쉼표 제거
+      .replace(/\s*,\s*$/, '')        // 끝부분 쉼표 제거
+      .trim()
+    
+    // 결과가 너무 짧거나 한글이 없으면 원본 반환 (과도한 필터링 방지)
+    if (cleanedText.length < 3 || !/[가-힣]/.test(cleanedText)) {
+      console.log(`[cleanKoreanDefinition] Over-filtered, returning original: "${koreanText}"`)
+      return koreanText
+    }
+    
+    console.log(`[cleanKoreanDefinition] Cleaned: "${koreanText}" -> "${cleanedText}"`)
+    return cleanedText
+  }
+
+  /**
+   * 품사 정규화
+   */
+  private normalizePartOfSpeech(pos: string): string {
+    const mapping: Record<string, string> = {
+      'noun': 'n.',
+      'verb': 'v.',
+      'adjective': 'adj.',
+      'adverb': 'adv.',
+      'preposition': 'prep.',
+      'conjunction': 'conj.',
+      'pronoun': 'pron.',
+      'interjection': 'int.',
+      'n': 'n.',
+      'v': 'v.',
+      'adj': 'adj.',
+      'adv': 'adv.',
+      'prep': 'prep.',
+      'conj': 'conj.',
+      'pron': 'pron.',
+      'int': 'int.',
+      // 한글 품사
+      '명': 'n.',
+      '동': 'v.',
+      '형': 'adj.',
+      '부': 'adv.',
+      '전': 'prep.',
+      '접': 'conj.',
+      '대': 'pron.',
+      '감': 'int.'
+    }
+
+    const normalized = pos.toLowerCase().replace(/[.\s]/g, '')
+    return mapping[normalized] || pos
+  }
+  /**
    * PDF 텍스트에서 단어장 항목들을 추출
    * 형식: 번호/단어/품사/예문/뜻
    */
@@ -167,7 +254,7 @@ export class VocabularyPDFExtractor {
         }
         
         // 다음 줄들에서 영어 정의 수집
-        let definition = ''
+        const definition = ''
         let koreanMeaning = ''
         i++
         
@@ -222,13 +309,38 @@ export class VocabularyPDFExtractor {
           console.log(`  예문 찾음: "${example}"`)
         }
         
-        // 한글 뜻 수집
-        if (i < lines.length && /[가-힣]/.test(lines[i])) {
-          koreanMeaning = lines[i]
-          if (debugCount <= 5) {
-            console.log(`  한글 뜻: "${lines[i]}"`)
+        // 한글 뜻 수집 (개선된 로직) - 여러 줄에 걸친 한글 정의 처리
+        const koreanLines: string[] = []
+        while (i < lines.length && /[가-힣]/.test(lines[i])) {
+          // 다음 단어 패턴인지 확인
+          let isNextWord = false
+          for (const pattern of patterns) {
+            if (lines[i].match(pattern)) {
+              isNextWord = true
+              break
+            }
+          }
+          if (isNextWord) break
+          
+          // 구분자 라인이나 특수 패턴 제외
+          if (lines[i] !== '○ ○ ○' && lines[i] !== 'V.ZIP 3K' && lines[i].trim().length > 0) {
+            koreanLines.push(lines[i])
+            if (debugCount <= 5) {
+              console.log(`  한글 줄 ${koreanLines.length}: "${lines[i]}"`)
+            }
           }
           i++
+        }
+        
+        // 모든 한글 줄을 합치고 정제
+        if (koreanLines.length > 0) {
+          const rawKoreanText = koreanLines.join(' ').trim()
+          koreanMeaning = this.cleanKoreanDefinition(rawKoreanText, word)
+          
+          if (debugCount <= 5) {
+            console.log(`  원본 한글 전체: "${rawKoreanText}"`)
+            console.log(`  정제된 한글 뜻: "${koreanMeaning}"`)
+          }
         }
         
         entries.push({
@@ -272,14 +384,21 @@ export class VocabularyPDFExtractor {
       entries = this.extractSuneungFormat(pdfText)
     }
     
+    // 표 형식 시도
+    if (entries.length === 0) {
+      console.log('수능 형식 실패, 표 형식 시도...')
+      entries = this.extractTableFormat(pdfText)
+    }
+    
     // TOEFL 형식 시도
     if (entries.length === 0) {
-      console.log('수능 형식 실패, TOEFL 형식 시도...')
+      console.log('표 형식 실패, TOEFL 형식 시도...')
       entries = this.extractTOEFLFormat(pdfText)
     }
     
     // 다른 패턴들 시도
     if (entries.length === 0) {
+      console.log('모든 표준 형식 실패, 일반 패턴 시도...')
       const patterns = [
         // 패턴 1: word (품사) 뜻
         /^([a-zA-Z]+)\s*\(([^)]+)\)\s*(.+)$/,
@@ -420,6 +539,152 @@ export class VocabularyPDFExtractor {
     }
     
     console.log(`수능 기출 형식으로 추출된 단어: ${entries.length}개`)
+    return entries
+  }
+
+  /**
+   * 메가스터디/표 형식 추출
+   * 다양한 표 형식을 지원
+   */
+  extractTableFormat(text: string): VocabularyEntry[] {
+    const lines = text.split('\n')
+    const entries: VocabularyEntry[] = []
+    
+    console.log('=== 표 형식 추출 시도 ===')
+    console.log(`총 라인 수: ${lines.length}`)
+    
+    // 다양한 구분자 패턴
+    const separators = [
+      /\s{2,}/,  // 2개 이상의 공백
+      /\t+/,     // 탭
+      /\|/,      // 파이프
+      /,/        // 쉼표
+    ]
+    
+    // 더 간단한 패턴들도 시도
+    const simplePatterns = [
+      // 패턴 1: word 한글뜻
+      /^([a-zA-Z]+)\s+([가-힣].+)$/,
+      // 패턴 2: 숫자. word 한글뜻
+      /^\d+\.?\s*([a-zA-Z]+)\s+([가-힣].+)$/,
+      // 패턴 3: word (품사) 한글뜻
+      /^([a-zA-Z]+)\s*\(([^)]+)\)\s*([가-힣].+)$/,
+      // 패턴 4: word: 한글뜻
+      /^([a-zA-Z]+):\s*([가-힣].+)$/,
+      // 패턴 5: word - 한글뜻
+      /^([a-zA-Z]+)\s*[-–]\s*([가-힣].+)$/
+    ]
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (!line || line.length < 5) continue
+      
+      // 먼저 간단한 패턴들 시도
+      let matched = false
+      for (const pattern of simplePatterns) {
+        const match = line.match(pattern)
+        if (match) {
+          let word = ''
+          let definition = ''
+          let partOfSpeech = 'n.'
+          
+          if (pattern === simplePatterns[0]) {
+            // word 한글뜻
+            word = match[1]
+            definition = match[2]
+          } else if (pattern === simplePatterns[1]) {
+            // 숫자. word 한글뜻
+            word = match[1]
+            definition = match[2]
+          } else if (pattern === simplePatterns[2]) {
+            // word (품사) 한글뜻
+            word = match[1]
+            partOfSpeech = this.normalizePartOfSpeech(match[2])
+            definition = match[3]
+          } else if (pattern === simplePatterns[3] || pattern === simplePatterns[4]) {
+            // word: 한글뜻 또는 word - 한글뜻
+            word = match[1]
+            definition = match[2]
+          }
+          
+          if (word && definition) {
+            entries.push({
+              word: word.toLowerCase(),
+              partOfSpeech: partOfSpeech,
+              definition: definition,
+              example: ''
+            })
+            
+            if (entries.length <= 10) {
+              console.log(`추출 (패턴): ${word} - ${definition}`)
+            }
+            matched = true
+            break
+          }
+        }
+      }
+      
+      // 간단한 패턴으로 매칭 안되면 구분자 패턴 시도
+      if (!matched && /^(\d+\.?\s*)?[a-zA-Z]{2,}/.test(line)) {
+        // 각 구분자로 시도
+        for (const separator of separators) {
+          const parts = line.split(separator).map(p => p.trim()).filter(p => p)
+          
+          if (parts.length >= 2) {
+            // 단어 찾기 (영어 단어)
+            let word = ''
+            let definition = ''
+            let partOfSpeech = ''
+            
+            // 첫 번째 부분에서 숫자 제거하고 단어 추출
+            const firstPart = parts[0].replace(/^\d+\.?\s*/, '')
+            if (/^[a-zA-Z]+$/.test(firstPart)) {
+              word = firstPart
+              
+              // 나머지 부분에서 정의와 품사 찾기
+              const remainingParts = parts.slice(1).join(' ')
+              
+              // 한글이 포함된 부분을 정의로
+              if (/[가-힣]/.test(remainingParts)) {
+                definition = remainingParts
+                
+                // 품사 패턴 찾기
+                const posPatterns = [
+                  /\((n|v|adj|adv|prep|conj|pron|int)\)/,
+                  /\((명|동|형|부|전|접|대|감)\)/,
+                  /(n\.|v\.|adj\.|adv\.)/
+                ]
+                
+                for (const posPattern of posPatterns) {
+                  const posMatch = remainingParts.match(posPattern)
+                  if (posMatch) {
+                    partOfSpeech = this.normalizePartOfSpeech(posMatch[1])
+                    definition = remainingParts.replace(posMatch[0], '').trim()
+                    break
+                  }
+                }
+                
+                if (word && definition) {
+                  entries.push({
+                    word: word.toLowerCase(),
+                    partOfSpeech: partOfSpeech || 'n.',
+                    definition: definition,
+                    example: ''
+                  })
+                  
+                  if (entries.length <= 10) {
+                    console.log(`추출 (구분자): ${word} - ${definition}`)
+                  }
+                  break // 구분자 찾았으면 다음 라인으로
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    console.log(`표 형식으로 추출된 단어: ${entries.length}개`)
     return entries
   }
 

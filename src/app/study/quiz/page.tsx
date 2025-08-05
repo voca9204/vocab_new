@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import type { VocabularyWord } from '@/types'
+import type { Word } from '@/types/vocabulary-v2'
 import { cn } from '@/lib/utils'
 
 interface QuizQuestion {
@@ -51,6 +52,8 @@ export default function QuizPage() {
   const [quizSize, setQuizSize] = useState(10) // 기본 10문제
   const [pronunciations, setPronunciations] = useState<Record<string, string>>({}) // 단어별 발음 캐시
   const [generatingExamples, setGeneratingExamples] = useState(false)
+  const [translations, setTranslations] = useState<{ [key: number]: string }>({})
+  const [translatingIndex, setTranslatingIndex] = useState<number | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -198,20 +201,39 @@ export default function QuizPage() {
       
       if (response.ok) {
         const result = await response.json()
+        console.log('Generate examples API response:', result)
         if (result.updated > 0) {
           // 현재 퀴즈 단어들 다시 로드
           const updatedWords = await reloadWords()
+          console.log('Reloaded words:', updatedWords.length)
+          console.log('Looking for word ID:', wordId)
+          console.log('Updated word IDs:', updatedWords.map(w => w.id))
+          
           const currentQuestion = questions[currentQuestionIndex]
           const updatedWord = updatedWords.find(w => w.id === wordId)
           
-          if (updatedWord && updatedWord.examples) {
-            // 현재 문제의 단어 업데이트
-            const newQuestions = [...questions]
-            newQuestions[currentQuestionIndex] = {
-              ...currentQuestion,
-              word: updatedWord
+          if (updatedWord) {
+            console.log('Updated word found:', updatedWord)
+            console.log('Updated word definitions:', updatedWord.definitions)
+            
+            // 예문이 definitions 안에 있는지 확인
+            const hasExamples = updatedWord.definitions?.some(def => 
+              def.examples && def.examples.length > 0
+            )
+            console.log('Has examples:', hasExamples)
+            
+            if (hasExamples) {
+              // 현재 문제의 단어 업데이트
+              const newQuestions = [...questions]
+              newQuestions[currentQuestionIndex] = {
+                ...currentQuestion,
+                word: updatedWord
+              }
+              setQuestions(newQuestions)
+              console.log('Questions updated with new word data')
             }
-            setQuestions(newQuestions)
+          } else {
+            console.log('Updated word not found in reloaded words')
           }
         }
       }
@@ -225,9 +247,51 @@ export default function QuizPage() {
   const reloadWords = async () => {
     if (!user) return []
     
-    // 새 서비스를 사용하여 사용자 선택 단어장의 단어 다시 로드
-    const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
-    return words
+    // 현재 퀴즈에 있는 단어들의 ID 목록
+    const currentWordIds = questions.map(q => q.word.id).filter(id => id) as string[]
+    
+    if (currentWordIds.length === 0) {
+      return []
+    }
+    
+    // WordService를 사용하여 최신 단어 데이터 가져오기
+    const { WordService } = await import('@/lib/vocabulary-v2/word-service')
+    const wordService = new WordService()
+    
+    try {
+      // 각 단어의 최신 데이터를 개별적으로 가져오기
+      const updatedWords = await Promise.all(
+        currentWordIds.map(async (wordId) => {
+          const word = await wordService.getWordById(wordId)
+          return word
+        })
+      )
+      
+      // null 제거하고 VocabularyWord 형식으로 변환
+      const validWords = updatedWords.filter(w => w !== null) as Word[]
+      
+      // Word 타입을 VocabularyWord 타입으로 변환
+      return validWords.map(word => ({
+        id: word.id,
+        word: word.word,
+        definitions: word.definitions,
+        examples: word.definitions[0]?.examples || [],
+        partOfSpeech: word.partOfSpeech,
+        pronunciation: word.pronunciation,
+        etymology: word.etymology,
+        difficulty: word.difficulty,
+        frequency: word.frequency,
+        learningMetadata: word.learningMetadata,
+        source: word.source,
+        createdAt: word.createdAt,
+        updatedAt: word.updatedAt
+      })) as VocabularyWord[]
+    } catch (error) {
+      console.error('Error reloading words:', error)
+      // 실패 시 기존 방식으로 fallback
+      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
+      return words
+    }
   }
 
   const handleSubmitAnswer = async () => {
@@ -266,7 +330,10 @@ export default function QuizPage() {
     setShowResult(true)
     
     // 예문이 없으면 자동으로 생성
-    if (!currentQuestion.word.examples?.length && currentQuestion.word.id) {
+    const hasExamples = currentQuestion.word.definitions?.some(def => 
+      def.examples && def.examples.length > 0
+    )
+    if (!hasExamples && currentQuestion.word.id) {
       setTimeout(() => generateExampleForWord(currentQuestion.word.id!), 500)
     }
   }
@@ -276,6 +343,8 @@ export default function QuizPage() {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setSelectedAnswer(null)
       setShowResult(false)
+      setTranslations({})
+      setTranslatingIndex(null)
     } else {
       // 퀴즈 완료
       setQuizComplete(true)
@@ -527,26 +596,68 @@ export default function QuizPage() {
                     </div>
                   )}
                   
-                  {currentQuestion.word.examples && currentQuestion.word.examples.length > 0 ? (
+                  {currentQuestion.word.definitions?.[0]?.examples && currentQuestion.word.definitions[0].examples.length > 0 ? (
                     <div className="p-4 bg-green-50 rounded-lg">
                       <p className="text-sm font-semibold text-green-800 mb-2">예문:</p>
-                      <div className="space-y-2">
-                        {currentQuestion.word.examples.map((example, idx) => (
-                          <div key={idx} className="flex items-start gap-2">
-                            <span className="text-green-700">•</span>
-                            <div className="flex-1 flex items-start gap-2">
-                              <p className={cn("text-green-700 flex-1", getTextSizeClass(textSize))}>
-                                {example}
-                              </p>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => speakWord(example)}
-                                className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 flex-shrink-0"
-                                title="예문 듣기"
-                              >
-                                <Volume2 className="h-3 w-3" />
-                              </Button>
+                      <div className="space-y-3">
+                        {currentQuestion.word.definitions[0].examples.slice(0, 2).map((example, idx) => (
+                          <div key={idx}>
+                            <div className="flex gap-2">
+                              <span className="text-green-700 mt-0.5">•</span>
+                              <div className="flex-1">
+                                <div>
+                                  <p className={cn("text-green-700 inline", getTextSizeClass(textSize))}>
+                                    {example}
+                                  </p>
+                                  <span className="inline-flex items-center gap-1 ml-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => speakWord(example)}
+                                      className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex"
+                                      title="예문 듣기"
+                                    >
+                                      <Volume2 className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={async () => {
+                                        if (translatingIndex !== null || translations[idx]) return
+                                        setTranslatingIndex(idx)
+                                        try {
+                                          const response = await fetch('/api/translate-example', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ example })
+                                          })
+                                          if (response.ok) {
+                                            const { translation } = await response.json()
+                                            setTranslations(prev => ({ ...prev, [idx]: translation }))
+                                          }
+                                        } catch (error) {
+                                          console.error('Translation error:', error)
+                                        } finally {
+                                          setTranslatingIndex(null)
+                                        }
+                                      }}
+                                      disabled={translatingIndex === idx}
+                                      className="text-xs px-2 py-1 h-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex items-center"
+                                    >
+                                      {translatingIndex === idx ? (
+                                        <Sparkles className="h-3 w-3 animate-pulse" />
+                                      ) : (
+                                        '번역'
+                                      )}
+                                    </Button>
+                                  </span>
+                                </div>
+                                {translations[idx] && (
+                                  <p className={cn("text-green-600 text-sm mt-1", getTextSizeClass(textSize))}>
+                                    → {translations[idx]}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}

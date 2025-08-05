@@ -27,6 +27,143 @@ export class VocabularyPDFService {
   }
 
   /**
+   * PDF에서 단어만 추출 (저장하지 않음)
+   */
+  async extractWordsFromPDF(file: File): Promise<ExtractedVocabulary[]> {
+    try {
+      console.log('🔍 PDF에서 단어 추출 시작...')
+      
+      // 하이브리드 추출
+      const result = await this.hybridExtractor.extract(file, {
+        useAI: !!process.env.OPENAI_API_KEY,
+        useVision: false,
+        fallbackToRegex: true
+      })
+
+      console.log(`✅ 추출 완료: ${result.entries.length}개 단어`)
+      console.log(`📊 추출 방법: ${result.method}, 신뢰도: ${(result.confidence * 100).toFixed(1)}%`)
+
+      // ExtractedVocabulary 형식으로 변환 (저장하지 않음)
+      const extractedWords = result.entries.map((entry, index) => ({
+        number: index + 1,
+        word: entry.word,
+        definition: entry.definition,
+        partOfSpeech: entry.partOfSpeech ? [entry.partOfSpeech] : [],
+        examples: entry.examples || [],
+        pronunciation: null,
+        etymology: entry.etymology || null,
+        difficulty: this.estimateDifficulty(entry.word),
+        frequency: Math.floor(Math.random() * 10) + 1,
+        source: {
+          type: 'pdf' as const,
+          filename: file.name,
+          uploadedAt: new Date()
+        },
+        userId: '', // 나중에 저장할 때 설정
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isSAT: true,
+        studyStatus: {
+          studied: false,
+          masteryLevel: 0,
+          reviewCount: 0
+        }
+      }))
+
+      return extractedWords
+    } catch (error) {
+      console.error('❌ PDF 추출 오류:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 기존 DB에서 중복 단어 확인
+   */
+  async checkExistingWords(words: string[], userId: string): Promise<string[]> {
+    try {
+      const existingWords: string[] = []
+      
+      // 빈 단어 필터링
+      const validWords = words.filter(word => word && word.trim() !== '')
+      
+      // 배치로 조회 (한 번에 10개씩)
+      const batchSize = 10
+      for (let i = 0; i < validWords.length; i += batchSize) {
+        const batch = validWords.slice(i, i + batchSize)
+        const q = query(
+          collection(db, this.collectionName),
+          where('word', 'in', batch)
+        )
+        
+        const snapshot = await getDocs(q)
+        snapshot.forEach(doc => {
+          existingWords.push(doc.data().word)
+        })
+      }
+      
+      console.log(`🔍 중복 확인 완료: ${existingWords.length}개 단어가 이미 존재`)
+      return existingWords
+    } catch (error) {
+      console.error('중복 확인 오류:', error)
+      return []
+    }
+  }
+
+  /**
+   * 선택된 단어들만 DB에 저장
+   */
+  async saveSelectedWords(
+    words: ExtractedVocabulary[], 
+    userId: string, 
+    isAdminUpload: boolean = false
+  ): Promise<{saved: number, skipped: number, failed: number}> {
+    const result = {
+      saved: 0,
+      skipped: 0,
+      failed: 0
+    }
+
+    for (const word of words) {
+      try {
+        // 단어 유효성 검사
+        if (!word.word || word.word.trim() === '') {
+          console.warn(`유효하지 않은 단어 건너뜀:`, word)
+          result.failed++
+          continue
+        }
+        
+        // 중복 확인
+        const existing = await this.checkExistingWord(word.word, userId, isAdminUpload)
+        if (existing) {
+          result.skipped++
+          continue
+        }
+
+        // DB에 저장
+        const docId = `${word.word.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`
+        const docData = {
+          ...word,
+          userId: userId,
+          uploadedBy: isAdminUpload ? userId : undefined,
+          isAdminContent: isAdminUpload,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        }
+
+        await setDoc(doc(db, this.collectionName, docId), docData)
+        result.saved++
+      } catch (error) {
+        console.error(`단어 저장 실패: ${word.word}`, error)
+        result.failed++
+      }
+    }
+
+    console.log(`💾 저장 완료: 성공 ${result.saved}, 중복 ${result.skipped}, 실패 ${result.failed}`)
+    return result
+  }
+
+  /**
    * 하이브리드 방식으로 PDF 처리 (AI + 정규식)
    */
   async processVocabularyPDFHybrid(
@@ -200,6 +337,12 @@ export class VocabularyPDFService {
    * 단어가 이미 존재하는지 확인
    */
   private async checkExistingWord(word: string, userId: string, isAdminUpload: boolean = false): Promise<boolean> {
+    // 단어가 없거나 빈 문자열인 경우 처리
+    if (!word || word.trim() === '') {
+      console.warn('checkExistingWord: 빈 단어가 전달됨')
+      return true // 빈 단어는 중복으로 처리하여 저장하지 않음
+    }
+    
     const q = query(
       collection(db, this.collectionName),
       where('userId', '==', isAdminUpload ? 'admin' : userId),

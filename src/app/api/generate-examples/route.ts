@@ -50,14 +50,21 @@ export async function POST(request: NextRequest) {
     let words: Word[]
     if (wordIds && wordIds.length > 0) {
       // 특정 단어들만 처리
+      console.log(`[generate-examples] Fetching specific words:`, wordIds)
       words = await wordService.getWordsByIds(wordIds)
+      console.log(`[generate-examples] Retrieved ${words.length} words from ${wordIds.length} IDs`)
     } else {
       // 모든 단어 가져오기 (예문이 없는 것만)
       const allWords = await wordService.searchWords('', { limit: 1000 })
+      console.log(`[generate-examples] Found ${allWords.length} total words`)
+      
       words = allWords.filter(w => {
         // 정의에 예문이 없는 단어만 필터링
-        return !w.definitions.some(def => def.examples && def.examples.length > 0)
+        const hasExamples = w.definitions.some(def => def.examples && def.examples.length > 0)
+        return !hasExamples
       }).slice(0, limit)
+      
+      console.log(`[generate-examples] Filtered to ${words.length} words without examples`)
     }
     
     if (words.length === 0) {
@@ -71,12 +78,18 @@ export async function POST(request: NextRequest) {
     let updatedCount = 0
     const failedWords: string[] = []
     
+    console.log(`[generate-examples] Processing ${words.length} words`)
+    
     // 각 단어에 대해 예문 생성
     for (const word of words) {
       try {
+        console.log(`[generate-examples] Processing word: ${word.word}`)
+        
         // 첫 번째 정의 가져오기
         const firstDef = word.definitions[0]
-        const defText = firstDef?.definition || 'No definition available'
+        const defText = firstDef?.text || firstDef?.definition || 'No definition available'
+        
+        console.log(`[generate-examples] Definition for ${word.word}: ${defText}`)
         
         // OpenAI API 호출
         const prompt = `Generate 3 clear and educational example sentences for the SAT vocabulary word "${word.word}" (${word.partOfSpeech.join(', ')}). 
@@ -91,6 +104,8 @@ Requirements:
 
 Format the response as a JSON array of strings like: ["sentence1", "sentence2", "sentence3"]`
 
+        console.log(`[generate-examples] Calling OpenAI API for ${word.word}`)
+        
         const completion = await openai.chat.completions.create({
           model: 'gpt-3.5-turbo',
           messages: [
@@ -106,6 +121,8 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
           temperature: 0.7,
           max_tokens: 300
         })
+        
+        console.log(`[generate-examples] OpenAI response received for ${word.word}`)
 
         const content = completion.choices[0]?.message?.content
         

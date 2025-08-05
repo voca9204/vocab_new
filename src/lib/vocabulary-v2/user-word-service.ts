@@ -112,16 +112,19 @@ export class UserWordService {
       updates['studyStatus.streakCount'] = increment(1)
       
       // 정답률에 따른 숙련도 업데이트
+      const currentCorrect = userWord.studyStatus.correctCount || 0
+      const currentTotal = userWord.studyStatus.totalReviews || 0
       const newMastery = this.calculateMastery(
-        userWord.studyStatus.correctCount + 1,
-        userWord.studyStatus.totalReviews + 1
+        currentCorrect + 1,
+        currentTotal + 1
       )
       updates['studyStatus.masteryLevel'] = newMastery
       updates['studyStatus.confidence'] = this.getConfidenceLevel(newMastery)
       
       // 다음 복습 날짜 계산
+      const currentStreak = userWord.studyStatus.streakCount || 0
       updates['studyStatus.nextReviewDate'] = Timestamp.fromDate(
-        this.calculateNextReviewDate(userWord.studyStatus.streakCount + 1)
+        this.calculateNextReviewDate(currentStreak + 1)
       )
     }
     
@@ -420,19 +423,27 @@ export class UserWordService {
   private toFirestore(userWord: UserWord): DocumentData {
     const data: any = { ...userWord }
     
-    data.createdAt = Timestamp.fromDate(userWord.createdAt)
-    data.updatedAt = Timestamp.fromDate(userWord.updatedAt)
+    // Date 타입을 Timestamp로 변환 (유효성 검사 포함)
+    const safeDate = (date: any) => {
+      if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+        return new Date()
+      }
+      return date
+    }
+    
+    data.createdAt = Timestamp.fromDate(safeDate(userWord.createdAt))
+    data.updatedAt = Timestamp.fromDate(safeDate(userWord.updatedAt))
     
     if (data.bookmarkedAt) {
-      data.bookmarkedAt = Timestamp.fromDate(userWord.bookmarkedAt)
+      data.bookmarkedAt = Timestamp.fromDate(safeDate(userWord.bookmarkedAt))
     }
     
-    if (data.studyStatus.lastStudied) {
-      data.studyStatus.lastStudied = Timestamp.fromDate(userWord.studyStatus.lastStudied)
+    if (data.studyStatus?.lastStudied) {
+      data.studyStatus.lastStudied = Timestamp.fromDate(safeDate(userWord.studyStatus.lastStudied))
     }
     
-    if (data.studyStatus.nextReviewDate) {
-      data.studyStatus.nextReviewDate = Timestamp.fromDate(userWord.studyStatus.nextReviewDate)
+    if (data.studyStatus?.nextReviewDate) {
+      data.studyStatus.nextReviewDate = Timestamp.fromDate(safeDate(userWord.studyStatus.nextReviewDate))
     }
     
     return data
@@ -445,16 +456,41 @@ export class UserWordService {
       updatedAt: data.updatedAt?.toDate() || new Date()
     }
     
-    if (userWord.bookmarkedAt) {
+    if (userWord.bookmarkedAt && userWord.bookmarkedAt.toDate) {
       userWord.bookmarkedAt = userWord.bookmarkedAt.toDate()
     }
     
-    if (userWord.studyStatus?.lastStudied) {
+    if (userWord.studyStatus?.lastStudied && userWord.studyStatus.lastStudied.toDate) {
       userWord.studyStatus.lastStudied = userWord.studyStatus.lastStudied.toDate()
     }
     
-    if (userWord.studyStatus?.nextReviewDate) {
+    if (userWord.studyStatus?.nextReviewDate && userWord.studyStatus.nextReviewDate.toDate) {
       userWord.studyStatus.nextReviewDate = userWord.studyStatus.nextReviewDate.toDate()
+    }
+    
+    // studyStatus 필드 기본값 보장
+    if (!userWord.studyStatus) {
+      userWord.studyStatus = {
+        studied: false,
+        masteryLevel: 0,
+        confidence: 'low',
+        totalReviews: 0,
+        correctCount: 0,
+        incorrectCount: 0,
+        streakCount: 0,
+        activityStats: {
+          flashcard: { count: 0 },
+          quiz: { count: 0 },
+          typing: { count: 0 },
+          review: { count: 0 }
+        }
+      }
+    } else {
+      // 기존 studyStatus가 있어도 필수 필드 확인
+      userWord.studyStatus.correctCount = userWord.studyStatus.correctCount || 0
+      userWord.studyStatus.incorrectCount = userWord.studyStatus.incorrectCount || 0
+      userWord.studyStatus.streakCount = userWord.studyStatus.streakCount || 0
+      userWord.studyStatus.totalReviews = userWord.studyStatus.totalReviews || 0
     }
     
     return userWord as UserWord

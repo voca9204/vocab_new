@@ -65,8 +65,9 @@ export default function PDFExtractPage() {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">단어장 PDF에서 단어 추출하기</h2>
           <p className="text-gray-600">
-            단어장 형식의 PDF를 업로드하면 단어, 품사, 뜻, 예문을 자동으로 추출하여 데이터베이스에 저장합니다.
-            저장된 단어들로 퀴즈, 플래시카드 등 다양한 방법으로 학습할 수 있습니다.
+            단어장 형식의 PDF를 업로드하면 단어, 품사, 뜻, 예문을 자동으로 추출합니다.
+            추출된 단어를 검토한 후 필요한 단어만 선택하여 저장할 수 있습니다.
+            관리자가 저장한 단어는 SAT 공식 단어장에 추가됩니다.
           </p>
         </div>
 
@@ -77,23 +78,28 @@ export default function PDFExtractPage() {
         <h3 className="font-semibold mb-2">사용 방법:</h3>
         <ol className="list-decimal list-inside space-y-2 text-gray-700">
           <li>PDF 파일을 선택하거나 드래그 앤 드롭하세요 (최대 20MB)</li>
-          <li>'단어 추출 및 저장' 버튼을 클릭하세요</li>
-          <li>PDF에서 모든 영어 단어를 추출합니다</li>
-          <li>각 단어의 뜻, 품사, 예문을 자동으로 수집합니다</li>
-          <li>SAT 단어는 자동으로 표시됩니다</li>
-          <li>저장된 단어들로 퀴즈, 플래시카드 등 다양한 방법으로 학습할 수 있습니다</li>
+          <li>'단어 추출하기' 버튼을 클릭하여 PDF에서 단어를 추출하세요</li>
+          <li>추출된 단어 목록을 확인하고 저장할 단어를 선택하세요</li>
+          <li>중복된 단어는 자동으로 표시됩니다</li>
+          <li>'선택한 단어 저장' 버튼을 클릭하여 데이터베이스에 저장하세요</li>
+          <li>관리자가 저장한 단어는 SAT 공식 단어장에 추가되어 모든 사용자가 이용할 수 있습니다</li>
         </ol>
       </div>
 
       {extractedWords.length > 0 && (
-        <div className="mt-8 bg-green-50 rounded-lg p-6">
-          <h3 className="font-semibold mb-2">추출 완료!</h3>
+        <div className="mt-8 bg-blue-50 rounded-lg p-6">
+          <h3 className="font-semibold mb-2">🎉 추출 및 저장 완료!</h3>
           <p className="text-gray-700">
-            총 {extractedWords.length}개의 단어가 성공적으로 추출되어 단어장에 저장되었습니다.
+            총 {extractedWords.length}개의 단어가 성공적으로 저장되었습니다.
           </p>
-          <p className="text-gray-700 mt-1">
-            이 중 {extractedWords.filter(w => w.isSAT).length}개가 SAT 단어입니다.
-          </p>
+          <div className="mt-4 flex gap-3">
+            <Button onClick={() => router.push('/vocabulary')}>
+              단어 목록 보기
+            </Button>
+            <Button variant="outline" onClick={() => router.push('/study')}>
+              학습 시작하기
+            </Button>
+          </div>
         </div>
       )}
     </div>

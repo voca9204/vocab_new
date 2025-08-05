@@ -121,7 +121,7 @@ export class WordService {
       return null
     }
     
-    return this.fromFirestore(docSnap.data())
+    return this.fromFirestore({ ...docSnap.data(), id: wordId })
   }
 
   /**

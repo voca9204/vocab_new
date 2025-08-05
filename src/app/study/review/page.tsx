@@ -14,14 +14,18 @@ import {
   X,
   Check,
   Volume2,
-  HelpCircle
+  HelpCircle,
+  Sparkles
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import type { VocabularyWord } from '@/types'
+import { cn } from '@/lib/utils'
+import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 
 export default function ReviewPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { textSize } = useSettings()
   const [words, setWords] = useState<VocabularyWord[]>([])
   const [reviewWords, setReviewWords] = useState<VocabularyWord[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -30,6 +34,8 @@ export default function ReviewPage() {
   const [reviewType, setReviewType] = useState<'difficult' | 'scheduled'>('difficult')
   const [pronunciations, setPronunciations] = useState<Record<string, string>>({})
   const [showHelp, setShowHelp] = useState(false)
+  const [translations, setTranslations] = useState<{ [key: number]: string }>({})
+  const [translatingIndex, setTranslatingIndex] = useState<number | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -245,6 +251,8 @@ export default function ReviewPage() {
       if (currentIndex < reviewWords.length - 1) {
         setCurrentIndex(currentIndex + 1)
         setShowAnswer(false)
+        setTranslations({})
+        setTranslatingIndex(null)
       } else {
         // 복습 완료
         alert('복습을 완료했습니다!')
@@ -485,26 +493,69 @@ export default function ReviewPage() {
                     {currentWord.examples && currentWord.examples.length > 0 && (
                       <div className="text-left max-w-xl mx-auto mt-6">
                         <p className="text-sm font-semibold text-gray-700 mb-2">예문:</p>
-                        <div className="space-y-1">
-                          {currentWord.examples.map((example, idx) => (
-                            <div key={idx} className="flex items-start gap-2">
-                              <span className="text-gray-600">•</span>
-                              <div className="flex-1 flex items-start gap-2">
-                                <p className="text-gray-600 flex-1">
-                                  {example}
-                                </p>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    speakWord(example)
-                                  }}
-                                  className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 flex-shrink-0"
-                                  title="예문 듣기"
-                                >
-                                  <Volume2 className="h-3 w-3" />
-                                </Button>
+                        <div className="space-y-3">
+                          {currentWord.examples.slice(0, 2).map((example, idx) => (
+                            <div key={idx}>
+                              <div className="flex gap-2">
+                                <span className="text-gray-600 mt-0.5">•</span>
+                                <div className="flex-1">
+                                  <div>
+                                    <p className={cn("text-gray-600 inline", getTextSizeClass(textSize))}>
+                                      {example}
+                                    </p>
+                                    <span className="inline-flex items-center gap-1 ml-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          speakWord(example)
+                                        }}
+                                        className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex"
+                                        title="예문 듣기"
+                                      >
+                                        <Volume2 className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={async (e) => {
+                                          e.stopPropagation()
+                                          if (translatingIndex !== null || translations[idx]) return
+                                          setTranslatingIndex(idx)
+                                          try {
+                                            const response = await fetch('/api/translate-example', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ example })
+                                            })
+                                            if (response.ok) {
+                                              const { translation } = await response.json()
+                                              setTranslations(prev => ({ ...prev, [idx]: translation }))
+                                            }
+                                          } catch (error) {
+                                            console.error('Translation error:', error)
+                                          } finally {
+                                            setTranslatingIndex(null)
+                                          }
+                                        }}
+                                        disabled={translatingIndex === idx}
+                                        className="text-xs px-2 py-1 h-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex items-center"
+                                      >
+                                        {translatingIndex === idx ? (
+                                          <Sparkles className="h-3 w-3 animate-pulse" />
+                                        ) : (
+                                          '번역'
+                                        )}
+                                      </Button>
+                                    </span>
+                                  </div>
+                                  {translations[idx] && (
+                                    <p className={cn("text-green-600 text-sm mt-1", getTextSizeClass(textSize))}>
+                                      → {translations[idx]}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}

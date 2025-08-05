@@ -282,7 +282,7 @@ export class VocabularyBatchService {
   static async cleanupVocabularyData(): Promise<BatchOperationResult> {
     const startTime = Date.now()
     let processedCount = 0
-    let errorCount = 0
+    const errorCount = 0
     const errors: Array<{ index: number; error: string }> = []
 
     try {

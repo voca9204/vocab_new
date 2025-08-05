@@ -161,7 +161,7 @@ export class SATVocabularyUtils {
       .sort((a, b) => b.getTime() - a.getTime())
 
     let streakDays = 0
-    let currentDate = new Date()
+    const currentDate = new Date()
     currentDate.setHours(0, 0, 0, 0)
 
     for (let i = 0; i < studyDates.length; i++) {

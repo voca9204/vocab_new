@@ -44,7 +44,7 @@ function convertToLegacyFormat(word: Word): LegacyVocabularyWord {
     id: word.id,
     word: word.word,
     definitions: word.definitions?.map(def => ({
-      text: def.definition,
+      text: def.definition || (def as any).text || '',  // 호환성을 위해 둘 다 확인
       source: def.source,
       partOfSpeech: word.partOfSpeech[0] || 'unknown'
     })) || [],
@@ -138,27 +138,257 @@ export const vocabularyServiceV2 = {
       
       if (isAllSelected) {
         console.log('[vocabularyServiceV2.getAll] All vocabularies selected, getting all words')
-        // words 컬렉션에서 직접 가져오기 (마이그레이션된 데이터)
-        const words = await wordService.searchWords('', { limit: limitCount })
         
-        console.log(`[vocabularyServiceV2.getAll] Found ${words.length} words`)
+        // 1. 새 DB 구조(words 컬렉션)에서 단어 가져오기
+        const newWords = await wordService.searchWords('', { limit: limitCount })
+        console.log(`[vocabularyServiceV2.getAll] Found ${newWords.length} words from new DB structure`)
         
-        // Word 형식을 LegacyVocabularyWord로 변환
-        const legacyWords = words.map(word => convertToLegacyFormat(word))
+        // 2. 기존 컬렉션들에서도 단어 가져오기 (순서대로 확인)
+        const legacyWords: LegacyVocabularyWord[] = []
+        const legacyCollectionNames = ['veterans_vocabulary', 'vocabulary', 'words']
         
-        console.log(`[vocabularyServiceV2.getAll] Converted to ${legacyWords.length} legacy format words`)
-
-        return { words: legacyWords, lastDoc: null }
+        for (const collectionName of legacyCollectionNames) {
+          try {
+            const { collection, getDocs } = await import('firebase/firestore')
+            const { db } = await import('./config')
+            
+            const legacyQuery = collection(db, collectionName)
+            const legacySnapshot = await getDocs(legacyQuery)
+            
+            if (legacySnapshot.docs.length > 0) {
+              console.log(`[vocabularyServiceV2.getAll] Found ${legacySnapshot.docs.length} words in ${collectionName}`)
+              
+              const wordsFromCollection = legacySnapshot.docs.map(doc => {
+                const data = doc.data()
+                return {
+                  id: doc.id,
+                  word: data.word || '',
+                  definitions: data.definitions && Array.isArray(data.definitions) 
+                    ? data.definitions.map((def: any) => ({
+                        text: def.text || def.definition || '',
+                        source: collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database',
+                        partOfSpeech: def.partOfSpeech || data.partOfSpeech?.[0] || 'n.',
+                        examples: def.examples || []
+                      }))
+                    : data.definition
+                    ? [{
+                        text: data.definition,
+                        source: collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database',
+                        partOfSpeech: data.partOfSpeech?.[0] || 'n.',
+                        examples: []
+                      }]
+                    : [{
+                        text: 'Definition not available',
+                        source: 'database',
+                        partOfSpeech: data.partOfSpeech?.[0] || 'n.',
+                        examples: []
+                      }],
+                  examples: data.examples || [],
+                  partOfSpeech: data.partOfSpeech || ['n.'],
+                  difficulty: data.difficulty || 5,
+                  frequency: data.frequency || 1,
+                  satLevel: data.isSAT || data.satLevel || false,
+                  pronunciation: data.pronunciation || null,
+                  etymology: data.etymology ? {
+                    origin: typeof data.etymology === 'string' ? data.etymology : data.etymology.origin || '',
+                    language: 'unknown',
+                    meaning: data.realEtymology || ''
+                  } : undefined,
+                  categories: data.categories || [],
+                  sources: [collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database'],
+                  apiSource: collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database',
+                  createdAt: data.createdAt || new Date(),
+                  updatedAt: data.updatedAt || new Date(),
+                  learningMetadata: {
+                    timesStudied: 0,
+                    masteryLevel: 0,
+                    lastStudied: new Date(),
+                    userProgress: {
+                      userId: '',
+                      wordId: doc.id,
+                      correctAttempts: 0,
+                      totalAttempts: 0,
+                      streak: 0,
+                      nextReviewDate: new Date()
+                    }
+                  },
+                  studyStatus: data.studyStatus || {
+                    studied: false,
+                    masteryLevel: 0,
+                    reviewCount: 0,
+                    lastStudied: new Date()
+                  },
+                  number: data.number,
+                  realEtymology: data.realEtymology || data.etymology
+                } as LegacyVocabularyWord
+              })
+              
+              legacyWords.push(...wordsFromCollection)
+              break // 첫 번째로 데이터가 있는 컬렉션에서만 가져오기
+            }
+          } catch (error) {
+            console.warn(`[vocabularyServiceV2.getAll] Failed to load ${collectionName}:`, error)
+          }
+        }
+        
+        // 3. 두 소스의 단어를 합치기 (중복 제거)
+        const newWordsConverted = newWords.map(word => convertToLegacyFormat(word))
+        const allWords = [...newWordsConverted, ...legacyWords]
+        
+        // 단어명으로 중복 제거
+        const uniqueWords = allWords.reduce((acc, word) => {
+          const existingIndex = acc.findIndex(w => w.word.toLowerCase() === word.word.toLowerCase())
+          if (existingIndex === -1) {
+            acc.push(word)
+          } else {
+            // 새 DB 구조의 단어를 우선시
+            if (word.sources.includes('pdf') || word.apiSource === 'pdf') {
+              acc[existingIndex] = word
+            }
+          }
+          return acc
+        }, [] as LegacyVocabularyWord[])
+        
+        console.log(`[vocabularyServiceV2.getAll] Total unique words: ${uniqueWords.length}`)
+        return { words: uniqueWords, lastDoc: null }
       }
       
       // 특정 단어장이 선택된 경우
       console.log('[vocabularyServiceV2.getAll] Specific vocabularies selected:', selectedVocabs)
       
-      // 현재는 'V.ZIP 3K 단어장'만 있으므로 이것이 선택되었으면 전체 반환
-      if (selectedVocabs.includes('V.ZIP 3K 단어장')) {
-        const words = await wordService.searchWords('', { limit: limitCount })
+      // V.ZIP 3K 단어장이 선택된 경우 (또는 다른 기존 단어장들)  
+      const legacyVocabNames = ['V.ZIP 3K 단어장', 'SAT 어휘 컬렉션', '마스터 단어 DB']
+      const hasLegacySelection = selectedVocabs.some(vocab => legacyVocabNames.includes(vocab))
+      
+      if (hasLegacySelection) {
+        console.log('[vocabularyServiceV2.getAll] Legacy vocabulary selected:', selectedVocabs)
+        
+        // 기존 컬렉션들에서 단어 가져오기
+        const legacyWords: LegacyVocabularyWord[] = []
+        const legacyCollectionNames = ['veterans_vocabulary', 'vocabulary', 'words']
+        
+        for (const collectionName of legacyCollectionNames) {
+          try {
+            const { collection, getDocs } = await import('firebase/firestore')
+            const { db } = await import('./config')
+            
+            const legacyQuery = collection(db, collectionName)
+            const legacySnapshot = await getDocs(legacyQuery)
+            
+            if (legacySnapshot.docs.length > 0) {
+              console.log(`[vocabularyServiceV2.getAll] Found ${legacySnapshot.docs.length} words in ${collectionName}`)
+              
+              const wordsFromCollection = legacySnapshot.docs.map(doc => {
+                const data = doc.data()
+                return {
+                  id: doc.id,
+                  word: data.word || '',
+                  definitions: data.definitions && Array.isArray(data.definitions) 
+                    ? data.definitions.map((def: any) => ({
+                        text: def.text || def.definition || '',
+                        source: collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database',
+                        partOfSpeech: def.partOfSpeech || data.partOfSpeech?.[0] || 'n.',
+                        examples: def.examples || []
+                      }))
+                    : data.definition
+                    ? [{
+                        text: data.definition,
+                        source: collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database',
+                        partOfSpeech: data.partOfSpeech?.[0] || 'n.',
+                        examples: []
+                      }]
+                    : [{
+                        text: 'Definition not available',
+                        source: 'database',
+                        partOfSpeech: data.partOfSpeech?.[0] || 'n.',
+                        examples: []
+                      }],
+                  examples: data.examples || [],
+                  partOfSpeech: data.partOfSpeech || ['n.'],
+                  difficulty: data.difficulty || 5,
+                  frequency: data.frequency || 1,
+                  satLevel: data.isSAT || data.satLevel || false,
+                  pronunciation: data.pronunciation || null,
+                  etymology: data.etymology ? {
+                    origin: typeof data.etymology === 'string' ? data.etymology : data.etymology.origin || '',
+                    language: 'unknown',
+                    meaning: data.realEtymology || ''
+                  } : undefined,
+                  categories: data.categories || [],
+                  sources: [collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database'],
+                  apiSource: collectionName === 'veterans_vocabulary' ? 'veterans_pdf' : 'database',
+                  createdAt: data.createdAt || new Date(),
+                  updatedAt: data.updatedAt || new Date(),
+                  learningMetadata: {
+                    timesStudied: 0,
+                    masteryLevel: 0,
+                    lastStudied: new Date(),
+                    userProgress: {
+                      userId: '',
+                      wordId: doc.id,
+                      correctAttempts: 0,
+                      totalAttempts: 0,
+                      streak: 0,
+                      nextReviewDate: new Date()
+                    }
+                  },
+                  studyStatus: data.studyStatus || {
+                    studied: false,
+                    masteryLevel: 0,
+                    reviewCount: 0,
+                    lastStudied: new Date()
+                  },
+                  number: data.number,
+                  realEtymology: data.realEtymology || data.etymology
+                } as LegacyVocabularyWord
+              })
+              
+              legacyWords.push(...wordsFromCollection)
+              break // 첫 번째로 데이터가 있는 컬렉션에서만 가져오기
+            }
+          } catch (error) {
+            console.warn(`[vocabularyServiceV2.getAll] Failed to load ${collectionName}:`, error)
+          }
+        }
+        
+        console.log(`[vocabularyServiceV2.getAll] Legacy vocabularies selected, returning ${legacyWords.length} words`)
+        return { words: legacyWords, lastDoc: null }
+      }
+      
+      // 일반 공식 단어장이 선택된 경우 (새 DB 구조)
+      if (selectedVocabs.includes('일반 공식 단어장')) {
+        console.log('[vocabularyServiceV2.getAll] 일반 공식 단어장 selected')
+        
+        // vocabulary_collections에서 "일반 공식 단어장" 찾기
+        const { collection: firestoreCollection, getDocs: getDocsFirestore, query: queryFirestore, where: whereFirestore } = await import('firebase/firestore')
+        const { db } = await import('./config')
+        
+        const collectionQuery = queryFirestore(
+          firestoreCollection(db, 'vocabulary_collections'),
+          whereFirestore('name', '==', '일반 공식 단어장')
+        )
+        
+        const collectionSnapshot = await getDocsFirestore(collectionQuery)
+        
+        if (collectionSnapshot.empty) {
+          console.log('[vocabularyServiceV2.getAll] 일반 공식 단어장 not found')
+          return { words: [], lastDoc: null }
+        }
+        
+        // 해당 컬렉션의 단어 ID들 가져오기
+        const collectionData = collectionSnapshot.docs[0].data()
+        const wordIds = collectionData.words || []
+        
+        console.log(`[vocabularyServiceV2.getAll] Found ${wordIds.length} word IDs in 일반 공식 단어장`)
+        
+        if (wordIds.length === 0) {
+          return { words: [], lastDoc: null }
+        }
+        
+        // 해당 단어들만 조회
+        const words = await wordService.getWordsByIds(wordIds)
         const legacyWords = words.map(word => convertToLegacyFormat(word))
-        console.log(`[vocabularyServiceV2.getAll] V.ZIP 3K selected, returning ${legacyWords.length} words`)
+        console.log(`[vocabularyServiceV2.getAll] 일반 공식 단어장 selected, returning ${legacyWords.length} words`)
         return { words: legacyWords, lastDoc: null }
       }
       

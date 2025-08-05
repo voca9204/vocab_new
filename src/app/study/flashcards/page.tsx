@@ -522,13 +522,24 @@ export default function FlashcardsPage() {
 
             {showAnswer ? (
               <div className="space-y-4 animate-fade-in">
-                <p className="text-xl text-gray-800 font-medium">{
-                  'definition' in currentWord 
-                    ? currentWord.definition 
-                    : currentWord.definitions && currentWord.definitions.length > 0
-                      ? currentWord.definitions[0]?.definition || currentWord.definitions[0]?.text || 'Definition not available'
-                      : 'Definition not available'
-                }</p>
+                <div className="space-y-3">
+                  {'definition' in currentWord ? (
+                    <p className="text-xl text-gray-800 font-medium">{currentWord.definition}</p>
+                  ) : currentWord.definitions && currentWord.definitions.length > 0 ? (
+                    currentWord.definitions.map((def, idx) => (
+                      <div key={idx} className="text-left">
+                        {currentWord.definitions.length > 1 && (
+                          <span className="text-sm text-gray-500 mr-2">{idx + 1}.</span>
+                        )}
+                        <span className="text-xl text-gray-800 font-medium">
+                          {def.definition || def.text || 'Definition not available'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xl text-gray-800 font-medium">Definition not available</p>
+                  )}
+                </div>
                 
                 <div className="space-y-4 mt-6">
                   {/* 영어 설명 표시 */}

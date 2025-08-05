@@ -79,16 +79,57 @@ export default function SettingsPage() {
     if (!user) return
 
     try {
-      console.log('Loading vocabulary sources using new vocabulary service')
+      console.log('Loading vocabulary collections from new DB structure')
       
-      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
-      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
+      // vocabulary_collections에서 모든 단어장 가져오기
+      const response = await fetch('/api/vocabulary-collections')
+      if (!response.ok) {
+        throw new Error('Failed to fetch vocabulary collections')
+      }
       
-      console.log(`Loaded ${words.length} words for settings`)
+      const { collections } = await response.json()
+      console.log(`Loaded ${collections.length} vocabulary collections`, collections)
       
-      // 현재는 모든 단어가 V.ZIP 3K에서 왔으므로 하나의 소스로 표시
+      // 컬렉션별로 단어 수 계산
       const sourceMap = new Map<string, number>()
-      sourceMap.set('V.ZIP 3K 단어장', words.length)
+      
+      for (const collection of collections) {
+        // 사용자가 볼 수 있는 단어장만 표시
+        if (collection.isPrivate && collection.userId !== user.uid) {
+          continue // 다른 사용자의 비공개 단어장은 제외
+        }
+        
+        const wordCount = collection.words?.length || 0
+        if (wordCount > 0) {
+          sourceMap.set(collection.name, wordCount)
+        }
+      }
+      
+      // 기존 V.ZIP 단어들을 여러 컬렉션에서 확인
+      const legacyCollections = [
+        { name: 'veterans_vocabulary', displayName: 'V.ZIP 3K 단어장' },
+        { name: 'vocabulary', displayName: 'SAT 어휘 컬렉션' },
+        { name: 'words', displayName: '마스터 단어 DB' }
+      ]
+      
+      for (const { name, displayName } of legacyCollections) {
+        try {
+          console.log(`Loading vocabulary from ${name} collection...`)
+          
+          const response = await fetch(`/api/vocabulary-count?collection=${name}`)
+          if (response.ok) {
+            const { count } = await response.json()
+            if (count > 0) {
+              sourceMap.set(displayName, count)
+              console.log(`Added ${displayName} with ${count} words`)
+            }
+          } else {
+            console.warn(`Failed to get ${name} count from API`)
+          }
+        } catch (error) {
+          console.warn(`Failed to load ${name} vocabulary:`, error)
+        }
+      }
       
       // Firestore에서 사용자 설정 가져오기
       const userSettings = await settingsService.getUserSettings(user.uid)
@@ -107,6 +148,18 @@ export default function SettingsPage() {
       setSources(sourceList)
     } catch (error) {
       console.error('Error loading sources:', error)
+      // 오류 시 구 서비스로 폴백
+      try {
+        const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
+        const sourceList = [{
+          filename: 'V.ZIP 3K 단어장',
+          count: words.length,
+          selected: true
+        }]
+        setSources(sourceList)
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError)
+      }
     } finally {
       setLoadingSources(false)
     }
@@ -427,9 +480,18 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push('/pdf-extract')}>
-              PDF 업로드하기
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => router.push('/pdf-extract')}>
+                PDF 업로드하기
+              </Button>
+              <Button 
+                onClick={() => router.push('/fix-all-words')} 
+                variant="outline"
+                className="text-orange-600 hover:text-orange-700"
+              >
+                단어 정의 일괄 수정
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

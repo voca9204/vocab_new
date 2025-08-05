@@ -277,10 +277,12 @@ export default function VocabularyListPage() {
                 </div>
               </div>
               
-              <p className="text-sm text-gray-700 mb-1">{word.definitions[0]?.text || 'No definition available'}</p>
+              <p className="text-sm text-gray-700 mb-1 break-words whitespace-normal">
+                {word.definitions[0]?.text || 'No definition available'}
+              </p>
               
               {word.etymology?.origin && (
-                <p className="text-xs text-gray-500 line-clamp-2">
+                <p className="text-xs text-gray-500 break-words whitespace-normal">
                   {word.etymology.origin}
                 </p>
               )}

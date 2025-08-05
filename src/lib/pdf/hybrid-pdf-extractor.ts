@@ -73,6 +73,12 @@ export class HybridPDFExtractor {
       console.log('📄 PDF 텍스트 추출 시작...')
       const { text, images } = await this.visionService.extractCompleteContent(file, maxPages)
       
+      // 추출된 텍스트 일부 출력 (디버깅용)
+      console.log('📝 추출된 텍스트 샘플 (처음 1000자):')
+      console.log(text.substring(0, 1000))
+      console.log('...')
+      console.log(`📊 총 텍스트 길이: ${text.length}자`)
+      
       // 2. AI 형식 감지 및 추출 시도
       if (useAI) {
         console.log('🤖 AI 형식 감지 및 추출 시도...')
@@ -239,6 +245,11 @@ export class HybridPDFExtractor {
       // 단어 정규화
       entry.word = entry.word.toLowerCase().trim()
 
+      // 정의 정제 (혼재된 영어 단어 제거)
+      if (entry.definition) {
+        entry.definition = this.cleanKoreanDefinition(entry.definition, entry.word)
+      }
+
       // 정의가 없으면 영어 정의 사용
       if (!entry.definition && entry.englishDefinition) {
         entry.definition = entry.englishDefinition
@@ -257,6 +268,58 @@ export class HybridPDFExtractor {
 
       return entry
     })
+  }
+
+  /**
+   * 한글 정의에서 혼재된 영어 단어들 제거 (개선된 버전)
+   */
+  private cleanKoreanDefinition(koreanText: string, currentWord: string): string {
+    if (!koreanText) return ''
+    
+    // 영어 단어를 구분자로 사용하여 텍스트를 분할
+    const suspiciousEnglishWords = koreanText.match(/\b[a-zA-Z]{4,}\b/g) || []
+    
+    // 현재 단어가 아닌 영어 단어들 찾기 (기본 영어 단어는 제외)
+    const foreignWords = suspiciousEnglishWords.filter(word => 
+      word.toLowerCase() !== currentWord.toLowerCase() &&
+      !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will', 'were', 'said', 'each', 'which', 'their', 'time', 'word', 'look', 'like', 'into', 'such', 'more', 'very', 'what', 'know', 'just', 'first', 'over', 'after', 'back', 'other', 'many', 'than', 'then', 'them', 'these', 'some', 'come', 'could', 'only', 'long', 'make', 'when', 'also', 'find'].includes(word.toLowerCase())
+    )
+    
+    if (foreignWords.length === 0) {
+      return koreanText // 의심스러운 단어가 없으면 원본 반환
+    }
+    
+    let cleanedText = koreanText
+    
+    // 각 의심스러운 영어 단어와 그 주변 텍스트를 제거
+    for (const foreignWord of foreignWords) {
+      console.log(`[HybridExtractor] Removing foreign word "${foreignWord}" from "${koreanText}"`)
+      
+      // 해당 영어 단어와 그 직후의 한글 정의 부분을 제거
+      // 패턴: 영어단어 + 공백 + 한글정의
+      const contextPattern = new RegExp(`\\s*\\b${foreignWord}\\b\\s*[가-힣][^a-zA-Z]*`, 'gi')
+      cleanedText = cleanedText.replace(contextPattern, '')
+      
+      // 남은 영어 단어만 제거
+      cleanedText = cleanedText.replace(new RegExp(`\\b${foreignWord}\\b`, 'gi'), '')
+    }
+    
+    // 연속된 공백과 구두점 정리
+    cleanedText = cleanedText
+      .replace(/\s+/g, ' ')           // 연속 공백을 하나로
+      .replace(/\s*,\s*/g, ', ')      // 쉼표 앞뒤 공백 정리
+      .replace(/^\s*,\s*/, '')        // 시작부분 쉼표 제거
+      .replace(/\s*,\s*$/, '')        // 끝부분 쉼표 제거
+      .trim()
+    
+    // 결과가 너무 짧거나 한글이 없으면 원본 반환 (과도한 필터링 방지)
+    if (cleanedText.length < 3 || !/[가-힣]/.test(cleanedText)) {
+      console.log(`[HybridExtractor] Over-filtered, returning original: "${koreanText}"`)
+      return koreanText
+    }
+    
+    console.log(`[HybridExtractor] Cleaned: "${koreanText}" -> "${cleanedText}"`)
+    return cleanedText
   }
 
   /**
@@ -373,6 +436,11 @@ export class HybridPDFExtractor {
         case 'TOEFL':
         case 'TOEFL 형식':
           return this.regexExtractor.extractTOEFLFormat(text)
+          
+        case 'TABLE':
+        case '표 형식':
+        case '메가스터디':
+          return this.regexExtractor.extractTableFormat(text)
           
         default:
           // 일반적인 패턴 시도
