@@ -13,7 +13,9 @@ import {
   FileText,
   Shuffle,
   Target,
-  Clock
+  Clock,
+  HelpCircle,
+  Camera
 } from 'lucide-react'
 
 export default function StudyPage() {
@@ -84,7 +86,15 @@ export default function StudyPage() {
     }
   }
 
-  const studyModes = [
+  const studyModes: Array<{
+    title: string
+    description: string
+    icon: any
+    href: string
+    color: string
+    stats: string
+    badge?: string
+  }> = [
     {
       title: '단어 목록',
       description: '모든 단어를 한눈에 보고 검색',
@@ -132,6 +142,15 @@ export default function StudyPage() {
       href: '/study/review',
       color: 'bg-indigo-500',
       stats: '스마트 복습'
+    },
+    {
+      title: '사진 단어',
+      description: '사진에서 단어 추출하여 학습',
+      icon: Camera,
+      href: '/study/photo-vocab',
+      color: 'bg-teal-500',
+      stats: '즉시 학습',
+      badge: 'BETA'
     }
   ]
 
@@ -150,14 +169,24 @@ export default function StudyPage() {
     <div className="container mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">학습 모드 선택</h1>
-        <Button 
-          variant="outline" 
-          onClick={() => router.push('/dashboard')}
-          className="flex items-center gap-2"
-        >
-          <BarChart className="w-4 h-4" />
-          대시보드
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/help')}
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="w-4 h-4" />
+            도움말
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <BarChart className="w-4 h-4" />
+            대시보드
+          </Button>
+        </div>
       </div>
 
       {/* 학습 통계 */}
@@ -211,8 +240,15 @@ export default function StudyPage() {
               onClick={() => router.push(mode.href)}
             >
               <CardHeader>
-                <div className={`w-12 h-12 rounded-lg ${mode.color} flex items-center justify-center mb-4`}>
-                  <Icon className="w-6 h-6 text-white" />
+                <div className="flex items-start justify-between">
+                  <div className={`w-12 h-12 rounded-lg ${mode.color} flex items-center justify-center mb-4`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  {mode.badge && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {mode.badge}
+                    </span>
+                  )}
                 </div>
                 <CardTitle>{mode.title}</CardTitle>
                 <CardDescription>{mode.description}</CardDescription>

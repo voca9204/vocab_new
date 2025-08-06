@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { SettingsProvider } from "@/components/providers/settings-provider";
+import { CacheProvider } from "@/contexts/cache-context";
+import { VocabularyProvider } from "@/contexts/vocabulary-context";
 import { AppLayout } from "@/components/layout/app-layout";
 import "./globals.css";
 
@@ -32,9 +34,13 @@ export default function RootLayout({
       >
         <AuthProvider>
           <SettingsProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
+            <CacheProvider>
+              <VocabularyProvider>
+                <AppLayout>
+                  {children}
+                </AppLayout>
+              </VocabularyProvider>
+            </CacheProvider>
           </SettingsProvider>
         </AuthProvider>
       </body>

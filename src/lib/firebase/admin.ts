@@ -1,10 +1,12 @@
 import { initializeApp, getApps, cert, App } from 'firebase-admin/app'
 import { getFirestore, Firestore } from 'firebase-admin/firestore'
 import { getAuth, Auth } from 'firebase-admin/auth'
+import { getStorage, Storage } from 'firebase-admin/storage'
 
 let app: App | null = null
 let db: Firestore | null = null
 let auth: Auth | null = null
+let storage: Storage | null = null
 
 // Initialize Firebase Admin
 const initAdmin = () => {
@@ -92,6 +94,18 @@ export const getAdminAuth = (): Auth => {
     auth = getAuth(adminApp)
   }
   return auth
+}
+
+// Helper function to get admin Storage instance
+export const getAdminStorage = (): Storage => {
+  if (!storage) {
+    const adminApp = initAdmin()
+    if (!adminApp) {
+      throw new Error('Failed to initialize Firebase Admin')
+    }
+    storage = getStorage(adminApp)
+  }
+  return storage
 }
 
 // Helper function to verify if admin is properly initialized

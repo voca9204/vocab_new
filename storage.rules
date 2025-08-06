@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Photo vocabulary uploads
+    match /photo-vocabulary/{userId}/{fileName} {
+      allow read: if request.auth.uid == userId;
+      allow write: if request.auth.uid == userId 
+        && request.resource.size < 10 * 1024 * 1024  // 10MB max
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth.uid == userId;
+    }
+    
+    // Default rule - deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

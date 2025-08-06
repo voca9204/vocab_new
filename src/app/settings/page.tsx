@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useVocabulary } from '@/contexts/vocabulary-context'
 import { Button } from '@/components/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  Settings,
   Upload,
   BookOpen,
   Check,
@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   Volume2,
   RefreshCw,
-  MessageSquare,
   Sparkles,
   DollarSign,
   ExternalLink,
@@ -36,6 +35,7 @@ const settingsService = new UserSettingsService()
 export default function SettingsPage() {
   const { user, loading, isAdmin } = useAuth()
   const router = useRouter()
+  const { refreshWords } = useVocabulary()
   const [sources, setSources] = useState<VocabularySource[]>([])
   const [loadingSources, setLoadingSources] = useState(true)
   const [pronunciationStats, setPronunciationStats] = useState({
@@ -58,6 +58,10 @@ export default function SettingsPage() {
   const [deletingData, setDeletingData] = useState(false)
   const [textSize, setTextSize] = useState<'small' | 'medium' | 'large'>('medium')
   const [updatingTextSize, setUpdatingTextSize] = useState(false)
+  const [totalWordCount, setTotalWordCount] = useState<{
+    total: number
+    collections: Record<string, number>
+  } | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -72,8 +76,11 @@ export default function SettingsPage() {
       checkPronunciationStats()
       checkExampleStats()
       checkOpenAIUsage()
+      if (isAdmin) {
+        loadTotalWordCount()
+      }
     }
-  }, [user])
+  }, [user, isAdmin])
 
   const loadSources = async () => {
     if (!user) return
@@ -88,7 +95,8 @@ export default function SettingsPage() {
       }
       
       const { collections } = await response.json()
-      console.log(`Loaded ${collections.length} vocabulary collections`, collections)
+      console.log(`Loaded ${collections.length} vocabulary collections`)
+      console.log('Collections detail:', collections)
       
       // 컬렉션별로 단어 수 계산
       const sourceMap = new Map<string, number>()
@@ -100,36 +108,16 @@ export default function SettingsPage() {
         }
         
         const wordCount = collection.words?.length || 0
+        console.log(`Collection "${collection.name}": ${wordCount} words`)
+        
         if (wordCount > 0) {
-          sourceMap.set(collection.name, wordCount)
+          sourceMap.set(collection.name || collection.displayName, wordCount)
+          console.log(`✅ Added "${collection.name || collection.displayName}" to sourceMap`)
         }
       }
       
-      // 기존 V.ZIP 단어들을 여러 컬렉션에서 확인
-      const legacyCollections = [
-        { name: 'veterans_vocabulary', displayName: 'V.ZIP 3K 단어장' },
-        { name: 'vocabulary', displayName: 'SAT 어휘 컬렉션' },
-        { name: 'words', displayName: '마스터 단어 DB' }
-      ]
-      
-      for (const { name, displayName } of legacyCollections) {
-        try {
-          console.log(`Loading vocabulary from ${name} collection...`)
-          
-          const response = await fetch(`/api/vocabulary-count?collection=${name}`)
-          if (response.ok) {
-            const { count } = await response.json()
-            if (count > 0) {
-              sourceMap.set(displayName, count)
-              console.log(`Added ${displayName} with ${count} words`)
-            }
-          } else {
-            console.warn(`Failed to get ${name} count from API`)
-          }
-        } catch (error) {
-          console.warn(`Failed to load ${name} vocabulary:`, error)
-        }
-      }
+      // 레거시 컬렉션 확인 부분 제거 - 이제 vocabulary_collections만 사용
+      // 모든 단어는 words 컬렉션에 있고, vocabulary_collections로 그룹화됨
       
       // Firestore에서 사용자 설정 가져오기
       const userSettings = await settingsService.getUserSettings(user.uid)
@@ -145,6 +133,9 @@ export default function SettingsPage() {
         }))
         .sort((a, b) => b.count - a.count)
       
+      console.log('📚 Final sourceList:', sourceList)
+      console.log('📊 sourceMap entries:', Array.from(sourceMap.entries()))
+      
       setSources(sourceList)
     } catch (error) {
       console.error('Error loading sources:', error)
@@ -152,7 +143,7 @@ export default function SettingsPage() {
       try {
         const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
         const sourceList = [{
-          filename: 'V.ZIP 3K 단어장',
+          filename: 'SAT 단어장',
           count: words.length,
           selected: true
         }]
@@ -185,6 +176,9 @@ export default function SettingsPage() {
       } else {
         await settingsService.updateSelectedVocabularies(user.uid, selectedFilenames)
       }
+      
+      // VocabularyContext 새로고침
+      await refreshWords()
     }
   }
 
@@ -195,6 +189,9 @@ export default function SettingsPage() {
     // 전체 선택은 빈 배열로 저장
     if (user) {
       await settingsService.updateSelectedVocabularies(user.uid, [])
+      
+      // VocabularyContext 새로고침
+      await refreshWords()
     }
   }
 
@@ -206,6 +203,24 @@ export default function SettingsPage() {
     const allFilenames = sources.map(s => s.filename)
     if (user) {
       await settingsService.updateSelectedVocabularies(user.uid, ['__none__'])
+      
+      // VocabularyContext 새로고침
+      await refreshWords()
+    }
+  }
+
+  const loadTotalWordCount = async () => {
+    try {
+      const response = await fetch('/api/vocabulary-total-count')
+      if (response.ok) {
+        const data = await response.json()
+        setTotalWordCount({
+          total: data.totalCount,
+          collections: data.collectionCounts
+        })
+      }
+    } catch (error) {
+      console.error('Error loading total word count:', error)
     }
   }
 
@@ -467,33 +482,84 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* PDF 업로드 섹션 - 관리자만 표시 */}
+      {/* 관리자 전용 섹션 */}
       {isAdmin && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              PDF 단어장 업로드
-            </CardTitle>
-            <CardDescription>
-              새로운 단어장 PDF를 업로드하여 학습 콘텐츠를 추가하세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
+        <>
+          {/* 전체 마스터 단어 DB 통계 */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                전체 마스터 단어 DB 현황
+              </CardTitle>
+              <CardDescription>
+                시스템에 등록된 모든 단어 데이터베이스 통계
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {totalWordCount ? (
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">전체 단어 수</p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {totalWordCount.total.toLocaleString()}개
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs text-gray-600 mb-1">마스터 단어 DB</p>
+                      <p className="text-lg font-semibold">
+                        {totalWordCount.collections.words?.toLocaleString() || 0}개
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs text-gray-600 mb-1">수능 단어장</p>
+                      <p className="text-lg font-semibold">
+                        {totalWordCount.collections.vocabulary?.toLocaleString() || 0}개
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs text-gray-600 mb-1">SAT 단어장</p>
+                      <p className="text-lg font-semibold">
+                        {totalWordCount.collections.veterans_vocabulary?.toLocaleString() || 0}개
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs text-gray-600 mb-1">AI 생성 단어</p>
+                      <p className="text-lg font-semibold">
+                        {totalWordCount.collections.ai_generated_words?.toLocaleString() || 0}개
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 mx-auto"></div>
+                  <p className="mt-2 text-sm">통계 로딩 중...</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* PDF 업로드 섹션 */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                PDF 단어장 업로드
+              </CardTitle>
+              <CardDescription>
+                새로운 단어장 PDF를 업로드하여 학습 콘텐츠를 추가하세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <Button onClick={() => router.push('/pdf-extract')}>
                 PDF 업로드하기
               </Button>
-              <Button 
-                onClick={() => router.push('/fix-all-words')} 
-                variant="outline"
-                className="text-orange-600 hover:text-orange-700"
-              >
-                단어 정의 일괄 수정
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </>
       )}
 
       {/* 일일 학습 목표 설정 섹션 */}

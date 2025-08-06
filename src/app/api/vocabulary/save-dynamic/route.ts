@@ -36,6 +36,12 @@ export async function POST(request: NextRequest) {
         origin: 'user_discovery',
         addedAt: new Date(),
         uploadedBy: userId
+      },
+      // studyStatus가 없으면 기본값 추가
+      studyStatus: wordData.studyStatus || {
+        studied: false,
+        masteryLevel: 0,
+        reviewCount: 0
       }
     }
     

@@ -54,6 +54,10 @@ secrets/
 *.tsbuildinfo
 next-env.d.ts
 
+# Google Cloud credentials
+vision-api-key.json
+*-service-account-key.json
+
 # Added by Task Master AI
 # Logs
 logs

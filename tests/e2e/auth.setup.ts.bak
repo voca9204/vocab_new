@@ -1,0 +1,21 @@
+import { test as setup } from '@playwright/test'
+
+const authFile = 'tests/.auth/user.json'
+
+setup('authenticate', async ({ page }) => {
+  // Go to login page
+  await page.goto('http://localhost:3000/login')
+  
+  // Fill in test admin credentials
+  await page.fill('input[type="email"]', 'admin@test.com')
+  await page.fill('input[type="password"]', 'test123456')
+  
+  // Click login button
+  await page.click('button[type="submit"]')
+  
+  // Wait for navigation to dashboard
+  await page.waitForURL('http://localhost:3000/dashboard')
+  
+  // Save storage state
+  await page.context().storageState({ path: authFile })
+})

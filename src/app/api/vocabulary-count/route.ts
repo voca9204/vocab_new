@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
     const db = getAdminFirestore()
     
     // 컬렉션의 문서 수 확인
-    const snapshot = await db.collection(collection).get()
-    const count = snapshot.size
+    const snapshot = await db.collection(collection).count().get()
+    const count = snapshot.data().count
     
     console.log(`📊 Collection ${collection} has ${count} documents`)
     

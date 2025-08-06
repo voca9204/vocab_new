@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 import { Button } from '@/components/ui'
@@ -19,8 +19,10 @@ import {
   Sparkles
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
+import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
 import type { VocabularyWord } from '@/types'
 import type { Word } from '@/types/vocabulary-v2'
+import type { PhotoVocabularyWord } from '@/types/photo-vocabulary-collection'
 import { cn } from '@/lib/utils'
 
 interface QuizQuestion {
@@ -38,8 +40,15 @@ interface QuizResult {
 
 export default function QuizPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const { textSize } = useSettings()
+  
+  // Check if we're loading from photo collection
+  const source = searchParams.get('source')
+  const collectionId = searchParams.get('collectionId')
+  const isPhotoCollection = source === 'photo-collection' && collectionId
+  
   const [words, setWords] = useState<VocabularyWord[]>([])
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -65,16 +74,61 @@ export default function QuizPage() {
     if (!user) return
 
     try {
-      console.log('Loading words for quiz using new vocabulary service')
+      let wordsForQuiz: VocabularyWord[] = []
       
-      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
-      const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
+      if (isPhotoCollection && collectionId) {
+        // Load photo collection words
+        console.log('Loading photo collection words for quiz:', collectionId)
+        const photoWords = await photoVocabularyCollectionService.getCollectionWords(collectionId)
+        
+        // Convert photo words to vocabulary words format
+        wordsForQuiz = photoWords.map(pw => ({
+          id: pw.id,
+          word: pw.word,
+          definition: pw.definition || pw.context || '',  // Use context as fallback for older data
+          definitions: (pw.definition || pw.context) ? [{ 
+            id: 'def-0',
+            definition: pw.definition || pw.context || '', 
+            examples: pw.examples || [],
+            source: 'manual' as const,
+            language: 'ko' as const,
+            createdAt: pw.createdAt || new Date()
+          }] : [],
+          pronunciation: pw.pronunciation,
+          difficulty: pw.difficulty || 5,
+          frequency: pw.frequency || 50,
+          isSAT: true,
+          partOfSpeech: [],
+          etymology: null,
+          examples: [],
+          synonyms: [],
+          learningMetadata: {
+            timesStudied: pw.studyStatus.reviewCount || 0,
+            lastStudied: pw.studyStatus.lastStudiedAt,
+            confidence: pw.studyStatus.masteryLevel / 100,
+            source: 'photo-collection'
+          }
+        } as VocabularyWord))
+        
+        console.log(`Loaded ${wordsForQuiz.length} photo words for quiz`)
+      } else {
+        // Load regular vocabulary words
+        console.log('Loading words for quiz using new vocabulary service')
+        const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
+        
+        // 학습하지 않은 단어들을 우선적으로 선택
+        const notStudiedWords = allWords.filter(w => (w.learningMetadata?.timesStudied || 0) === 0)
+        wordsForQuiz = notStudiedWords.length >= 20 ? notStudiedWords : allWords
+      }
       
-      console.log(`Loaded ${allWords.length} words for quiz`)
-      
-      // 학습하지 않은 단어들을 우선적으로 선택
-      const notStudiedWords = allWords.filter(w => (w.learningMetadata?.timesStudied || 0) === 0)
-      const wordsForQuiz = notStudiedWords.length >= 20 ? notStudiedWords : allWords
+      // 단어 로드 확인
+      if (wordsForQuiz.length > 0) {
+        console.log(`[loadWords] Successfully loaded ${wordsForQuiz.length} words`)
+        const firstWord = wordsForQuiz[0]
+        console.log(`[loadWords] Sample word: ${firstWord.word} - ${firstWord.definitions?.[0]?.definition || firstWord.definitions?.[0]?.text || 'No definition'}`)
+      } else {
+        console.warn('[loadWords] No words loaded')
+      }
       
       setWords(wordsForQuiz)
       
@@ -110,9 +164,14 @@ export default function QuizPage() {
       const shuffledOptionWords = allOptionWords.sort(() => Math.random() - 0.5)
       const correctIndex = shuffledOptionWords.findIndex(w => w.id === word.id)
       
+      // 각 선택지의 정의 생성
+      const options = shuffledOptionWords.map((w) => {
+        return w.definitions?.[0]?.definition || w.definitions?.[0]?.text || w.definition || '정의 없음'
+      })
+      
       return {
         word,
-        options: shuffledOptionWords.map(w => w.definitions[0]?.text || 'No definition'),
+        options,
         optionWords: shuffledOptionWords,
         correctAnswer: correctIndex
       }
@@ -498,8 +557,26 @@ export default function QuizPage() {
             <Brain className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <p className="text-gray-600">퀴즈를 시작할 수 없습니다.</p>
             <p className="text-sm text-gray-500 mt-2">
-              단어가 충분하지 않거나 선택된 단어장이 없습니다.
+              {words.length === 0 
+                ? '로드된 단어가 없습니다. 단어장 설정을 확인해주세요.'
+                : '단어가 충분하지 않거나 선택된 단어장이 없습니다.'
+              }
             </p>
+            <div className="mt-4 space-y-2">
+              <Button 
+                variant="outline" 
+                onClick={() => router.push('/settings')}
+              >
+                단어장 설정하기
+              </Button>
+              <br />
+              <Button 
+                variant="ghost" 
+                onClick={() => window.location.reload()}
+              >
+                다시 시도
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : currentQuestion ? (

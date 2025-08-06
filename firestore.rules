@@ -94,7 +94,91 @@ service cloud.firestore {
         request.auth.uid == resource.data.createdBy;
     }
     
+    // === 새로 추가된 컬렉션들 ===
+    
+    // ai_generated_words - AI가 생성한 단어들 (모든 인증된 사용자가 읽기 가능)
+    match /ai_generated_words/{wordId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null; // API를 통해서만 생성
+      allow update, delete: if false; // 수정/삭제 불가
+    }
+    
+    // personal_vocabulary - 개인 단어장 (본인만 접근 가능)
+    match /personal_vocabulary/{entryId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // photo_sessions - 사진 단어 세션 (본인만 접근 가능)
+    match /photo_sessions/{sessionId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // photo_vocabulary - 사진에서 추출한 단어들 (본인만 접근 가능)
+    match /photo_vocabulary/{wordId} {
+      // resource가 없을 수도 있으므로 생성 시와 동일한 조건 추가
+      allow read: if request.auth != null && 
+        (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // photo_vocabulary_collections - 영구 사진 단어장 컬렉션 (본인만 접근 가능)
+    match /photo_vocabulary_collections/{collectionId} {
+      // 읽기는 인증된 사용자 모두 가능 (앱에서 필터링)
+      allow read: if request.auth != null;
+      // 생성은 본인 데이터만
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      // 수정과 삭제는 소유자만
+      allow update, delete: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // photo_vocabulary_words - 영구 사진 단어 데이터 (본인만 접근 가능)
+    match /photo_vocabulary_words/{wordId} {
+      // 읽기는 인증된 사용자 모두 가능 (앱에서 필터링)
+      allow read: if request.auth != null;
+      // 생성은 본인 데이터만
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      // 수정과 삭제는 소유자만
+      allow update, delete: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // photo_vocabulary_stats - 학습 통계 (본인만 접근 가능)
+    match /photo_vocabulary_stats/{statId} {
+      allow read: if request.auth != null && 
+        (resource == null || statId.split('_')[0] == request.auth.uid);
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // photo_vocabulary_test_sessions - 테스트 세션 결과 (본인만 접근 가능)
+    match /photo_vocabulary_test_sessions/{sessionId} {
+      allow read: if request.auth != null && 
+        (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
     // === 기존 컬렉션들 (호환성 유지) ===
+    
+    // veterans_vocabulary - V.ZIP PDF에서 추출한 단어들 (인증된 사용자만 읽기 가능)
+    match /veterans_vocabulary/{wordId} {
+      allow read: if request.auth != null;
+      allow write: if false; // 관리자만 수정 가능
+    }
     
     // 사용자 프로필 데이터 - 본인만 접근 가능
     match /users/{userId} {

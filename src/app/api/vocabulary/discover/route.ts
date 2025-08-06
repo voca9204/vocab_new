@@ -22,18 +22,76 @@ export async function POST(request: NextRequest) {
     
     const db = getAdminFirestore()
     
-    // 1. 이미 존재하는 단어인지 확인
-    const existingWordsQuery = await db.collection('words')
-      .where('word', '==', word.toLowerCase())
-      .limit(1)
-      .get()
+    // 1. 이미 존재하는 단어인지 확인 (모든 컬렉션에서 검색)
+    const normalizedWord = word.toLowerCase().replace(/[^a-z]/g, '')
+    const collections = ['words', 'ai_generated_words', 'photo_vocabulary_words']
     
-    if (!existingWordsQuery.empty) {
-      const existingWord = existingWordsQuery.docs[0]
+    let existingWord = null
+    let existingWordsQuery = null
+    
+    // 모든 컬렉션에서 검색
+    for (const collectionName of collections) {
+      // 먼저 정확한 단어로 검색
+      existingWordsQuery = await db.collection(collectionName)
+        .where('word', '==', word.toLowerCase())
+        .limit(1)
+        .get()
+      
+      if (!existingWordsQuery.empty) {
+        existingWord = existingWordsQuery.docs[0]
+        break
+      }
+      
+      // 정확한 매칭이 없으면 normalizedWord로 검색
+      existingWordsQuery = await db.collection(collectionName)
+        .where('normalizedWord', '==', normalizedWord)
+        .limit(1)
+        .get()
+      
+      if (!existingWordsQuery.empty) {
+        existingWord = existingWordsQuery.docs[0]
+        break
+      }
+    }
+    
+    if (existingWord) {
+      const wordData = existingWord.data()
+      const collectionName = existingWord.ref.parent.id
+      
+      console.log(`[discover] Found existing word in collection: ${collectionName}, ID: ${existingWord.id}`)
+      
+      // Firestore Timestamp 처리
+      const processedWordData = {
+        id: existingWord.id,
+        ...wordData,
+        createdAt: wordData.createdAt?.toDate ? wordData.createdAt.toDate() : wordData.createdAt,
+        updatedAt: wordData.updatedAt?.toDate ? wordData.updatedAt.toDate() : wordData.updatedAt,
+      }
+      
+      // 정의 내의 날짜도 변환
+      if (processedWordData.definitions && Array.isArray(processedWordData.definitions)) {
+        processedWordData.definitions = processedWordData.definitions.map((def: any) => ({
+          ...def,
+          createdAt: def.createdAt?.toDate ? def.createdAt.toDate() : def.createdAt
+        }))
+      }
+      
+      // source 내의 날짜도 변환
+      if (processedWordData.source?.addedAt?.toDate) {
+        processedWordData.source.addedAt = processedWordData.source.addedAt.toDate()
+      }
+      
+      // aiGenerated 내의 날짜도 변환
+      if (processedWordData.aiGenerated?.generatedAt?.toDate) {
+        processedWordData.aiGenerated.generatedAt = processedWordData.aiGenerated.generatedAt.toDate()
+      }
+      
+      console.log('Found existing word:', processedWordData.word)
+      
       return NextResponse.json({
         success: true,
         exists: true,
-        word: { id: existingWord.id, ...existingWord.data() },
+        word: processedWordData,
         message: 'Word already exists in database'
       })
     }
@@ -120,19 +178,20 @@ Please provide the following in JSON format:
         relationshipId = relationshipRef.id
       }
       
-      // 4. 발견된 단어 정보 반환 (아직 저장하지 않음)
-      const discoveredWord = {
+      // 4. AI가 생성한 단어를 ai_generated_words 컬렉션에 자동 저장
+      const now = new Date()
+      const wordToSave = {
         word: word.toLowerCase(),
         normalizedWord: word.toLowerCase().replace(/[^a-z]/g, ''),
         pronunciation: wordInfo.pronunciation,
         partOfSpeech: wordInfo.partOfSpeech,
         definitions: wordInfo.definitions.map((def: any, idx: number) => ({
-          id: `temp-${idx}`,
+          id: `def-${idx}`,
           definition: def.definition,
           examples: def.examples || [],
           source: 'ai' as const,
           language: def.language || 'ko',
-          createdAt: new Date()
+          createdAt: now
         })),
         etymology: wordInfo.englishDefinition,
         realEtymology: wordInfo.etymology,
@@ -144,27 +203,40 @@ Please provide the following in JSON format:
         source: {
           type: 'ai_generated' as const,
           origin: 'discovery',
-          addedAt: new Date(),
+          addedAt: now,
           metadata: {
-            context,
-            sourceWordId,
-            model: 'gpt-4'
+            ...(context && { context }),
+            ...(sourceWordId && { sourceWordId }),
+            model: 'gpt-4',
+            requestedBy: userId
           }
         },
         aiGenerated: {
           examples: true,
           etymology: true,
-          generatedAt: new Date()
+          generatedAt: now
         },
+        createdAt: now,
+        updatedAt: now
+      }
+      
+      // AI 생성 단어를 ai_generated_words 컬렉션에 저장
+      const docRef = await db.collection('ai_generated_words').add(wordToSave)
+      console.log('AI generated word saved to ai_generated_words:', word)
+      
+      // 5. 저장된 단어 반환
+      const savedWord = {
+        id: docRef.id,
+        ...wordToSave,
         relationshipId
       }
       
       return NextResponse.json({
         success: true,
         exists: false,
-        word: discoveredWord,
+        word: savedWord,
         confidence: 0.85,  // AI 생성 신뢰도
-        message: 'New word discovered and defined'
+        message: 'New word discovered, defined, and saved to master database'
       })
       
     } catch (parseError) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui'
@@ -13,16 +13,62 @@ import {
   TrendingUp,
   ChevronRight,
   Edit2,
-  Sparkles
+  Sparkles,
+  HelpCircle
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
+import { useVocabulary } from '@/contexts/vocabulary-context'
 import type { VocabularyWord } from '@/types'
+import type { UnifiedWord } from '@/types/unified-word'
+
+// UnifiedWord를 VocabularyWord로 변환하는 헬퍼 함수
+const unifiedToVocabularyWord = (word: UnifiedWord): VocabularyWord => ({
+  id: word.id,
+  word: word.word,
+  definitions: [{
+    text: word.definition,
+    source: 'database',
+    partOfSpeech: word.partOfSpeech[0] || 'n.'
+  }],
+  examples: word.examples,
+  partOfSpeech: word.partOfSpeech,
+  difficulty: word.difficulty,
+  frequency: word.frequency,
+  satLevel: word.isSAT,
+  pronunciation: word.pronunciation,
+  etymology: word.etymology ? {
+    origin: word.etymology,
+    language: 'unknown',
+    meaning: word.realEtymology || ''
+  } : undefined,
+  categories: [],
+  sources: [word.source.filename],
+  apiSource: 'database',
+  createdAt: word.createdAt,
+  updatedAt: word.updatedAt,
+  learningMetadata: {
+    timesStudied: 0,
+    masteryLevel: 0,
+    lastStudied: new Date(),
+    userProgress: {
+      userId: '',
+      wordId: word.id,
+      correctAttempts: 0,
+      totalAttempts: 0,
+      streak: 0,
+      nextReviewDate: new Date()
+    }
+  },
+  synonyms: word.synonyms,
+  antonyms: word.antonyms
+})
 
 export default function DashboardPage() {
   const { user, appUser, loading } = useAuth()
   const router = useRouter()
+  const { allWords: vocabularyWords, loading: vocabularyLoading } = useVocabulary()
   const [stats, setStats] = useState({
     totalWords: 0,
     studiedWords: 0,
@@ -30,7 +76,7 @@ export default function DashboardPage() {
     masteryAverage: 0
   })
   const [sources, setSources] = useState<{filename: string, count: number}[]>([])
-  const [recentWords, setRecentWords] = useState<VocabularyWord[]>([])
+  const [recentWords, setRecentWords] = useState<UnifiedWord[]>([])
   const {
     selectedWord,
     openModal,
@@ -43,53 +89,16 @@ export default function DashboardPage() {
     fetchingPronunciation,
     speakWord
   } = useWordDetailModal()
-  const [allWords, setAllWords] = useState<VocabularyWord[]>([])
+  const [allWords, setAllWords] = useState<UnifiedWord[]>([])
 
-  // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
-
-  // 통계 데이터 가져오기
-  useEffect(() => {
-    if (user) {
-      loadStats()
-    }
-  }, [user])
-
-  const updateFilename = async (oldFilename: string, newFilename: string) => {
+  // loadStats 함수 정의 (useEffect에서 사용하기 전에 먼저 정의)
+  const loadStats = useCallback(async () => {
     if (!user) return
 
     try {
-      const response = await fetch('/api/update-source', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          oldFilename,
-          newFilename
-        })
-      })
-      
-      const result = await response.json()
-      if (result.success) {
-        alert(result.message)
-        loadStats() // 통계 다시 로드
-      }
-    } catch (error) {
-      console.error('Error updating filename:', error)
-      alert('파일명 변경 중 오류가 발생했습니다.')
-    }
-  }
-
-  const loadStats = async () => {
-    if (!user) return
-
-    try {
-      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
-      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid) // 충분히 많은 수
+      // VocabularyContext에서 이미 로드된 단어 사용
+      const words = vocabularyWords
+      console.log(`[Dashboard] Loading stats with ${words.length} words from VocabularyContext`)
       setAllWords(words) // Store all words for synonym lookup
       
       // 사용자의 학습 통계 가져오기 (user_words 컬렉션에서)
@@ -130,8 +139,17 @@ export default function DashboardPage() {
         masteryAverage: userStats.averageMastery
       })
       
-      // V.ZIP 단어장 정보로 출처 설정
-      setSources([{ filename: 'V.ZIP 3K 단어장', count: words.length }])
+      // 선택된 단어장 정보로 출처 설정
+      const { UserSettingsService } = await import('@/lib/settings/user-settings-service')
+      const settingsService = new UserSettingsService()
+      const userSettings = await settingsService.getUserSettings(user.uid)
+      const selectedVocabs = userSettings?.selectedVocabularies || []
+      
+      if (selectedVocabs.length > 0 && selectedVocabs[0] !== '__none__') {
+        setSources(selectedVocabs.map(vocab => ({ filename: vocab, count: Math.floor(words.length / selectedVocabs.length) })))
+      } else if (words.length > 0) {
+        setSources([{ filename: '전체 단어장', count: words.length }])
+      }
       
       // 최근 학습하지 않은 단어 10개 가져오기 (user_words에 없는 단어들)
       const studiedWordIds = new Set(userStudiedWords.map(uw => uw.wordId))
@@ -144,14 +162,84 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error loading stats:', error)
     }
+  }, [user, vocabularyWords]) // user와 vocabularyWords가 변경될 때마다 새로운 함수 생성
+
+  // updateFilename 함수 정의
+  const updateFilename = async (oldFilename: string, newFilename: string) => {
+    if (!user) return
+
+    try {
+      const response = await fetch('/api/update-source', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          oldFilename,
+          newFilename
+        })
+      })
+      
+      const result = await response.json()
+      if (result.success) {
+        alert(result.message)
+        loadStats() // 통계 다시 로드
+      }
+    } catch (error) {
+      console.error('Error updating filename:', error)
+      alert('파일명 변경 중 오류가 발생했습니다.')
+    }
   }
 
-  if (loading) {
+  // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
+
+  // 통계 데이터 가져오기
+  useEffect(() => {
+    console.log('[Dashboard] vocabularyWords update:', {
+      count: vocabularyWords.length,
+      loading: vocabularyLoading,
+      user: user?.uid
+    })
+    
+    if (user) {
+      if (vocabularyWords.length > 0) {
+        loadStats()
+      } else if (!vocabularyLoading) {
+        // 로딩이 끝났는데 단어가 없는 경우에도 통계를 업데이트
+        setStats({
+          totalWords: 0,
+          studiedWords: 0,
+          todayWords: 0,
+          masteryAverage: 0
+        })
+      }
+    }
+  }, [user, vocabularyWords, vocabularyLoading, loadStats])
+
+  // 단어장 새로고침 이벤트 리스너
+  useEffect(() => {
+    const handleVocabularyRefresh = () => {
+      console.log('[Dashboard] Vocabulary refreshed event received')
+      // 강제로 통계 새로고침
+      loadStats()
+    }
+
+    window.addEventListener('vocabulary-refreshed', handleVocabularyRefresh)
+    return () => window.removeEventListener('vocabulary-refreshed', handleVocabularyRefresh)
+  }, [loadStats]) // loadStats가 useCallback으로 메모이제이션되어 있음
+
+  if (loading || vocabularyLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-2 text-xs text-gray-500">단어를 불러오고 있습니다...</p>
         </div>
       </div>
     )
@@ -167,16 +255,54 @@ export default function DashboardPage() {
     { label: '전체 단어', value: `${stats.totalWords}개`, icon: Clock, color: 'text-purple-600' },
     { label: '평균 숙련도', value: `${stats.masteryAverage}%`, icon: TrendingUp, color: 'text-orange-600' }
   ]
+  
+  // 단어장을 선택하지 않은 경우
+  const noVocabularySelected = vocabularyWords.length === 0 && !loading && !vocabularyLoading
 
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 환영 메시지 */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          안녕하세요, {appUser?.displayName || user.email?.split('@')[0]}님!
-        </h1>
-        <p className="text-gray-600">오늘도 SAT 단어 학습을 시작해볼까요?</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            안녕하세요, {appUser?.displayName || user.email?.split('@')[0]}님!
+          </h1>
+          <p className="text-gray-600">오늘도 단어 학습을 시작해볼까요?</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push('/help')}
+          className="flex items-center gap-2"
+        >
+          <HelpCircle className="h-4 w-4" />
+          학습 도움말
+        </Button>
       </div>
+
+      {/* 단어장 미선택 안내 */}
+      {noVocabularySelected && (
+        <Card className="mb-8 border-yellow-200 bg-yellow-50">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <BookOpen className="h-6 w-6 text-yellow-600 mt-1" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-yellow-900 mb-1">학습할 단어장을 선택해주세요</h3>
+                <p className="text-yellow-800 text-sm mb-3">
+                  아직 학습할 단어장을 선택하지 않으셨습니다. 설정에서 단어장을 선택하면 학습을 시작할 수 있습니다.
+                </p>
+                <Button 
+                  size="sm"
+                  onClick={() => router.push('/settings')}
+                  className="bg-yellow-600 hover:bg-yellow-700"
+                >
+                  단어장 선택하러 가기
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -252,11 +378,11 @@ export default function DashboardPage() {
               <Card 
                 key={word.id}
                 className="p-4 cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => openModal(word)}
+                onClick={() => openModal(unifiedToVocabularyWord(word))}
               >
                 <div className="text-center">
                   <p className="font-bold text-lg mb-1">{word.word}</p>
-                  <p className="text-sm text-gray-600 line-clamp-2">{word.definitions[0]?.text || 'No definition available'}</p>
+                  <p className="text-sm text-gray-600 line-clamp-2">{word.definition || 'No definition available'}</p>
                 </div>
               </Card>
             ))}
@@ -289,23 +415,26 @@ export default function DashboardPage() {
         fetchingPronunciation={fetchingPronunciation}
         onSynonymClick={async (synonymWord) => {
           // Find the word in all words list
-          let synonymWordData = allWords.find(w => w.word.toLowerCase() === synonymWord.toLowerCase())
-          
-          // If not found in current list, try to fetch from database
-          if (!synonymWordData && user) {
-            try {
-              const { words: searchResults } = await vocabularyService.search(synonymWord, user.uid)
-              synonymWordData = searchResults[0]
-            } catch (error) {
-              console.error('Error searching for synonym:', error)
-            }
-          }
+          const synonymWordData = allWords.find(w => w.word.toLowerCase() === synonymWord.toLowerCase())
           
           if (synonymWordData) {
             closeModal()
             setTimeout(() => {
-              openModal(synonymWordData)
+              openModal(unifiedToVocabularyWord(synonymWordData))
             }, 100)
+          } else if (user) {
+            // If not found in current list, try to fetch from database
+            try {
+              const { words: searchResults } = await vocabularyService.search(synonymWord, user.uid)
+              if (searchResults[0]) {
+                closeModal()
+                setTimeout(() => {
+                  openModal(searchResults[0])
+                }, 100)
+              }
+            } catch (error) {
+              console.error('Error searching for synonym:', error)
+            }
           }
         }}
       />

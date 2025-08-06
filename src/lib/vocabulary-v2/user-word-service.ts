@@ -89,6 +89,19 @@ export class UserWordService {
   }
 
   /**
+   * 사용자의 모든 학습 기록 조회
+   */
+  async getUserWords(userId: string): Promise<UserWord[]> {
+    const q = query(
+      collection(db, this.collectionName),
+      where('userId', '==', userId)
+    )
+    
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map(doc => this.fromFirestore(doc.data()))
+  }
+
+  /**
    * 학습 결과 기록
    */
   async recordStudyResult(

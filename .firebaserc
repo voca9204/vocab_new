@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "vocabulary-app-new": {
+      "storage": {
+        "main": [
+          "vocabulary-app-new.appspot.com"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

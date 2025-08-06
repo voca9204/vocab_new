@@ -29,36 +29,36 @@ export async function GET(request: NextRequest) {
       })
     }
     
-    // veterans_vocabulary 컬렉션에서 검색
-    const veteransSnapshot = await db.collection('veterans_vocabulary')
+    // ai_generated_words 컬렉션에서 검색
+    const aiGeneratedSnapshot = await db.collection('ai_generated_words')
       .where('word', '==', word)
       .get()
     
-    if (!veteransSnapshot.empty) {
-      const wordData = veteransSnapshot.docs[0].data()
-      console.log(`Found word "${word}" in veterans_vocabulary collection:`)
+    if (!aiGeneratedSnapshot.empty) {
+      const wordData = aiGeneratedSnapshot.docs[0].data()
+      console.log(`Found word "${word}" in ai_generated_words collection:`)
       console.log(JSON.stringify(wordData, null, 2))
       
       return NextResponse.json({
-        collection: 'veterans_vocabulary',
-        id: veteransSnapshot.docs[0].id,
+        collection: 'ai_generated_words',
+        id: aiGeneratedSnapshot.docs[0].id,
         data: wordData
       })
     }
     
-    // vocabulary 컬렉션에서 검색
-    const vocabularySnapshot = await db.collection('vocabulary')
+    // photo_vocabulary_words 컬렉션에서 검색
+    const photoVocabSnapshot = await db.collection('photo_vocabulary_words')
       .where('word', '==', word)
       .get()
     
-    if (!vocabularySnapshot.empty) {
-      const wordData = vocabularySnapshot.docs[0].data()
-      console.log(`Found word "${word}" in vocabulary collection:`)
+    if (!photoVocabSnapshot.empty) {
+      const wordData = photoVocabSnapshot.docs[0].data()
+      console.log(`Found word "${word}" in photo_vocabulary_words collection:`)
       console.log(JSON.stringify(wordData, null, 2))
       
       return NextResponse.json({
-        collection: 'vocabulary',
-        id: vocabularySnapshot.docs[0].id,
+        collection: 'photo_vocabulary_words',
+        id: photoVocabSnapshot.docs[0].id,
         data: wordData
       })
     }

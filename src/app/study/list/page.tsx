@@ -15,19 +15,24 @@ import {
   Volume2,
   Sparkles
 } from 'lucide-react'
-import { vocabularyService } from '@/lib/api'
-import type { VocabularyWord } from '@/types'
+import { WordAdapter } from '@/lib/adapters/word-adapter'
+import type { UnifiedWord } from '@/types/unified-word'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
+import { useWordDiscovery } from '@/hooks/use-word-discovery'
+import { DiscoveryModal } from '@/components/vocabulary/discovery-modal'
 
 export default function VocabularyListPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [words, setWords] = useState<VocabularyWord[]>([])
-  const [filteredWords, setFilteredWords] = useState<VocabularyWord[]>([])
+  const [words, setWords] = useState<UnifiedWord[]>([])
+  const [filteredWords, setFilteredWords] = useState<UnifiedWord[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'studied' | 'not-studied' | 'mastered'>('all')
+  
+  // WordAdapter 인스턴스
+  const [wordAdapter] = useState(() => new WordAdapter())
   const {
     selectedWord,
     openModal,
@@ -40,6 +45,60 @@ export default function VocabularyListPage() {
     fetchingPronunciation,
     speakWord
   } = useWordDetailModal()
+
+  // Discovery modal for AI search
+  const {
+    discoveryModalOpen,
+    targetWord,
+    sourceWord,
+    relationship,
+    openDiscoveryModal,
+    closeDiscoveryModal,
+    saveDiscoveredWord,
+    handleWordStudy
+  } = useWordDiscovery()
+
+  // 유사어 클릭 핸들러 - 해당 단어를 찾아서 모달 열기
+  const handleSynonymClick = async (synonymWord: string) => {
+    console.log('🔍 [VocabularyListPage] Synonym clicked:', synonymWord)
+    console.log('📋 Current loaded words count:', words.length)
+    
+    try {
+      // 약간의 지연을 추가하여 이전 모달이 완전히 정리되도록 함
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // 1. 현재 로드된 단어 목록에서 먼저 찾기
+      const localMatch = words.find(w => 
+        w.word.toLowerCase() === synonymWord.toLowerCase()
+      )
+      
+      if (localMatch) {
+        console.log('✅ Found synonym in current words:', localMatch.word)
+        openModal(localMatch)
+        return
+      }
+
+      // 2. WordAdapter를 사용하여 유연한 검색으로 데이터베이스에서 찾기
+      console.log('🔍 Searching in database for:', synonymWord)
+      const foundWord = await wordAdapter.searchWordFlexible(synonymWord)
+      
+      if (foundWord) {
+        console.log('✅ Found synonym word in database:', foundWord.word)
+        openModal(foundWord)
+      } else {
+        console.log('❌ Synonym word not found in database after flexible search:', synonymWord)
+        // WordAdapter의 컬렉션 우선순위 확인
+        console.log('📊 WordAdapter config:', wordAdapter.getStats())
+        
+        // AI Discovery Modal을 열어서 자동으로 찾기
+        console.log('🤖 Opening AI Discovery Modal for:', synonymWord)
+        openDiscoveryModal(synonymWord, selectedWord?.word || '', 'synonym')
+      }
+    } catch (error) {
+      console.error('❌ Error searching for synonym:', error)
+      alert('단어 검색 중 오류가 발생했습니다.')
+    }
+  }
 
   useEffect(() => {
     if (user) {
@@ -91,12 +150,12 @@ export default function VocabularyListPage() {
     if (!user) return
 
     try {
-      console.log('Loading words using new vocabulary service')
+      console.log('Loading words using WordAdapter')
       
-      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 모든 단어 가져오기
-      const { words: wordsData } = await vocabularyService.getAll(undefined, 3000, user.uid) // 모든 단어 (현재 1821개)
+      // WordAdapter를 사용하여 통합된 단어 데이터 가져오기
+      const wordsData = await wordAdapter.getWords(3000)
       
-      console.log(`Loaded ${wordsData.length} words from new service`)
+      console.log(`Loaded ${wordsData.length} words from WordAdapter`)
       
       if (wordsData.length === 0) {
         console.log('No words found')
@@ -122,25 +181,25 @@ export default function VocabularyListPage() {
   const filterWords = () => {
     let filtered = words
 
-    // 검색어 필터링
+    // 검색어 필터링 (UnifiedWord 구조에 맞게 수정)
     if (searchTerm) {
       filtered = filtered.filter(word => 
         word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (word.definitions[0]?.text && word.definitions[0].text.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (word.etymology?.origin && word.etymology.origin.toLowerCase().includes(searchTerm.toLowerCase()))
+        (word.definition && word.definition.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (word.etymology && word.etymology.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     }
 
-    // 학습 상태 필터링
+    // 학습 상태 필터링 (UnifiedWord의 studyStatus 구조 사용)
     switch (filterType) {
       case 'studied':
-        filtered = filtered.filter(w => (w.learningMetadata?.timesStudied || 0) > 0)
+        filtered = filtered.filter(w => (w.studyStatus?.reviewCount || 0) > 0)
         break
       case 'not-studied':
-        filtered = filtered.filter(w => (w.learningMetadata?.timesStudied || 0) === 0)
+        filtered = filtered.filter(w => (w.studyStatus?.reviewCount || 0) === 0)
         break
       case 'mastered':
-        filtered = filtered.filter(w => (w.learningMetadata?.masteryLevel || 0) >= 0.8)
+        filtered = filtered.filter(w => (w.studyStatus?.masteryLevel || 0) >= 80) // UnifiedWord uses 0-100 scale
         break
     }
 
@@ -261,14 +320,14 @@ export default function VocabularyListPage() {
                       {pos}
                     </span>
                   ))}
-                  {word.satLevel && (
+                  {word.isSAT && (
                     <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
                       SAT
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {(word.learningMetadata?.timesStudied || 0) > 0 && (
+                  {(word.studyStatus?.reviewCount || 0) > 0 && (
                     <Check className="h-4 w-4 text-green-600" />
                   )}
                   <span className={`text-sm font-medium ${getDifficultyColor(word.difficulty || 5)}`}>
@@ -278,25 +337,25 @@ export default function VocabularyListPage() {
               </div>
               
               <p className="text-sm text-gray-700 mb-1 break-words whitespace-normal">
-                {word.definitions[0]?.text || 'No definition available'}
+                {word.definition || 'No definition available'}
               </p>
               
-              {word.etymology?.origin && (
+              {word.etymology && (
                 <p className="text-xs text-gray-500 break-words whitespace-normal">
-                  {word.etymology.origin}
+                  {word.etymology}
                 </p>
               )}
               
-              {(word.learningMetadata?.masteryLevel || 0) > 0 && (
+              {(word.studyStatus?.masteryLevel || 0) > 0 && (
                 <div className="mt-2">
                   <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
                     <span>숙련도</span>
-                    <span>{Math.round((word.learningMetadata?.masteryLevel || 0) * 100)}%</span>
+                    <span>{word.studyStatus?.masteryLevel || 0}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full"
-                      style={{ width: `${(word.learningMetadata?.masteryLevel || 0) * 100}%` }}
+                      style={{ width: `${word.studyStatus?.masteryLevel || 0}%` }}
                     />
                   </div>
                 </div>
@@ -315,9 +374,29 @@ export default function VocabularyListPage() {
         onGenerateExamples={generateExamples}
         onGenerateEtymology={generateEtymology}
         onFetchPronunciation={fetchPronunciation}
+        onSynonymClick={handleSynonymClick}
         generatingExamples={generatingExamples}
         generatingEtymology={generatingEtymology}
         fetchingPronunciation={fetchingPronunciation}
+      />
+
+      {/* Discovery Modal for AI word search */}
+      <DiscoveryModal
+        open={discoveryModalOpen}
+        onClose={closeDiscoveryModal}
+        word={targetWord}
+        sourceWord={sourceWord}
+        relationship={relationship}
+        onSave={async (word) => {
+          await saveDiscoveredWord(word)
+          closeDiscoveryModal()
+          // 저장된 단어를 다시 검색해서 모달 열기
+          const foundWord = await wordAdapter.searchWordFlexible(word.word)
+          if (foundWord) {
+            openModal(foundWord)
+          }
+        }}
+        onStudy={handleWordStudy}
       />
     </div>
   )

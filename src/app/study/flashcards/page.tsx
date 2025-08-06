@@ -1,11 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
+import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
+import { useWordDiscovery } from '@/hooks/use-word-discovery'
+import { useVocabulary } from '@/contexts/vocabulary-context'
+import { useCache } from '@/contexts/cache-context'
+import { WordAdapter } from '@/lib/adapters/word-adapter'
+import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
+import { DiscoveryModal } from '@/components/vocabulary/discovery-modal'
 import { Button } from '@/components/ui'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { 
   ChevronLeft,
   ChevronRight,
@@ -17,486 +24,668 @@ import {
   Shuffle,
   Volume2,
   Sparkles,
-  ChevronDown,
-  ChevronUp
+  Info,
+  BookOpen
 } from 'lucide-react'
-import { vocabularyService } from '@/lib/api'
-import type { Word } from '@/types/vocabulary-v2'
 import { cn } from '@/lib/utils'
-// Firebase imports 제거 - 새 서비스 사용
+import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
+import type { PhotoVocabularyWord } from '@/types/photo-vocabulary-collection'
+import type { VocabularyWord } from '@/types/vocabulary'
 
-export default function FlashcardsPage() {
+export default function FlashcardsV2Page() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const { textSize } = useSettings()
-  const [words, setWords] = useState<Word[]>([])
+  const { words: vocabularyWords, loading: wordsLoading, filter, setFilter, updateWordSynonyms } = useVocabulary()
+  const { getSynonyms, setSynonyms: setCacheSynonyms } = useCache()
+  
+  // Check if we're loading from photo collection
+  const source = searchParams.get('source')
+  const collectionId = searchParams.get('collectionId')
+  const isPhotoCollection = source === 'photo-collection' && collectionId
+  
+  // State for photo collection words
+  const [photoWords, setPhotoWords] = useState<PhotoVocabularyWord[]>([])
+  const [loadingPhotoWords, setLoadingPhotoWords] = useState(false)
+  
+  // Combined words based on source - ensure examples are properly mapped
+  const words = isPhotoCollection ? 
+    photoWords.map(pw => {
+      console.log('[Flashcards] Converting photo word:', pw.word, {
+        id: pw.id,
+        hasDefinition: !!pw.definition,
+        hasContext: !!pw.context,
+        hasEtymology: 'etymology' in pw,
+        hasRealEtymology: 'realEtymology' in pw,
+        hasExamples: 'examples' in pw && pw.examples?.length > 0,
+        examples: pw.examples,
+        hasSynonyms: 'synonyms' in pw && pw.synonyms?.length > 0
+      })
+      
+      return {
+        id: pw.id,
+        word: pw.word,
+        definition: pw.definition || pw.context || '',  // Use context as fallback for older data
+        definitions: (pw.definition || pw.context) ? [{ 
+          id: 'def-0',
+          definition: pw.definition || pw.context || '', 
+          examples: pw.examples || [],
+          source: 'manual' as const,
+          language: 'ko' as const,
+          createdAt: pw.createdAt || new Date()
+        }] : [],
+        pronunciation: pw.pronunciation || null,
+        difficulty: pw.difficulty || 5,
+        frequency: pw.frequency || 50,
+        isSAT: true,
+        partOfSpeech: pw.partOfSpeech || [],
+        etymology: pw.etymology || null,
+        realEtymology: pw.realEtymology || null,
+        // IMPORTANT: Map examples consistently for WordDetailModal
+        examples: pw.examples || [],
+        synonyms: pw.synonyms || [],  // Preserve existing synonyms
+        antonyms: pw.antonyms || [],
+        // Add source information for proper identification
+        source: {
+          type: 'manual',
+          collection: 'photo_vocabulary_words',
+          originalId: pw.id
+        },
+        createdAt: pw.createdAt || new Date(),
+        updatedAt: pw.updatedAt || new Date(),
+        learningMetadata: {
+          timesStudied: pw.studyStatus.reviewCount || 0,
+          lastStudied: pw.studyStatus.lastStudiedAt || null,
+          confidence: pw.studyStatus.masteryLevel ? pw.studyStatus.masteryLevel / 100 : 0,
+          source: 'photo-collection'
+        },
+        studyStatus: pw.studyStatus
+      } as VocabularyWord
+    }).map(word => {
+      // Log the converted word for debugging
+      console.log('[Flashcards] Converted photo word:', word.word, {
+        id: word.id,
+        hasExamples: word.examples?.length > 0,
+        examples: word.examples,
+        hasDefinitions: word.definitions?.length > 0,
+        definitionExamples: word.definitions?.[0]?.examples,
+        source: word.source
+      })
+      return word
+    }) : 
+    vocabularyWords
+  
   const [currentIndex, setCurrentIndex] = useState(() => {
-    // localStorage에서 마지막 학습 위치 가져오기
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('flashcard-progress')
-      const savedIndex = saved ? parseInt(saved, 10) : 0
-      return savedIndex
+      return saved ? parseInt(saved, 10) : 0
     }
     return 0
   })
   const [showAnswer, setShowAnswer] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [studyMode, setStudyMode] = useState<'all' | 'not-studied'>('not-studied')
   const [isShuffled, setIsShuffled] = useState(false)
+  const [showWordDetail, setShowWordDetail] = useState(false)
+  const [generatingSynonyms, setGeneratingSynonyms] = useState(false)
+  const [synonyms, setSynonyms] = useState<string[]>([])
   const [pronunciations, setPronunciations] = useState<Record<string, string>>({})
-  const [generatingExamples, setGeneratingExamples] = useState(false)
-  const [generatingEtymology, setGeneratingEtymology] = useState(false)
-  const [showEtymology, setShowEtymology] = useState(false)
-  const [translations, setTranslations] = useState<{ [key: number]: string }>({})
-  const [translatingIndex, setTranslatingIndex] = useState<number | null>(null)
+  const [synonymRequestInProgress, setSynonymRequestInProgress] = useState<Set<string>>(new Set())
+  const [searchingSynonym, setSearchingSynonym] = useState<string | null>(null)
 
+  // WordAdapter 인스턴스
+  const [wordAdapter] = useState(() => new WordAdapter())
+
+  // Hooks for word detail and discovery
+  const {
+    selectedWord,
+    openModal,
+    closeModal,
+    generateExamples,
+    generateEtymology,
+    fetchPronunciation,
+    generatingExamples,
+    generatingEtymology,
+    fetchingPronunciation,
+    speakWord
+  } = useWordDetailModal()
+
+  const {
+    discoveryModalOpen,
+    targetWord,
+    sourceWord,
+    relationship,
+    openDiscoveryModal,
+    closeDiscoveryModal,
+    saveDiscoveredWord,
+    handleWordStudy
+  } = useWordDiscovery()
+
+  // Load photo collection words if needed
   useEffect(() => {
-    if (user) {
-      loadWords()
+    const loadPhotoWords = async () => {
+      if (isPhotoCollection && collectionId) {
+        setLoadingPhotoWords(true)
+        try {
+          const collectionWords = await photoVocabularyCollectionService.getCollectionWords(collectionId)
+          setPhotoWords(collectionWords)
+        } catch (error) {
+          console.error('Failed to load photo collection words:', error)
+        } finally {
+          setLoadingPhotoWords(false)
+        }
+      }
     }
-  }, [user, studyMode])
+    
+    loadPhotoWords()
+  }, [isPhotoCollection, collectionId])
 
-  // 현재 인덱스를 localStorage에 저장
   useEffect(() => {
     if (typeof window !== 'undefined' && words.length > 0) {
-      // 유효한 범위 내의 인덱스만 저장
       const validIndex = Math.min(currentIndex, words.length - 1)
+      // currentIndex가 범위를 벗어나면 수정
+      if (currentIndex !== validIndex) {
+        setCurrentIndex(validIndex)
+      }
       localStorage.setItem('flashcard-progress', validIndex.toString())
     }
   }, [currentIndex, words.length])
 
-  // 카드가 바뀔 때 상태 초기화
   useEffect(() => {
-    setShowEtymology(false)
-    setTranslations({})
-    setTranslatingIndex(null)
+    setSynonyms([])
   }, [currentIndex])
 
-  // 현재 단어가 변경될 때마다 예문 및 어원 확인 및 생성
+  // 필터가 변경되면 인덱스를 0으로 리셋
+  useEffect(() => {
+    setCurrentIndex(0)
+    setShowAnswer(false)
+    localStorage.setItem('flashcard-progress', '0')
+  }, [filter.studyMode])
+
+  // Fetch pronunciation for current word if not available
+  useEffect(() => {
+    const fetchPronunciationForWord = async () => {
+      const currentWord = words[currentIndex]
+      if (currentWord && !currentWord.pronunciation && !pronunciations[currentWord.word] && user) {
+        try {
+          const response = await fetch('/api/fetch-pronunciation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              word: currentWord.word,
+              userId: user.uid 
+            })
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            if (data.pronunciation) {
+              setPronunciations(prev => ({
+                ...prev,
+                [currentWord.word]: data.pronunciation
+              }))
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch pronunciation:', error)
+        }
+      }
+    }
+    
+    fetchPronunciationForWord()
+  }, [currentIndex, words, user, pronunciations])
+
+  // Generate synonyms for current word
   useEffect(() => {
     const currentWord = words[currentIndex]
     if (currentWord && showAnswer) {
-      // 예문 생성 (한 번만 시도)
-      const hasExamples = currentWord.definitions?.some(def => def.examples?.length > 0)
-      if (!hasExamples && !generatingExamples) {
-        generateExampleForCurrentWord()
-      }
-      // 어원 생성 (한 번만 시도)
-      if (!currentWord.realEtymology && !generatingEtymology) {
-        generateEtymologyForCurrentWord()
-      }
-    }
-  }, [currentIndex, showAnswer]) // generatingExamples, generatingEtymology 제거
-
-  const loadWords = async () => {
-    if (!user) return
-
-    try {
-      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
-      const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
-      
-      // 발음 정보 로드됨
-      
-      // 학습 모드에 따라 필터링
-      let wordsData = allWords
-      if (studyMode === 'not-studied') {
-        // Word 타입에는 learningMetadata가 없으므로 필터링 비활성화
-        wordsData = allWords
+      // 먼저 DB에 저장된 유사어가 있는지 확인
+      if (currentWord.synonyms && currentWord.synonyms.length > 0) {
+        console.log('[Flashcards-v2] Using DB synonyms for:', currentWord.word, currentWord.synonyms)
+        setSynonyms(currentWord.synonyms)
+        return // Exit early if we have DB synonyms
       }
       
-      // 알파벳순으로 정렬
-      wordsData.sort((a, b) => a.word.localeCompare(b.word))
-      
-      setWords(wordsData as any)
-      
-      // localStorage에서 저장된 진행 상황 복원
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('flashcard-progress')
-        const savedIndex = saved ? parseInt(saved, 10) : 0
-        // 유효한 범위 내의 인덱스로 설정
-        const validIndex = Math.min(savedIndex, wordsData.length - 1)
-        setCurrentIndex(Math.max(0, validIndex))
-      } else {
-        setCurrentIndex(0)
+      // 캐시 확인
+      const cachedSynonyms = getSynonyms(currentWord.word)
+      if (cachedSynonyms) {
+        setSynonyms(cachedSynonyms)
+        return // Exit early if we have cached synonyms
       }
       
-      // 발음 정보 가져오기
-      fetchPronunciations(wordsData)
-    } catch (error) {
-      console.error('Error loading words:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchPronunciations = async (words: any[]) => {
-    // 이미 발음이 있는 단어들도 상태에 추가
-    const existingPronunciations: Record<string, string> = {}
-    words.forEach(word => {
-      if (word.pronunciation) {
-        existingPronunciations[word.word] = word.pronunciation
-      }
-    })
-    setPronunciations(existingPronunciations)
-    
-    // 발음이 없는 단어들만 API로 가져오기
-    const wordsNeedPronunciation = words.filter(w => !w.pronunciation && w.id)
-    if (wordsNeedPronunciation.length === 0) return
-    
-    // 한 번에 처리할 단어 수 제한 (5개씩)
-    const batchSize = 5
-    const wordsToProcess = wordsNeedPronunciation.slice(0, batchSize)
-    
-    // 발음 정보를 임시로 저장
-    const pronunciationUpdates: Record<string, string> = {}
-    
-    for (let i = 0; i < wordsToProcess.length; i++) {
-      const word = wordsToProcess[i]
-      
-      // API 요청 사이에 지연 추가 (첫 번째 요청은 지연 없음)
-      if (i > 0) {
-        await new Promise(resolve => setTimeout(resolve, 500)) // 500ms 지연
+      // 이미 요청 중인지 확인
+      if (synonymRequestInProgress.has(currentWord.word)) {
+        console.log('[Flashcards] Synonym request already in progress for:', currentWord.word)
+        return
       }
       
-      try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.word)}`)
-        if (response.ok) {
-          const data = await response.json()
-          const phonetic = data[0]?.phonetic || 
-                          data[0]?.phonetics?.[0]?.text ||
-                          data[0]?.phonetics?.find((p: any) => p.text)?.text
-                          
-          if (phonetic && word.id) {
-            // 메모리에 캐싱
-            pronunciationUpdates[word.word] = phonetic
-            
-            // TODO: 새 서비스의 words 컬렉션에 발음 정보 업데이트
-            // 현재는 호환성 레이어가 읽기 전용이므로 DB 업데이트 생략
-          }
-        }
-      } catch (error) {
-        // 에러는 무시하고 계속 진행 (콘솔에만 기록)
-        console.log(`Skipping pronunciation for ${word.word}`)
+      // AI로 생성
+      if (!user) {
+        console.log('[Flashcards] Cannot generate synonyms - user not logged in')
+        return
       }
-    }
-    
-    // 상태 업데이트
-    if (Object.keys(pronunciationUpdates).length > 0) {
-      setPronunciations(prev => ({
-        ...prev,
-        ...pronunciationUpdates
-      }))
       
-      // TODO: 새 서비스로 발음 정보 업데이트
-      // 현재는 메모리 캐싱만 수행
-      console.log(`Cached pronunciation for ${Object.keys(pronunciationUpdates).length} words`)
-    }
-    
-    // 처리하지 못한 단어가 있으면 안내
-    if (wordsNeedPronunciation.length > batchSize) {
-      console.log(`${wordsNeedPronunciation.length - batchSize} words need pronunciation update. Use settings page to update all.`)
-    }
-  }
-
-  const shuffleWords = () => {
-    const shuffled = [...words].sort(() => Math.random() - 0.5)
-    setWords(shuffled)
-    setCurrentIndex(0)
-    setShowAnswer(false)
-    setIsShuffled(true)
-    // 셔플 시 진행 상황 초기화
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('flashcard-progress', '0')
-    }
-  }
-
-  const generateExampleForCurrentWord = async () => {
-    const currentWord = words[currentIndex]
-    const hasExamples = currentWord?.examples && currentWord.examples.length > 0
-    if (!currentWord || !currentWord.id || hasExamples || generatingExamples) {
-      return
-    }
-    
-    console.log(`Generating examples for: ${currentWord.word}`)
-    setGeneratingExamples(true)
-    
-    try {
-      const response = await fetch('/api/generate-examples', {
+      console.log('[Flashcards] Generating synonyms for:', currentWord.word)
+      setGeneratingSynonyms(true)
+      
+      // 요청 중임을 표시
+      setSynonymRequestInProgress(prev => new Set(prev).add(currentWord.word))
+      
+      // Inline the fetch logic to avoid dependency issues
+      fetch('/api/generate-synonyms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user?.uid,
-          wordIds: [currentWord.id],
-          singleWord: true
+          word: currentWord.word,
+          definition: currentWord.definition || ''
+        })
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('[Flashcards] API error response:', response.status, errorText)
+          throw new Error(`API error: ${response.status} ${response.statusText}`)
+        }
+        return response.json()
+      })
+      .then((result) => {
+        console.log('[Flashcards] API response:', result)
+        
+        if (result.synonyms && result.synonyms.length > 0) {
+          setSynonyms(result.synonyms)
+          
+          // CacheContext에 저장
+          setCacheSynonyms(currentWord.word, result.synonyms)
+          
+          // DB에 유사어 업데이트 (백그라운드에서 실행)
+          updateWordSynonyms(currentWord.id, result.synonyms).catch(err => {
+            console.error('[Flashcards] Failed to update synonyms in DB:', err)
+          })
+        } else {
+          console.log('[Flashcards] No synonyms returned from API')
+        }
+      })
+      .catch((error) => {
+        console.error('[Flashcards] Error generating synonyms:', error)
+        // 네트워크 에러나 기타 에러 시 빈 배열로 설정
+        setSynonyms([])
+      })
+      .finally(() => {
+        setGeneratingSynonyms(false)
+        // 요청 완료 표시
+        setSynonymRequestInProgress(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(currentWord.word)
+          return newSet
+        })
+      })
+    }
+  }, [currentIndex, showAnswer, words, getSynonyms, user, setCacheSynonyms, updateWordSynonyms])
+
+  // generateSynonymsForCurrentWord 함수는 useEffect 내부로 인라인되었음
+
+  const handleSynonymClick = async (synonym: string) => {
+    console.log('🔍 [Flashcards] Synonym clicked:', synonym)
+    
+    // 로딩 상태 표시
+    setSearchingSynonym(synonym)
+    
+    try {
+      // 1. 현재 로드된 단어 목록에서 먼저 찾기 (빠른 응답을 위해)
+      const localMatch = words.find(w => 
+        w.word.toLowerCase() === synonym.toLowerCase()
+      )
+      
+      if (localMatch) {
+        console.log('✅ Found synonym in current words:', localMatch.word)
+        openModal(localMatch)
+        setShowWordDetail(true)
+        setSearchingSynonym(null)
+        return
+      }
+
+      // 2. 통합 검색 API 사용 (모든 컬렉션 검색)
+      console.log('🔍 Searching all collections for:', synonym)
+      const response = await fetch('/api/vocabulary/search-unified', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: synonym,
+          userId: user?.uid
         })
       })
       
       if (response.ok) {
         const result = await response.json()
-        console.log(`Examples generated:`, result)
         
-        if (result.updated > 0) {
-          // 새 DB 구조에서 예문 업데이트 구현
-          // API가 성공적으로 예문을 생성했으므로, 단어를 다시 로드
-          if (result.updated > 0 && currentWord.id) {
-            // 짧은 지연 후 현재 단어 다시 가져오기 (DB 업데이트 대기)
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            
-            console.log('Fetching updated word with ID:', currentWord.id)
-            const updatedWord = await vocabularyService.getById(currentWord.id)
-            console.log('Updated word:', updatedWord)
-            if (updatedWord) {
-              console.log('Updated word examples:', updatedWord.examples)
-              const newWords = [...words]
-              newWords[currentIndex] = updatedWord as any
-              setWords([...newWords]) // Create new array to trigger re-render
-              console.log('UI updated with new examples')
-            } else {
-              console.error('Failed to fetch updated word')
-            }
-          }
+        if (result.success && result.exists && result.word) {
+          console.log('✅ Found synonym word via unified search:', result.word.word)
+          openModal(result.word)
+          setShowWordDetail(true)
+        } else {
+          // 3. 어떤 컬렉션에도 없으면 Discovery Modal 열기
+          console.log('❌ Synonym word not found anywhere, opening Discovery Modal:', synonym)
+          const currentWord = words[currentIndex]
+          openDiscoveryModal(synonym, currentWord?.word, 'synonym')
         }
       } else {
-        const error = await response.json()
-        console.error('API error:', error)
+        // API 호출 실패 시 Discovery Modal 열기
+        console.error('❌ Unified search API failed')
+        const currentWord = words[currentIndex]
+        openDiscoveryModal(synonym, currentWord?.word, 'synonym')
       }
     } catch (error) {
-      console.error('Error generating example:', error)
+      console.error('❌ Error in unified search:', error)
+      // 에러 발생 시 Discovery Modal 열기
+      const currentWord = words[currentIndex]
+      openDiscoveryModal(synonym, currentWord?.word, 'synonym')
     } finally {
-      setGeneratingExamples(false)
+      setSearchingSynonym(null)
     }
   }
 
-  const generateEtymologyForCurrentWord = async () => {
-    const currentWord = words[currentIndex]
-    // Check both etymology.meaning and realEtymology
-    const hasRealEtymology = currentWord.realEtymology
-    if (!currentWord || !currentWord.id || hasRealEtymology || generatingEtymology) {
-      return
-    }
-    
-    console.log(`Generating etymology for: ${currentWord.word}`)
-    setGeneratingEtymology(true)
+  // WordDetailModal에서 유사어 클릭 시 해당 단어의 모달 열기
+  const handleWordModalSynonymClick = async (synonymWord: string) => {
+    console.log('🔍 [FlashcardsV2] WordModal synonym clicked:', synonymWord)
+    console.log('📋 Current loaded words count:', words.length)
     
     try {
-      const response = await fetch('/api/generate-etymology', {
+      // 약간의 지연을 추가하여 이전 모달이 완전히 정리되도록 함
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // 1. 현재 로드된 단어 목록에서 먼저 찾기
+      const localMatch = words.find(w => 
+        w.word.toLowerCase() === synonymWord.toLowerCase()
+      )
+      
+      if (localMatch) {
+        console.log('✅ Found synonym in current words:', localMatch.word)
+        openModal(localMatch)
+        setShowWordDetail(true)
+        return
+      }
+
+      // 2. 통합 검색 API 사용 (모든 컬렉션 검색)
+      console.log('🔍 Searching all collections for:', synonymWord)
+      const response = await fetch('/api/vocabulary/search-unified', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user?.uid,
-          wordIds: [currentWord.id],
-          singleWord: true
+          word: synonymWord,
+          userId: user?.uid
         })
       })
       
       if (response.ok) {
         const result = await response.json()
-        console.log(`Etymology generated:`, result)
         
-        if (result.updated > 0) {
-          // 새 DB 구조에서 어원 업데이트 구현
-          // API가 성공적으로 어원을 생성했으므로, 단어를 다시 로드
-          if (result.updated > 0 && currentWord.id) {
-            // 짧은 지연 후 현재 단어 다시 가져오기
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            
-            const updatedWord = await vocabularyService.getById(currentWord.id)
-            if (updatedWord) {
-              const newWords = [...words]
-              newWords[currentIndex] = updatedWord as any
-              setWords([...newWords]) // Create new array to trigger re-render
-              console.log('UI updated with new etymology')
-            }
-          }
+        if (result.success && result.exists && result.word) {
+          console.log('✅ Found synonym word via unified search:', result.word.word)
+          openModal(result.word)
+          setShowWordDetail(true)
+        } else {
+          console.log('❌ Synonym word not found anywhere:', synonymWord)
+          // AI Discovery Modal을 열어서 자동으로 찾기
+          console.log('🤖 Opening AI Discovery Modal for:', synonymWord)
+          openDiscoveryModal(synonymWord, selectedWord?.word || '', 'synonym')
+          setShowWordDetail(false) // 현재 모달 닫기
         }
       } else {
-        const error = await response.json()
-        console.error('API error:', error)
+        console.error('❌ Unified search API failed for:', synonymWord)
+        openDiscoveryModal(synonymWord, selectedWord?.word || '', 'synonym')
+        setShowWordDetail(false)
       }
     } catch (error) {
-      console.error('Error generating etymology:', error)
-    } finally {
-      setGeneratingEtymology(false)
+      console.error('❌ Error in unified search for synonym:', error)
+      openDiscoveryModal(synonymWord, selectedWord?.word || '', 'synonym')
+      setShowWordDetail(false)
     }
+  }
+
+  const handleCardClick = () => {
+    setShowAnswer(!showAnswer)
   }
 
   const nextWord = () => {
-    if (currentIndex < words.length - 1) {
-      setCurrentIndex(currentIndex + 1)
-      setShowAnswer(false)
-    }
+    setCurrentIndex((prev) => (prev + 1) % words.length)
+    setShowAnswer(false)
   }
 
   const prevWord = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
-      setShowAnswer(false)
-    }
+    setCurrentIndex((prev) => (prev - 1 + words.length) % words.length)
+    setShowAnswer(false)
   }
 
-  const markAsStudied = async (mastered: boolean) => {
+  const shuffleWords = () => {
+    // VocabularyContext에서는 직접 words를 수정할 수 없으므로
+    // 로컬에서 셔플된 인덱스 배열을 관리하는 방식으로 변경 필요
+    // 현재는 간단히 주석 처리
+    console.log('Shuffle feature needs to be reimplemented with VocabularyContext')
+    setIsShuffled(true)
+    setShowAnswer(false)
+  }
+
+  const markAsStudied = async () => {
+    nextWord()
+  }
+
+  const markAsNotStudied = () => {
+    nextWord()
+  }
+
+  const resetProgress = () => {
+    setCurrentIndex(0)
+    localStorage.setItem('flashcard-progress', '0')
+    setShowAnswer(false)
+  }
+
+  const openWordDetailModal = () => {
     const currentWord = words[currentIndex]
-    if (!currentWord || !currentWord.id) return
-
-    // 먼저 UI 업데이트 (즉시 반응)
-    const updatedWords = [...words]
-    // Word 타입에는 learningMetadata가 없으므로 제거
-    updatedWords[currentIndex] = {
-      ...currentWord
-    } as any
-    setWords(updatedWords)
-
-    // 다음 단어로 즉시 이동 (마지막 단어가 아닌 경우만)
-    if (currentIndex < words.length - 1) {
-      nextWord()
-    } else {
-      // 마지막 단어인 경우 답 숨기기만 함
-      setShowAnswer(false)
-    }
-
-    // DB 업데이트는 백그라운드에서 처리 (await 없이)
-    const increment = mastered ? 20 : 5 // 알고 있음: +20, 모름: +5
-    vocabularyService.updateStudyProgress(
-      currentWord.id,
-      'flashcard',
-      mastered,
-      increment
-    ).then(() => {
-      console.log('Flashcard progress updated:', currentWord.word, mastered)
-    }).catch((error) => {
-      console.error('Error updating word:', error)
-    })
-  }
-
-  const speakWord = (text: string) => {
-    if ('speechSynthesis' in window) {
-      // 이전 음성 정지
-      window.speechSynthesis.cancel()
-      
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
-      utterance.rate = 0.9
-      utterance.pitch = 1
-      utterance.volume = 1
-      
-      window.speechSynthesis.speak(utterance)
+    if (currentWord) {
+      console.log('[Flashcards] Opening modal with word:', currentWord.word, 'synonyms:', currentWord.synonyms)
+      openModal(currentWord)
+      setShowWordDetail(true)
     }
   }
 
-  const currentWord = words[currentIndex]
-  const progress = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0
 
-  if (!user) {
-    return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <p>로그인이 필요합니다.</p>
-        <Button onClick={() => router.push('/login')} className="mt-4">
-          로그인하기
-        </Button>
-      </div>
-    )
-  }
-
+  // Combined loading state
+  const loading = isPhotoCollection ? loadingPhotoWords : wordsLoading
+  
   if (loading) {
     return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <p>로딩 중...</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-gray-600">단어를 불러오는 중...</p>
+        </div>
       </div>
     )
   }
 
   if (words.length === 0) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/study')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/study')}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              뒤로
+            </Button>
+            <h1 className="text-2xl font-bold">플래시카드 학습</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={filter.studyMode}
+              onChange={(e) => setFilter({ studyMode: e.target.value as 'all' | 'not-studied' | 'studied' })}
+              className="px-3 py-2 border rounded-lg"
+            >
+              <option value="all">모든 단어</option>
+              <option value="not-studied">학습하지 않은 단어</option>
+              <option value="studied">학습한 단어</option>
+            </select>
+          </div>
         </div>
-        <div className="text-center py-16">
-          <p className="text-gray-600 mb-4">
-            {studyMode === 'not-studied' 
-              ? '학습할 새로운 단어가 없습니다.' 
-              : '단어가 없습니다.'}
-          </p>
-          <Button 
-            onClick={() => setStudyMode(studyMode === 'all' ? 'not-studied' : 'all')}
-          >
-            {studyMode === 'all' ? '미학습 단어만 보기' : '모든 단어 보기'}
+
+        {/* Empty State */}
+        <Card className="mt-8">
+          <CardContent className="p-12 text-center">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <BookOpen className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {filter.studyMode === 'studied' 
+                  ? '아직 학습한 단어가 없습니다' 
+                  : filter.studyMode === 'not-studied'
+                  ? '모든 단어를 학습하셨습니다!'
+                  : '학습할 단어가 없습니다'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {filter.studyMode === 'studied' 
+                  ? '단어를 학습하면 여기에 표시됩니다.' 
+                  : filter.studyMode === 'not-studied'
+                  ? '축하합니다! 모든 단어를 학습하셨습니다.'
+                  : '설정에서 단어장을 선택해주세요.'}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {filter.studyMode !== 'all' && (
+                <Button
+                  onClick={() => setFilter({ studyMode: 'all' })}
+                  variant="outline"
+                >
+                  모든 단어 보기
+                </Button>
+              )}
+              {filter.studyMode === 'studied' && (
+                <Button
+                  onClick={() => setFilter({ studyMode: 'not-studied' })}
+                >
+                  학습하지 않은 단어 보기
+                </Button>
+              )}
+              <Button
+                onClick={() => router.push('/dashboard')}
+                variant={filter.studyMode !== 'all' ? 'outline' : 'default'}
+              >
+                대시보드로 돌아가기
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const currentWord = words[currentIndex]
+  
+  // currentWord가 없으면 에러 방지
+  if (!currentWord) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center">
+          <p className="text-gray-600">로딩 중이거나 표시할 단어가 없습니다.</p>
+          <Button onClick={() => router.push('/study')} className="mt-4">
+            학습 메뉴로 돌아가기
           </Button>
         </div>
       </div>
     )
   }
+  
+  const getPartOfSpeechColor = (pos: string) => {
+    switch (pos.toLowerCase()) {
+      case 'n.':
+      case 'noun':
+        return 'bg-blue-100 text-blue-700'
+      case 'v.':
+      case 'verb':
+        return 'bg-green-100 text-green-700'
+      case 'adj.':
+      case 'adjective':
+        return 'bg-purple-100 text-purple-700'
+      case 'adv.':
+      case 'adverb':
+        return 'bg-orange-100 text-orange-700'
+      default:
+        return 'bg-gray-100 text-gray-700'
+    }
+  }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      {/* 헤더 */}
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm"
+          <Button
+            variant="ghost"
             onClick={() => router.push('/study')}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
+            뒤로
           </Button>
-          <h1 className="text-2xl font-bold">플래시카드</h1>
+          <h1 className="text-2xl font-bold">플래시카드 학습</h1>
         </div>
         <div className="flex items-center gap-2">
+          <select
+            value={filter.studyMode}
+            onChange={(e) => setFilter({ studyMode: e.target.value as 'all' | 'not-studied' | 'studied' })}
+            className="px-3 py-2 border rounded-lg"
+          >
+            <option value="all">모든 단어</option>
+            <option value="not-studied">학습하지 않은 단어</option>
+            <option value="studied">학습한 단어</option>
+          </select>
           <Button
             variant="outline"
-            size="sm"
             onClick={shuffleWords}
+            title="단어 섞기"
           >
-            <Shuffle className="h-4 w-4 mr-1" />
-            섞기
+            <Shuffle className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => setStudyMode(studyMode === 'all' ? 'not-studied' : 'all')}
+            onClick={resetProgress}
+            title="진도 초기화"
           >
-            {studyMode === 'all' ? '미학습만' : '전체'}
+            <RotateCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* 진행률 */}
+      {/* Progress */}
       <div className="mb-6">
-        <div className="flex justify-between text-sm text-gray-600 mb-2">
+        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
           <span>{currentIndex + 1} / {words.length}</span>
-          <span>{Math.round(progress)}%</span>
+          <span>{Math.round(((currentIndex + 1) / words.length) * 100)}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-blue-500 h-2 rounded-full transition-all"
-            style={{ width: `${progress}%` }}
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all"
+            style={{ width: `${((currentIndex + 1) / words.length) * 100}%` }}
           />
         </div>
       </div>
 
-      {/* 플래시카드 */}
-      <Card className="mb-6">
-        <div 
-          className="p-8 md:p-12 min-h-[400px] flex flex-col items-center justify-center cursor-pointer"
-          onClick={() => setShowAnswer(!showAnswer)}
-        >
-          <div className="text-center">
+      {/* Flashcard */}
+      <Card 
+        className="mb-6 cursor-pointer hover:shadow-lg transition-shadow"
+        onClick={handleCardClick}
+        data-testid="flashcard"
+      >
+        <div className="p-8 sm:p-12 min-h-[400px] flex items-center justify-center">
+          <div className="text-center w-full">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <h2 className="text-3xl md:text-4xl font-bold">
+              <h2 className={cn("text-3xl sm:text-4xl font-bold", getTextSizeClass(textSize))}>
                 {currentWord.word}
               </h2>
-              {currentWord.partOfSpeech.map(pos => (
+              {currentWord.partOfSpeech && currentWord.partOfSpeech.length > 0 && currentWord.partOfSpeech.map(pos => (
                 <span 
                   key={pos}
-                  className="text-sm px-3 py-1 rounded bg-gray-100 text-gray-700"
+                  className={`text-sm px-2 py-0.5 rounded ${getPartOfSpeechColor(pos)}`}
                 >
                   {pos}
                 </span>
@@ -512,6 +701,18 @@ export default function FlashcardsPage() {
               >
                 <Volume2 className="h-5 w-5" />
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openWordDetailModal()
+                }}
+                className="p-2"
+                title="상세 정보 보기"
+              >
+                <Info className="h-5 w-5" />
+              </Button>
             </div>
             
             {(currentWord.pronunciation || pronunciations[currentWord.word]) && (
@@ -522,163 +723,64 @@ export default function FlashcardsPage() {
 
             {showAnswer ? (
               <div className="space-y-4 animate-fade-in">
-                <div className="space-y-3">
-                  {'definition' in currentWord ? (
-                    <p className="text-xl text-gray-800 font-medium">{currentWord.definition}</p>
-                  ) : currentWord.definitions && currentWord.definitions.length > 0 ? (
-                    currentWord.definitions.map((def, idx) => (
-                      <div key={idx} className="text-left">
-                        {currentWord.definitions.length > 1 && (
-                          <span className="text-sm text-gray-500 mr-2">{idx + 1}.</span>
-                        )}
-                        <span className="text-xl text-gray-800 font-medium">
-                          {def.definition || def.text || 'Definition not available'}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xl text-gray-800 font-medium">Definition not available</p>
-                  )}
+                {/* 한글 뜻 */}
+                <div className="text-center">
+                  <p className={cn("text-3xl text-gray-800 font-semibold", getTextSizeClass(textSize))}>
+                    {currentWord.definition || 'Definition not available'}
+                  </p>
                 </div>
                 
-                <div className="space-y-4 mt-6">
-                  {/* 영어 설명 표시 */}
-                  {currentWord.etymology && (
-                    <div className="p-4 bg-yellow-50 rounded-lg text-left max-w-xl mx-auto">
-                      <p className="text-sm font-semibold text-yellow-800 mb-1">영어 설명:</p>
-                      <p className={cn("text-yellow-700", getTextSizeClass(textSize))}>
-                        {typeof currentWord.etymology === 'string' 
-                          ? currentWord.etymology 
-                          : currentWord.etymology.origin || currentWord.etymology.meaning || ''}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* 어원 - 클릭하면 표시 */}
-                  <div className="border border-purple-200 rounded-lg overflow-hidden max-w-xl mx-auto">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowEtymology(!showEtymology)
-                      }}
-                      className="w-full p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
-                    >
-                      <h3 className="font-semibold text-purple-800">어원</h3>
-                      {showEtymology ? (
-                        <ChevronUp className="h-4 w-4 text-purple-600" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-purple-600" />
-                      )}
-                    </button>
-                    {showEtymology && (
-                      <div className="p-4 bg-white border-t border-purple-200">
-                        {currentWord.realEtymology && currentWord.realEtymology.trim() ? (
-                          <p className={cn("text-purple-700", getTextSizeClass(textSize))}>
-                            {currentWord.realEtymology.trim()}
-                          </p>
-                        ) : generatingEtymology ? (
-                          <p className="text-sm text-purple-600 flex items-center gap-1">
-                            <Sparkles className="h-4 w-4 animate-pulse" />
-                            AI가 어원을 분석하고 있습니다...
-                          </p>
-                        ) : (
-                          <p className="text-sm text-gray-500 italic">어원 정보가 없습니다</p>
-                        )}
-                      </div>
-                    )}
+                {/* 영어 설명 */}
+                {currentWord.etymology && (
+                  <div className="text-center">
+                    <p className={cn("text-lg text-gray-600", getTextSizeClass(textSize))}>
+                      {currentWord.etymology}
+                    </p>
                   </div>
-                  
-                  {currentWord.examples && currentWord.examples.length > 0 && (
-                    <div className="p-4 bg-green-50 rounded-lg text-left max-w-xl mx-auto">
-                      <p className="text-sm font-semibold text-green-800 mb-2">예문:</p>
-                      <div className="space-y-3">
-                        {currentWord.examples.slice(0, 2).map((example: string, idx: number) => (
-                          <div key={idx}>
-                            <div className="flex gap-2">
-                              <span className="text-green-700 mt-0.5">•</span>
-                              <div className="flex-1">
-                                <div>
-                                  <p className={cn("text-green-700 inline", getTextSizeClass(textSize))}>
-                                    {example}
-                                  </p>
-                                  <span className="inline-flex items-center gap-1 ml-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        speakWord(example)
-                                      }}
-                                      className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex"
-                                      title="예문 듣기"
-                                    >
-                                      <Volume2 className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={async (e) => {
-                                        e.stopPropagation()
-                                        if (translatingIndex !== null || translations[idx]) return
-                                        setTranslatingIndex(idx)
-                                        try {
-                                          const response = await fetch('/api/translate-example', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ example })
-                                          })
-                                          if (response.ok) {
-                                            const { translation } = await response.json()
-                                            setTranslations(prev => ({ ...prev, [idx]: translation }))
-                                          }
-                                        } catch (error) {
-                                          console.error('Translation error:', error)
-                                        } finally {
-                                          setTranslatingIndex(null)
-                                        }
-                                      }}
-                                      disabled={translatingIndex === idx}
-                                      className="text-xs px-2 py-1 h-6 text-green-600 hover:text-green-700 hover:bg-green-100 inline-flex items-center"
-                                    >
-                                      {translatingIndex === idx ? (
-                                        <Sparkles className="h-3 w-3 animate-pulse" />
-                                      ) : (
-                                        '번역'
-                                      )}
-                                    </Button>
-                                  </span>
-                                </div>
-                                {translations[idx] && (
-                                  <p className={cn("text-green-600 text-sm mt-1", getTextSizeClass(textSize))}>
-                                    → {translations[idx]}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                )}
+                
+                {/* 유사어 */}
+                <div className="mt-6">
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium">
+                      유사어
+                    </span>
+                    {generatingSynonyms ? (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <Sparkles className="h-4 w-4 animate-pulse" />
+                        AI가 유사어를 생성하고 있습니다...
+                      </span>
+                    ) : synonyms.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {synonyms.map((synonym, idx) => (
+                          <button
+                            key={idx}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleSynonymClick(synonym)
+                            }}
+                            disabled={searchingSynonym === synonym}
+                            className={cn(
+                              "px-3 py-1 rounded-full text-sm transition-colors cursor-pointer",
+                              searchingSynonym === synonym
+                                ? "bg-green-100 text-green-600 cursor-wait opacity-70"
+                                : "bg-green-50 text-green-700 hover:bg-green-100"
+                            )}
+                          >
+                            {searchingSynonym === synonym ? (
+                              <span className="flex items-center gap-1">
+                                <span className="animate-pulse">검색중...</span>
+                              </span>
+                            ) : (
+                              synonym
+                            )}
+                          </button>
                         ))}
                       </div>
-                    </div>
-                  )}
-                  
-                  {(!currentWord.examples || currentWord.examples.length === 0) && (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center max-w-xl mx-auto">
-                      <p className="text-sm text-blue-600 flex items-center justify-center gap-1">
-                        <Sparkles className="h-4 w-4 animate-pulse" />
-                        AI가 예문을 생성하고 있습니다...
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* 어원이 없고 영어 설명만 있는 경우 AI 생성 표시 */}
-                  {!currentWord.realEtymology && currentWord.etymology && (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center max-w-xl mx-auto">
-                      <p className="text-sm text-purple-600 flex items-center justify-center gap-1">
-                        <Sparkles className="h-4 w-4 animate-pulse" />
-                        AI가 어원을 분석하고 있습니다...
-                      </p>
-                    </div>
-                  )}
+                    ) : (
+                      <span className="text-sm text-gray-500">-</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -691,54 +793,130 @@ export default function FlashcardsPage() {
         </div>
       </Card>
 
-      {/* 컨트롤 버튼 */}
+      {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex gap-2 flex-1">
           <Button
             variant="outline"
             onClick={prevWord}
             disabled={currentIndex === 0}
-            className="flex-1"
+            className="py-3"
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="h-5 w-5" />
             이전
           </Button>
           <Button
             variant="outline"
             onClick={nextWord}
             disabled={currentIndex === words.length - 1}
-            className="flex-1"
+            className="flex-1 py-3"
           >
             다음
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <ChevronRight className="h-5 w-5 ml-1" />
           </Button>
         </div>
-
-        {showAnswer && (
-          <div className="flex gap-2 flex-1">
-            <Button
-              variant="outline"
-              onClick={() => markAsStudied(false)}
-              className="flex-1"
-            >
-              <X className="h-4 w-4 mr-1 text-red-600" />
-              어려움
-            </Button>
-            <Button
-              onClick={() => markAsStudied(true)}
-              className="flex-1"
-            >
-              <Check className="h-4 w-4 mr-1 text-green-600" />
-              쉬움
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={markAsNotStudied}
+            className="flex-1 sm:flex-initial py-3 px-6"
+          >
+            <X className="h-5 w-5 mr-1" />
+            모름
+          </Button>
+          <Button
+            onClick={markAsStudied}
+            className="flex-1 sm:flex-initial py-3 px-6"
+          >
+            <Check className="h-5 w-5 mr-1" />
+            알고 있음
+          </Button>
+        </div>
       </div>
 
-      {/* 현재 단어 정보 */}
-      <div className="mt-6 text-center text-sm text-gray-600">
-        <p>난이도: Level {currentWord.difficulty}</p>
-      </div>
+      {/* Word Detail Modal */}
+      <WordDetailModal
+        open={showWordDetail && !!selectedWord}
+        onClose={() => {
+          console.log('[Flashcards] Closing WordDetailModal')
+          setShowWordDetail(false)
+          closeModal()
+        }}
+        word={selectedWord}
+        onPlayPronunciation={speakWord}
+        onGenerateExamples={generateExamples}
+        onGenerateEtymology={generateEtymology}
+        onFetchPronunciation={fetchPronunciation}
+        generatingExamples={generatingExamples}
+        generatingEtymology={generatingEtymology}
+        fetchingPronunciation={fetchingPronunciation}
+        onSynonymClick={handleWordModalSynonymClick}
+      />
+
+      {/* Discovery Modal */}
+      <DiscoveryModal
+        open={discoveryModalOpen}
+        onClose={closeDiscoveryModal}
+        word={targetWord}
+        sourceWord={sourceWord}
+        relationship={relationship}
+        onSave={saveDiscoveredWord}
+        onStudy={handleWordStudy}
+        onViewExisting={async (existingWord) => {
+          console.log('🔍 [FlashcardsV2] onViewExisting called with raw data:', existingWord)
+          
+          try {
+            // Convert raw database format to UnifiedWord using WordAdapter
+            if (existingWord.id) {
+              // If we have an ID, fetch the properly converted word
+              const unifiedWord = await wordAdapter.getWordById(existingWord.id)
+              if (unifiedWord) {
+                console.log('✅ [FlashcardsV2] Converted to UnifiedWord:', unifiedWord)
+                openModal(unifiedWord)
+                setShowWordDetail(true)
+              } else {
+                console.error('❌ [FlashcardsV2] Failed to convert word')
+                // Fallback: try to open with raw data
+                openModal(existingWord)
+                setShowWordDetail(true)
+              }
+            } else {
+              // If no ID, try to convert manually
+              const convertedWord: UnifiedWord = {
+                id: existingWord.id || '',
+                word: existingWord.word || '',
+                definition: existingWord.definition || existingWord.definitions?.[0]?.definition || '',
+                etymology: existingWord.etymology || existingWord.englishDefinition || null,
+                realEtymology: existingWord.realEtymology || null,
+                partOfSpeech: existingWord.partOfSpeech || [],
+                examples: existingWord.examples || existingWord.definitions?.[0]?.examples || [],
+                pronunciation: existingWord.pronunciation || null,
+                synonyms: existingWord.synonyms || [],
+                antonyms: existingWord.antonyms || [],
+                difficulty: existingWord.difficulty || 5,
+                frequency: existingWord.frequency || 5,
+                isSAT: existingWord.isSAT || false,
+                source: existingWord.source || {
+                  type: 'manual',
+                  collection: 'unknown',
+                  originalId: existingWord.id || ''
+                },
+                createdAt: existingWord.createdAt || new Date(),
+                updatedAt: existingWord.updatedAt || new Date(),
+                studyStatus: existingWord.studyStatus
+              }
+              console.log('✅ [FlashcardsV2] Manually converted to UnifiedWord:', convertedWord)
+              openModal(convertedWord)
+              setShowWordDetail(true)
+            }
+          } catch (error) {
+            console.error('❌ [FlashcardsV2] Error in onViewExisting:', error)
+            // Fallback: open with raw data
+            openModal(existingWord)
+            setShowWordDetail(true)
+          }
+        }}
+      />
     </div>
   )
 }

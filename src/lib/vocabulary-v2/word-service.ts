@@ -148,20 +148,29 @@ export class WordService {
   async getWordsByIds(wordIds: string[]): Promise<Word[]> {
     if (wordIds.length === 0) return []
     
-    // Firestore의 'in' 쿼리는 최대 10개까지만 가능
-    const chunks = this.chunkArray(wordIds, 10)
-    const allWords: Word[] = []
+    console.log(`[WordService.getWordsByIds] Fetching ${wordIds.length} words`)
+    const startTime = Date.now()
     
-    for (const chunk of chunks) {
+    // Firestore의 'in' 쿼리는 최대 10개까지만 가능하지만, 
+    // 병렬로 처리하여 속도 개선
+    const chunks = this.chunkArray(wordIds, 10)
+    
+    // 모든 청크를 병렬로 처리
+    const promises = chunks.map(async (chunk) => {
       const q = query(
         collection(db, this.collectionName),
         where('__name__', 'in', chunk)
       )
       
       const snapshot = await getDocs(q)
-      const words = snapshot.docs.map(doc => this.fromFirestore({ ...doc.data(), id: doc.id }))
-      allWords.push(...words)
-    }
+      return snapshot.docs.map(doc => this.fromFirestore({ ...doc.data(), id: doc.id }))
+    })
+    
+    const results = await Promise.all(promises)
+    const allWords = results.flat()
+    
+    const endTime = Date.now()
+    console.log(`[WordService.getWordsByIds] Fetched ${allWords.length} words in ${endTime - startTime}ms`)
     
     return allWords
   }

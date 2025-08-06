@@ -10,7 +10,7 @@ import {
   Upload, 
   Brain, 
   Target,
-  TrendingUp,
+  Camera,
   Clock,
   ChevronRight
 } from 'lucide-react'
@@ -39,16 +39,14 @@ export default function HomePage() {
       title: '퀴즈 모드',
       description: '학습한 단어들을 퀴즈로 복습',
       href: '/study/quiz',
-      color: 'bg-purple-500',
-      disabled: true
+      color: 'bg-purple-500'
     },
     {
-      icon: TrendingUp,
-      title: '학습 통계',
-      description: '학습 진도와 성과를 한눈에 확인',
-      href: '/progress',
-      color: 'bg-orange-500',
-      disabled: true
+      icon: Camera,
+      title: '사진 단어 학습',
+      description: '사진에서 단어를 추출하여 학습',
+      href: '/study/photo-vocab',
+      color: 'bg-orange-500'
     }
   ]
 

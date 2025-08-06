@@ -107,6 +107,12 @@ src/
 3. **Testing**: Aim for 80% coverage. Test files go in `__tests__` folders
 4. **Code Style**: ESLint rules enforce no-console (warning), no-var, prefer-const
 5. **Imports**: Use `@/` alias for src directory imports
+6. **Database Architecture**: 🔥 **MANDATORY**: Always refer to `DATABASE_ARCHITECTURE.md` before making any database-related changes. Update this file immediately after any changes to:
+   - Collection structures
+   - Data flow patterns
+   - API endpoints
+   - Menu/Modal data access patterns
+   - Caching strategies
 
 ### Common Tasks
 
@@ -124,6 +130,11 @@ src/
 1. Update types in `src/types/vocabulary.ts`
 2. Add service methods in `src/lib/api/vocabulary-service.ts`
 3. Create/update hooks in `src/hooks/`
+4. 🔥 **CRITICAL**: Update `DATABASE_ARCHITECTURE.md` with:
+   - New collection structures
+   - Data flow changes
+   - API endpoint additions
+   - Menu/Modal access patterns
 
 ### Important Notes
 
@@ -164,6 +175,7 @@ tm set-task-status 7 in-progress
 - `claude_context.md` - Current project status and progress
 - `structure.md` - Detailed project structure guide
 - `FILE_MAP.md` - Complete file listing with descriptions
+- `DATABASE_ARCHITECTURE.md` - 🔥 **CRITICAL**: Database structure and data flow documentation
 
 ## Code Quality Standards
 
@@ -198,48 +210,99 @@ tm set-task-status 7 in-progress
 
 ## Vocabulary Database Structure
 
-### Veterans Vocabulary (`veterans_vocabulary`)
-V.ZIP 3K PDF에서 추출한 단어들을 저장하는 전용 컬렉션입니다.
+### Main Collections
+
+#### `words` Collection
+메인 단어 데이터베이스 - 모든 표준 SAT 단어들
+
+#### `ai_generated_words` Collection  
+AI로 생성된 단어 정의들 (Discovery Modal에서 생성)
+
+#### `photo_vocabulary_words` Collection
+사진에서 추출한 단어들을 영구 저장하는 컬렉션
 
 **데이터 형식**:
 ```typescript
 {
-  word: string,              // 단어
-  definition: string,        // 한글 뜻
-  etymology: string,         // 영어 정의 (원문)
-  partOfSpeech: string[],    // 품사 (예: ["n."], ["v."], ["adj."])
-  examples: string[],        // 예문 (V.ZIP에는 없어서 빈 배열)
-  pronunciation: null,       // 발음 정보 (없음)
-  difficulty: number,        // 난이도 (1-10, 자동 계산)
-  frequency: number,         // 빈도수 (랜덤)
-  isSAT: boolean,           // SAT 단어 여부
-  source: {
-    type: 'pdf',
-    filename: string,        // 원본 파일명
-    uploadedAt: Date
-  },
+  id: string,
+  word: string,
+  definition?: string,       // 한글 정의
+  context?: string,          // 원문 컨텍스트
+  partOfSpeech?: string[],
+  
+  // AI 향상 필드 (나중에 추가됨)
+  etymology?: string,        // 영어 설명
+  realEtymology?: string,    // 실제 어원
+  examples?: string[],       // 예문
+  synonyms?: string[],       // 동의어
+  pronunciation?: string,
+  
+  // 메타데이터
+  collectionId: string,      // 속한 컬렉션 ID
   userId: string,
   createdAt: Date,
   updatedAt: Date,
+  isActive: boolean,
+  
+  // 학습 상태
   studyStatus: {
     studied: boolean,
     masteryLevel: number,
-    reviewCount: number
+    reviewCount: number,
+    // ...
   }
 }
 ```
 
-**특징**:
-- V.ZIP 형식: "번호 word품사" + 영어정의 + 한글뜻
-- 예문은 별도로 제공되지 않음
-- 총 3378개 중 1821개 추출 (일부 누락된 항목 존재)
+#### `photo_vocabulary_collections` Collection
+사진 단어들을 그룹화하는 컬렉션 (날짜별, 주제별 정리)
 
-### 향후 추가될 컬렉션들
-- `online_vocabulary/` - 인터넷에서 수집한 단어들
-- `custom_vocabulary/` - 사용자가 직접 입력한 단어들
-- `other_pdf_vocabulary/` - 다른 PDF 단어장에서 추출한 단어들
+### Unified Word System
 
-각 출처별로 별도의 컬렉션을 사용하여 명확한 구분과 관리가 가능합니다.
+**UnifiedWord Interface**:
+모든 단어 컬렉션을 통합하여 일관된 형식으로 처리하는 시스템
+
+**WordAdapter**:
+- 클라이언트: `words`, `photo_vocabulary_words` 접근 가능
+- 서버: 모든 컬렉션 접근 가능 (WordAdapterServer)
+- 자동 변환 및 캐싱 지원
+
+### API Endpoints for Vocabulary
+
+#### Unified APIs (All Collections Support)
+- `/api/generate-examples-unified` - 모든 컬렉션의 단어에 예문 생성
+- `/api/generate-etymology-unified` - 모든 컬렉션의 단어에 어원 생성
+- `/api/update-synonyms` - 모든 컬렉션의 단어에 동의어 업데이트
+- `/api/fetch-pronunciation` - 발음 정보 가져오기
+
+#### Discovery API
+- `/api/vocabulary/discover` - 새 단어 검색 및 AI 정의 생성
+
+### Caching Strategy
+
+**CacheContext**:
+- 메모리 기반 캐싱 (페이지 리로드 시 초기화)
+- 동의어, Discovery 결과 캐싱
+- TTL: 동의어 10분, Discovery 5분
+
+**동의어 저장 흐름**:
+1. AI 생성 → CacheContext 저장
+2. 동시에 DB 업데이트 (`updateWordSynonyms`)
+3. 다음 로드 시 DB에서 우선 확인
+
+### Recent Improvements
+
+#### Photo Vocabulary Integration (2025-08)
+- ✅ Photo vocabulary words를 UnifiedWord 시스템에 통합
+- ✅ WordAdapter에 photo_vocabulary_words 컬렉션 지원 추가
+- ✅ 서버 사이드 WordAdapterServer 생성 (권한 문제 해결)
+- ✅ 모든 API가 photo vocabulary words 지원
+
+#### UI/UX Improvements
+- ✅ WordDetailModal 조건부 렌더링 → 항상 렌더링 (안정성 향상)
+- ✅ 유사어 클릭 시 DB 우선 검색 (Discovery Modal 최소화)
+- ✅ 검색 중 로딩 상태 표시
+- ✅ 정의 표시 문제 수정 (definitions[0].definition 지원)
 
 ## Deployment Configuration
 

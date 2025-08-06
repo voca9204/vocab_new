@@ -1,11 +1,10 @@
 import { useState, useCallback, useRef } from 'react'
-import { ExtractedVocabulary } from '@/types/extracted-vocabulary'
-import { VocabularyWord } from '@/types'
+import { UnifiedWord } from '@/types/unified-word'
 import { useAuth } from '@/hooks/use-auth'
-import { vocabularyService } from '@/lib/api'
+import { WordAdapter } from '@/lib/adapters/word-adapter'
 
-// Type that accepts both old and new word types
-type ModalWord = ExtractedVocabulary | VocabularyWord
+// Use unified word type
+type ModalWord = UnifiedWord
 
 export function useWordDetailModal() {
   const { user } = useAuth()
@@ -13,6 +12,9 @@ export function useWordDetailModal() {
   const [generatingExamples, setGeneratingExamples] = useState(false)
   const [generatingEtymology, setGeneratingEtymology] = useState(false)
   const [fetchingPronunciation, setFetchingPronunciation] = useState(false)
+  
+  // WordAdapter 인스턴스
+  const [wordAdapter] = useState(() => new WordAdapter())
   
   // Use ref to access current word without causing re-renders
   const selectedWordRef = useRef<ModalWord | null>(null)
@@ -28,45 +30,96 @@ export function useWordDetailModal() {
 
   const generateExamples = useCallback(async () => {
     const word = selectedWordRef.current
-    if (!word || !word.id || word.examples?.length > 0 || !user) return
+    // Check if examples already exist in unified format (both direct and in definitions)
+    const hasDirectExamples = word?.examples && word.examples.length > 0
+    const hasDefinitionExamples = word?.definitions?.[0]?.examples && word.definitions[0].examples.length > 0
+    const hasExamples = hasDirectExamples || hasDefinitionExamples
+    
+    // For photo vocabulary words, allow generating examples even if some exist
+    // to ensure quality examples are available
+    const isPhotoVocab = word?.source?.collection === 'photo_vocabulary_words'
+    // Force generation for photo vocabulary to debug the issue
+    const shouldGenerate = !hasExamples || isPhotoVocab
+    
+    if (!word || !word.id || !shouldGenerate || !user) {
+      console.log('[useWordDetailModal] Cannot generate examples:', {
+        word: word?.word,
+        hasWord: !!word,
+        hasId: !!word?.id,
+        wordId: word?.id,
+        hasDirectExamples,
+        hasDefinitionExamples,
+        hasExamples,
+        isPhotoVocab,
+        shouldGenerate,
+        hasUser: !!user,
+        wordSource: word?.source
+      })
+      return
+    }
+    
+    console.log('[useWordDetailModal] STARTING example generation for:', word.word, {
+      wordId: word.id,
+      isPhotoVocab,
+      wordSource: word.source
+    })
     
     setGeneratingExamples(true)
     
     try {
-      const response = await fetch('/api/generate-examples', {
+      const requestData = {
+        userId: user.uid,
+        wordId: word.id,
+        word: word.word,
+        definition: word.definition || '',
+        partOfSpeech: word.partOfSpeech || []
+      }
+      
+      console.log('[useWordDetailModal] API request:', requestData)
+      
+      // Use unified API that handles all collections
+      const response = await fetch('/api/generate-examples-unified', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          wordIds: [word.id],
-          singleWord: true
-        })
+        body: JSON.stringify(requestData)
       })
+      
+      console.log('[useWordDetailModal] API response status:', response.status)
       
       if (response.ok) {
         const result = await response.json()
-        if (result.updated > 0) {
-          // Reload the word data from new service
-          // Wait for DB propagation
-          await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('[useWordDetailModal] API response data:', result)
+        
+        if (result.success && result.examples) {
+          // Update local state immediately with the generated examples
+          setSelectedWord(prev => {
+            if (!prev) return null
+            return { ...prev, examples: result.examples }
+          })
           
-          const updatedWord = await vocabularyService.getById(word.id)
-          if (updatedWord) {
-            setSelectedWord(prev => prev ? {
-              ...prev,
-              examples: updatedWord.examples
-            } : null)
-            
-            // Dispatch custom event for list page to reload
-            const event = new CustomEvent('word-updated', {
-              detail: { wordId: word.id, type: 'examples' }
-            })
-            window.dispatchEvent(event)
-          }
+          // Also update from DB after a delay for persistence
+          setTimeout(async () => {
+            const updatedWord = await wordAdapter.getWordById(word.id)
+            if (updatedWord) {
+              setSelectedWord(prev => {
+                if (!prev) return null
+                return { ...prev, examples: updatedWord.examples }
+              })
+            }
+          }, 1000)
+          
+          // Dispatch custom event for list page to reload
+          const event = new CustomEvent('word-updated', {
+            detail: { wordId: word.id, type: 'examples' }
+          })
+          window.dispatchEvent(event)
         }
+      } else {
+        const errorData = await response.text()
+        console.error('[useWordDetailModal] API error response:', response.status, errorData)
       }
     } catch (error) {
-      console.error('Error generating examples:', error)
+      console.error('[useWordDetailModal] Error generating examples:', error)
     } finally {
       setGeneratingExamples(false)
     }
@@ -74,55 +127,64 @@ export function useWordDetailModal() {
 
   const generateEtymology = useCallback(async () => {
     const word = selectedWordRef.current
-    if (!word || !word.id || !user) return
     
-    // Handle both old and new word types
-    const hasEtymology = 'realEtymology' in word ? word.realEtymology : word?.etymology?.meaning
-    if (hasEtymology) return
+    if (!word || !word.id || !user) {
+      console.log('[useWordDetailModal] Cannot generate etymology:', {
+        word: word?.word,
+        hasWord: !!word,
+        hasId: !!word?.id,
+        hasUser: !!user
+      })
+      return
+    }
+    
+    // Check unified structure
+    const hasEtymology = word.realEtymology
+    if (hasEtymology) {
+      console.log('[useWordDetailModal] Word already has etymology')
+      return
+    }
     
     setGeneratingEtymology(true)
     
     try {
-      const response = await fetch('/api/generate-etymology', {
+      // Use unified API that handles all collections
+      const response = await fetch('/api/generate-etymology-unified', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.uid,
-          wordIds: [word.id],
-          singleWord: true
+          wordId: word.id,
+          word: word.word,
+          definition: word.definition || ''
         })
       })
       
       if (response.ok) {
         const result = await response.json()
-        if (result.updated > 0) {
-          // Reload the word data from new service
-          // Wait for DB propagation
-          await new Promise(resolve => setTimeout(resolve, 1000))
+        if (result.success && result.etymology) {
+          // Update local state immediately with the generated etymology
+          setSelectedWord(prev => {
+            if (!prev) return null
+            return { ...prev, realEtymology: result.etymology }
+          })
           
-          const updatedWord = await vocabularyService.getById(word.id)
-          if (updatedWord) {
-            setSelectedWord(prev => {
-              if (!prev) return null
-              if ('realEtymology' in prev) {
+          // Also update from DB after a delay for persistence
+          setTimeout(async () => {
+            const updatedWord = await wordAdapter.getWordById(word.id)
+            if (updatedWord) {
+              setSelectedWord(prev => {
+                if (!prev) return null
                 return { ...prev, realEtymology: updatedWord.realEtymology }
-              } else {
-                return { 
-                  ...prev, 
-                  etymology: {
-                    ...prev.etymology,
-                    meaning: updatedWord.realEtymology
-                  }
-                }
-              }
-            })
-            
-            // Dispatch custom event for list page to reload
-            const event = new CustomEvent('word-updated', {
-              detail: { wordId: word.id, type: 'etymology' }
-            })
-            window.dispatchEvent(event)
-          }
+              })
+            }
+          }, 1000)
+          
+          // Dispatch custom event for list page to reload
+          const event = new CustomEvent('word-updated', {
+            detail: { wordId: word.id, type: 'etymology' }
+          })
+          window.dispatchEvent(event)
         }
       }
     } catch (error) {
@@ -147,12 +209,9 @@ export function useWordDetailModal() {
                         data[0]?.phonetics?.find((p: any) => p.text)?.text
                         
         if (phonetic && word.id) {
-          // Update in database using new service
-          // For now, we'll skip DB update as the compatibility layer is read-only
-          // TODO: Implement pronunciation update in new DB structure
+          // Update local state with unified structure
           console.log('Pronunciation fetched:', phonetic, 'for word:', word.word)
           
-          // Update local state
           setSelectedWord(prev => prev ? {
             ...prev,
             pronunciation: phonetic
