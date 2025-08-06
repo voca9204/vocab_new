@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
@@ -32,7 +32,7 @@ import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-col
 import type { PhotoVocabularyWord } from '@/types/photo-vocabulary-collection'
 import type { VocabularyWord } from '@/types/vocabulary'
 
-export default function FlashcardsV2Page() {
+function FlashcardsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -918,5 +918,20 @@ export default function FlashcardsV2Page() {
         }}
       />
     </div>
+  )
+}
+
+export default function FlashcardsV2Page() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">플래시카드를 로드하는 중...</p>
+        </div>
+      </div>
+    }>
+      <FlashcardsContent />
+    </Suspense>
   )
 }
