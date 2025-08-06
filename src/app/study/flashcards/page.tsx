@@ -24,6 +24,7 @@ import {
   Shuffle,
   Volume2,
   Sparkles,
+  Loader2,
   Info,
   BookOpen
 } from 'lucide-react'
