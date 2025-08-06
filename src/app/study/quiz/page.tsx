@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
@@ -16,6 +16,7 @@ import {
   Clock,
   RotateCcw,
   Volume2,
+  Loader2,
   Sparkles
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
@@ -38,7 +39,7 @@ interface QuizResult {
   selectedAnswer: number
 }
 
-export default function QuizPage() {
+function QuizContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -776,5 +777,20 @@ export default function QuizPage() {
         </>
       ) : null}
     </div>
+  )
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">퀴즈를 로드하는 중...</p>
+        </div>
+      </div>
+    }>
+      <QuizContent />
+    </Suspense>
   )
 }
