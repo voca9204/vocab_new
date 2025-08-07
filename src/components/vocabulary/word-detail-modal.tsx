@@ -285,21 +285,21 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
 
     return (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50"
         onClick={onClose}
       >
         <Card 
           ref={ref}
-          className="max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+          className="max-w-3xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
           data-testid="word-detail-modal"
         >
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="overflow-x-auto">
-                  <div className="flex items-center gap-3 whitespace-nowrap">
-                    <h2 className="text-2xl font-bold">{word.word}</h2>
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
+                    <h2 className="text-xl sm:text-2xl font-bold break-words">{word.word}</h2>
                     {word.partOfSpeech.map(pos => (
                       <span 
                         key={pos}
@@ -309,18 +309,18 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                       </span>
                     ))}
                     {fetchingPronunciation ? (
-                      <span className="text-sm text-gray-500 italic">발음 정보 가져오는 중...</span>
+                      <span className="text-xs sm:text-sm text-gray-500 italic">발음 정보 가져오는 중...</span>
                     ) : word.pronunciation ? (
-                      <span className="text-lg text-gray-600">[{word.pronunciation}]</span>
+                      <span className="text-sm sm:text-lg text-gray-600">[{word.pronunciation}]</span>
                     ) : null}
                     {onPlayPronunciation && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={handlePronunciationClick}
-                        className="p-1.5"
+                        className="p-1 sm:p-1.5"
                       >
-                        <Volume2 className="h-4 w-4" />
+                        <Volume2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     )}
                   </div>
@@ -330,18 +330,19 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
+                className="shrink-0 ml-2"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
 
             <div className="space-y-4">
-              <div className="overflow-x-auto mb-4">
-                <div className="flex items-center gap-3 whitespace-nowrap">
-                  <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium">
+              <div className="mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                  <span className="text-sm px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium inline-block w-fit">
                     뜻
                   </span>
-                  <p className={cn("text-lg", getTextSizeClass(textSize))}>
+                  <p className={cn("text-base sm:text-lg break-words flex-1", getTextSizeClass(textSize))}>
                     {word.definition || word.definitions?.[0]?.definition || word.definitions?.[0]?.text || 'No definition available'}
                   </p>
                 </div>
@@ -349,8 +350,8 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
 
               {/* 유사어 섹션 추가 */}
               <div className="mb-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium flex-shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                  <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium inline-block w-fit">
                     유사어
                   </span>
                   <div className="flex-1">
@@ -393,7 +394,9 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="font-semibold text-blue-800 mb-1">영어 정의</h3>
                   <p className={cn("text-blue-700", getTextSizeClass(textSize))}>
-                    {word.etymology}
+                    {typeof word.etymology === 'string' 
+                      ? word.etymology 
+                      : word.etymology.origin || word.etymology.meaning || ''}
                   </p>
                 </div>
               )}
@@ -402,9 +405,9 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
               <div className="border border-purple-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setShowEtymology(!showEtymology)}
-                  className="w-full p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
+                  className="w-full p-3 sm:p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
                 >
-                  <h3 className="font-semibold text-purple-800">어원</h3>
+                  <h3 className="font-semibold text-purple-800 text-sm sm:text-base">어원</h3>
                   {showEtymology ? (
                     <ChevronUp className="h-4 w-4 text-purple-600" />
                   ) : (
@@ -416,6 +419,10 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                     {word.realEtymology ? (
                       <p className={cn("text-purple-700", getTextSizeClass(textSize))}>
                         {word.realEtymology}
+                      </p>
+                    ) : (word.etymology && typeof word.etymology === 'object' && word.etymology.meaning) ? (
+                      <p className={cn("text-purple-700", getTextSizeClass(textSize))}>
+                        {word.etymology.meaning}
                       </p>
                     ) : generatingEtymology ? (
                       <p className="text-sm text-purple-600 flex items-center gap-1">

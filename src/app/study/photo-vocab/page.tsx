@@ -8,6 +8,7 @@ import { PhotoUpload } from '@/components/photo-vocabulary/photo-upload'
 import { WordReviewList } from '@/components/photo-vocabulary/word-review-list'
 import { useAuth } from '@/components/providers/auth-provider'
 import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
+import { photoVocabularyService } from '@/lib/api/photo-vocabulary-service'
 import type { ExtractedWord } from '@/types/photo-vocabulary'
 
 export default function PhotoVocabPage() {
@@ -23,6 +24,7 @@ export default function PhotoVocabPage() {
   }
 
   const handleWordEdit = (index: number, newWord: string) => {
+    console.log(`[handleWordEdit] Updating word at index ${index} from "${extractedWords[index].word}" to "${newWord}"`)
     const updated = [...extractedWords]
     updated[index] = { ...updated[index], word: newWord }
     setExtractedWords(updated)
@@ -31,14 +33,52 @@ export default function PhotoVocabPage() {
   const handleWordRemove = (index: number) => {
     setExtractedWords(extractedWords.filter((_, i) => i !== index))
   }
+  
+  const handleRefreshDefinition = async (index: number, word: string) => {
+    try {
+      const response = await fetch('/api/photo-vocabulary/refresh-definition', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to refresh definition')
+      }
+      
+      const { context, koreanDefinition, englishDefinition } = await response.json()
+      
+      // Update the word AND definition (word might have been edited)
+      const updated = [...extractedWords]
+      updated[index] = {
+        ...updated[index],
+        word: word,  // Make sure to update the word too!
+        context,
+        koreanDefinition,
+        englishDefinition
+      }
+      setExtractedWords(updated)
+    } catch (error) {
+      console.error('Error refreshing definition:', error)
+      throw error
+    }
+  }
 
   const createPhotoSession = async (selectedWords: ExtractedWord[]) => {
-    if (!sessionId) return
+    if (!sessionId || !user) return
 
     setIsCreatingSession(true)
     
-    // Navigate to test page
-    router.push(`/study/photo-test/${sessionId}`)
+    try {
+      // Update session with edited words
+      await photoVocabularyService.updateSessionWords(sessionId, user.uid, selectedWords)
+      
+      // Navigate to test page
+      router.push(`/study/photo-test/${sessionId}`)
+    } catch (error) {
+      console.error('Failed to update session:', error)
+      setIsCreatingSession(false)
+    }
   }
 
   const saveToCollection = async (selectedWords: ExtractedWord[], title?: string) => {
@@ -47,6 +87,10 @@ export default function PhotoVocabPage() {
     setIsCreatingSession(true)
     
     try {
+      // Update session with edited words first
+      await photoVocabularyService.updateSessionWords(sessionId, user.uid, selectedWords)
+      
+      // Then convert to collection
       const collection = await photoVocabularyCollectionService.convertSessionToCollection(
         sessionId,
         user.uid,
@@ -116,6 +160,7 @@ export default function PhotoVocabPage() {
               onSaveToCollection={saveToCollection}
               onEdit={handleWordEdit}
               onRemove={handleWordRemove}
+              onRefreshDefinition={handleRefreshDefinition}
               loading={isCreatingSession}
             />
           </div>

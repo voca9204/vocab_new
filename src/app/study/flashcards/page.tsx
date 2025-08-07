@@ -505,27 +505,32 @@ function FlashcardsContent() {
   if (words.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          {/* Top row on mobile - Navigation */}
+          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-4">
             <Button
               variant="ghost"
+              size="sm"
               onClick={() => router.push('/study')}
+              className="px-2 sm:px-4"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              뒤로
+              <ChevronLeft className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">뒤로</span>
             </Button>
-            <h1 className="text-2xl font-bold">플래시카드 학습</h1>
+            <h1 className="text-lg sm:text-2xl font-bold">플래시카드 학습</h1>
           </div>
-          <div className="flex items-center gap-2">
+          
+          {/* Bottom row on mobile - Controls */}
+          <div className="flex items-center gap-2 justify-end">
             <select
               value={filter.studyMode}
               onChange={(e) => setFilter({ studyMode: e.target.value as 'all' | 'not-studied' | 'studied' })}
-              className="px-3 py-2 border rounded-lg"
+              className="px-2 sm:px-3 py-1 sm:py-2 text-sm sm:text-base border rounded-lg flex-1 sm:flex-none max-w-[150px] sm:max-w-none"
             >
               <option value="all">모든 단어</option>
-              <option value="not-studied">학습하지 않은 단어</option>
-              <option value="studied">학습한 단어</option>
+              <option value="not-studied">미학습</option>
+              <option value="studied">학습완료</option>
             </select>
           </div>
         </div>
@@ -618,41 +623,50 @@ function FlashcardsContent() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        {/* Top row on mobile - Navigation */}
+        <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-4">
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => router.push('/study')}
+            className="px-2 sm:px-4"
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            뒤로
+            <ChevronLeft className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">뒤로</span>
           </Button>
-          <h1 className="text-2xl font-bold">플래시카드 학습</h1>
+          <h1 className="text-lg sm:text-2xl font-bold">플래시카드 학습</h1>
         </div>
-        <div className="flex items-center gap-2">
+        
+        {/* Bottom row on mobile - Controls */}
+        <div className="flex items-center gap-2 justify-end">
           <select
             value={filter.studyMode}
             onChange={(e) => setFilter({ studyMode: e.target.value as 'all' | 'not-studied' | 'studied' })}
-            className="px-3 py-2 border rounded-lg"
+            className="px-2 sm:px-3 py-1 sm:py-2 text-sm sm:text-base border rounded-lg flex-1 sm:flex-none max-w-[150px] sm:max-w-none"
           >
             <option value="all">모든 단어</option>
-            <option value="not-studied">학습하지 않은 단어</option>
-            <option value="studied">학습한 단어</option>
+            <option value="not-studied">미학습</option>
+            <option value="studied">학습완료</option>
           </select>
           <Button
             variant="outline"
+            size="sm"
             onClick={shuffleWords}
             title="단어 섞기"
+            className="px-2 sm:px-3"
           >
-            <Shuffle className="h-4 w-4" />
+            <Shuffle className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={resetProgress}
             title="진도 초기화"
+            className="px-2 sm:px-3"
           >
-            <RotateCw className="h-4 w-4" />
+            <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>
@@ -716,11 +730,12 @@ function FlashcardsContent() {
               </Button>
             </div>
             
-            {(currentWord.pronunciation || pronunciations[currentWord.word]) && (
-              <p className="text-lg text-gray-600 mb-6">
-                [{currentWord.pronunciation || pronunciations[currentWord.word]}]
-              </p>
-            )}
+            {/* Always reserve space for pronunciation to prevent layout shift */}
+            <p className="text-lg text-gray-600 mb-6 h-7">
+              {(currentWord.pronunciation || pronunciations[currentWord.word]) && 
+                `[${currentWord.pronunciation || pronunciations[currentWord.word]}]`
+              }
+            </p>
 
             {showAnswer ? (
               <div className="space-y-4 animate-fade-in">

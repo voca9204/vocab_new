@@ -148,6 +148,69 @@ export class PhotoVocabularyService {
   }
 
   /**
+   * Update session words after editing
+   */
+  async updateSessionWords(sessionId: string, userId: string, updatedWords: ExtractedWord[]): Promise<void> {
+    try {
+      // First, delete existing words for this session
+      const existingWordsQuery = query(
+        collection(db, this.COLLECTION_WORDS),
+        where('sessionId', '==', sessionId),
+        where('userId', '==', userId)
+      )
+      
+      const existingWords = await getDocs(existingWordsQuery)
+      const batch = writeBatch(db)
+      
+      // Delete existing words
+      existingWords.docs.forEach(doc => {
+        batch.delete(doc.ref)
+      })
+      
+      // Add updated words
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000) // 48 hours
+      
+      updatedWords.forEach(word => {
+        const wordRef = doc(collection(db, this.COLLECTION_WORDS))
+        const photoWord: PhotoVocabularyEntry = {
+          id: wordRef.id,
+          userId,
+          sessionId,
+          uploadedAt: now,
+          word: word.word,
+          context: word.context,
+          definition: word.koreanDefinition || word.context,
+          isActive: true,
+          expiresAt,
+          tested: false,
+          correct: false,
+          createdAt: now
+        }
+        
+        batch.set(wordRef, {
+          ...photoWord,
+          uploadedAt: Timestamp.fromDate(photoWord.uploadedAt),
+          expiresAt: Timestamp.fromDate(photoWord.expiresAt),
+          createdAt: Timestamp.fromDate(photoWord.createdAt)
+        })
+      })
+      
+      // Update session word count
+      const sessionRef = doc(db, this.COLLECTION_SESSIONS, sessionId)
+      batch.update(sessionRef, {
+        wordCount: updatedWords.length,
+        updatedAt: Timestamp.fromDate(now)
+      })
+      
+      await batch.commit()
+    } catch (error) {
+      console.error('Error updating session words:', error)
+      throw error
+    }
+  }
+
+  /**
    * Get user's photo sessions
    */
   async getUserSessions(userId: string, includeExpired: boolean = false): Promise<PhotoSession[]> {

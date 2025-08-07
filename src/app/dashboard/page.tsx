@@ -12,9 +12,20 @@ import {
   Clock, 
   TrendingUp,
   ChevronRight,
-  Edit2,
   Sparkles,
-  HelpCircle
+  HelpCircle,
+  Camera,
+  Brain,
+  Trophy,
+  Zap,
+  GraduationCap,
+  Globe,
+  PenTool,
+  BarChart3,
+  Users,
+  Rocket,
+  Star,
+  ArrowRight
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
@@ -65,6 +76,96 @@ const unifiedToVocabularyWord = (word: UnifiedWord): VocabularyWord => ({
   antonyms: word.antonyms
 })
 
+// 시험 카테고리 데이터
+const examCategories = [
+  {
+    id: 'sat',
+    title: 'SAT',
+    description: '미국 대학 입학시험',
+    icon: GraduationCap,
+    color: 'from-blue-500 to-blue-600',
+    textColor: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    available: true,
+    wordCount: '2000+',
+    difficulty: '고급'
+  },
+  {
+    id: 'toeic',
+    title: 'TOEIC',
+    description: '비즈니스 영어 능력 평가',
+    icon: Globe,
+    color: 'from-green-500 to-green-600',
+    textColor: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200',
+    available: true,
+    wordCount: '1500+',
+    difficulty: '중급'
+  },
+  {
+    id: 'toefl',
+    title: 'TOEFL',
+    description: '학술 영어 능력 시험',
+    icon: PenTool,
+    color: 'from-purple-500 to-purple-600',
+    textColor: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+    available: true,
+    wordCount: '1800+',
+    difficulty: '고급'
+  },
+  {
+    id: 'csat',
+    title: '수능',
+    description: '대학수학능력시험',
+    icon: Trophy,
+    color: 'from-orange-500 to-orange-600',
+    textColor: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    available: true,
+    wordCount: '1200+',
+    difficulty: '중급'
+  }
+]
+
+// 주요 기능 카드 데이터
+const featureCards = [
+  {
+    id: 'smart-learning',
+    title: '지능적인 학습',
+    description: 'AI가 분석한 최적의 학습 순서와 복습 주기로 효율적인 암기',
+    icon: Brain,
+    color: 'from-indigo-500 to-purple-600',
+    bgGradient: 'bg-gradient-to-br from-indigo-500 to-purple-600',
+    route: '/study/flashcards',
+    features: ['맞춤형 난이도 조절', '망각 곡선 기반 복습', '학습 패턴 분석']
+  },
+  {
+    id: 'photo-vocab',
+    title: '사진 단어 학습',
+    description: '교재나 문서를 촬영하면 AI가 단어를 추출하여 즉시 학습 가능',
+    icon: Camera,
+    color: 'from-pink-500 to-rose-600',
+    bgGradient: 'bg-gradient-to-br from-pink-500 to-rose-600',
+    route: '/study/photo-vocab',
+    features: ['Google Vision AI', '즉시 단어 추출', '맥락 기반 학습']
+  },
+  {
+    id: 'personal-vocab',
+    title: '나만의 단어장',
+    description: '관심 분야나 목표에 맞는 개인 맞춤 단어장 생성',
+    icon: Star,
+    color: 'from-amber-500 to-orange-600',
+    bgGradient: 'bg-gradient-to-br from-amber-500 to-orange-600',
+    route: '/study/list',
+    features: ['커스텀 단어 추가', '카테고리 분류', '진도 추적']
+  }
+]
+
 export default function DashboardPage() {
   const { user, appUser, loading } = useAuth()
   const router = useRouter()
@@ -73,9 +174,9 @@ export default function DashboardPage() {
     totalWords: 0,
     studiedWords: 0,
     todayWords: 0,
-    masteryAverage: 0
+    masteryAverage: 0,
+    streak: 0
   })
-  const [sources, setSources] = useState<{filename: string, count: number}[]>([])
   const [recentWords, setRecentWords] = useState<UnifiedWord[]>([])
   const {
     selectedWord,
@@ -91,23 +192,19 @@ export default function DashboardPage() {
   } = useWordDetailModal()
   const [allWords, setAllWords] = useState<UnifiedWord[]>([])
 
-  // loadStats 함수 정의 (useEffect에서 사용하기 전에 먼저 정의)
+  // loadStats 함수 정의
   const loadStats = useCallback(async () => {
     if (!user) return
 
     try {
-      // VocabularyContext에서 이미 로드된 단어 사용
       const words = vocabularyWords
-      console.log(`[Dashboard] Loading stats with ${words.length} words from VocabularyContext`)
-      setAllWords(words) // Store all words for synonym lookup
+      setAllWords(words)
       
-      // 사용자의 학습 통계 가져오기 (user_words 컬렉션에서)
+      // 사용자의 학습 통계 가져오기
       const { UserWordService } = await import('@/lib/vocabulary-v2/user-word-service')
       const userWordService = new UserWordService()
       const userStats = await userWordService.getUserStudyStats(user.uid)
       const userStudiedWords = await userWordService.getUserStudiedWords(user.uid)
-      
-      console.log(`Dashboard stats: ${userStats.totalStudied} studied, ${userStats.totalMastered} mastered`)
       
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -117,7 +214,6 @@ export default function DashboardPage() {
         const lastStudied = userWord.studyStatus?.lastStudied
         if (!lastStudied) return false
         
-        // Firestore Timestamp 처리
         let studiedDate: Date
         if (lastStudied instanceof Date) {
           studiedDate = lastStudied
@@ -132,63 +228,29 @@ export default function DashboardPage() {
         return studiedDate >= today
       }).length
       
+      // 연속 학습 일수 계산 (간단한 예시)
+      const streak = userStudiedWords.length > 0 ? Math.min(7, Math.floor(userStudiedWords.length / 10)) : 0
+      
       setStats({
         totalWords: words.length,
         studiedWords: userStats.totalStudied,
         todayWords: todayWords,
-        masteryAverage: userStats.averageMastery
+        masteryAverage: userStats.averageMastery,
+        streak: streak
       })
       
-      // 선택된 단어장 정보로 출처 설정
-      const { UserSettingsService } = await import('@/lib/settings/user-settings-service')
-      const settingsService = new UserSettingsService()
-      const userSettings = await settingsService.getUserSettings(user.uid)
-      const selectedVocabs = userSettings?.selectedVocabularies || []
-      
-      if (selectedVocabs.length > 0 && selectedVocabs[0] !== '__none__') {
-        setSources(selectedVocabs.map(vocab => ({ filename: vocab, count: Math.floor(words.length / selectedVocabs.length) })))
-      } else if (words.length > 0) {
-        setSources([{ filename: '전체 단어장', count: words.length }])
-      }
-      
-      // 최근 학습하지 않은 단어 10개 가져오기 (user_words에 없는 단어들)
+      // 최근 학습하지 않은 단어 6개
       const studiedWordIds = new Set(userStudiedWords.map(uw => uw.wordId))
       const notStudiedWords = words
         .filter(w => !studiedWordIds.has(w.id))
         .sort(() => Math.random() - 0.5)
-        .slice(0, 10)
+        .slice(0, 6)
       
       setRecentWords(notStudiedWords)
     } catch (error) {
       console.error('Error loading stats:', error)
     }
-  }, [user, vocabularyWords]) // user와 vocabularyWords가 변경될 때마다 새로운 함수 생성
-
-  // updateFilename 함수 정의
-  const updateFilename = async (oldFilename: string, newFilename: string) => {
-    if (!user) return
-
-    try {
-      const response = await fetch('/api/update-source', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          oldFilename,
-          newFilename
-        })
-      })
-      
-      const result = await response.json()
-      if (result.success) {
-        alert(result.message)
-        loadStats() // 통계 다시 로드
-      }
-    } catch (error) {
-      console.error('Error updating filename:', error)
-      alert('파일명 변경 중 오류가 발생했습니다.')
-    }
-  }
+  }, [user, vocabularyWords])
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
   useEffect(() => {
@@ -197,41 +259,22 @@ export default function DashboardPage() {
     }
   }, [user, loading, router])
 
-
   // 통계 데이터 가져오기
   useEffect(() => {
-    console.log('[Dashboard] vocabularyWords update:', {
-      count: vocabularyWords.length,
-      loading: vocabularyLoading,
-      user: user?.uid
-    })
-    
     if (user) {
       if (vocabularyWords.length > 0) {
         loadStats()
       } else if (!vocabularyLoading) {
-        // 로딩이 끝났는데 단어가 없는 경우에도 통계를 업데이트
         setStats({
           totalWords: 0,
           studiedWords: 0,
           todayWords: 0,
-          masteryAverage: 0
+          masteryAverage: 0,
+          streak: 0
         })
       }
     }
   }, [user, vocabularyWords, vocabularyLoading, loadStats])
-
-  // 단어장 새로고침 이벤트 리스너
-  useEffect(() => {
-    const handleVocabularyRefresh = () => {
-      console.log('[Dashboard] Vocabulary refreshed event received')
-      // 강제로 통계 새로고침
-      loadStats()
-    }
-
-    window.addEventListener('vocabulary-refreshed', handleVocabularyRefresh)
-    return () => window.removeEventListener('vocabulary-refreshed', handleVocabularyRefresh)
-  }, [loadStats]) // loadStats가 useCallback으로 메모이제이션되어 있음
 
   if (loading || vocabularyLoading) {
     return (
@@ -239,7 +282,6 @@ export default function DashboardPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>
-          <p className="mt-2 text-xs text-gray-500">단어를 불러오고 있습니다...</p>
         </div>
       </div>
     )
@@ -249,155 +291,239 @@ export default function DashboardPage() {
     return null
   }
 
-  const statsDisplay = [
-    { label: '학습한 단어', value: `${stats.studiedWords}개`, icon: BookOpen, color: 'text-blue-600' },
-    { label: '오늘의 목표', value: `${stats.todayWords}/30개`, icon: Target, color: 'text-green-600' },
-    { label: '전체 단어', value: `${stats.totalWords}개`, icon: Clock, color: 'text-purple-600' },
-    { label: '평균 숙련도', value: `${stats.masteryAverage}%`, icon: TrendingUp, color: 'text-orange-600' }
-  ]
-  
-  // 단어장을 선택하지 않은 경우
   const noVocabularySelected = vocabularyWords.length === 0 && !loading && !vocabularyLoading
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      {/* 환영 메시지 */}
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            안녕하세요, {appUser?.displayName || user.email?.split('@')[0]}님!
-          </h1>
-          <p className="text-gray-600">오늘도 단어 학습을 시작해볼까요?</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push('/help')}
-          className="flex items-center gap-2"
-        >
-          <HelpCircle className="h-4 w-4" />
-          학습 도움말
-        </Button>
-      </div>
-
-      {/* 단어장 미선택 안내 */}
-      {noVocabularySelected && (
-        <Card className="mb-8 border-yellow-200 bg-yellow-50">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <BookOpen className="h-6 w-6 text-yellow-600 mt-1" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-yellow-900 mb-1">학습할 단어장을 선택해주세요</h3>
-                <p className="text-yellow-800 text-sm mb-3">
-                  아직 학습할 단어장을 선택하지 않으셨습니다. 설정에서 단어장을 선택하면 학습을 시작할 수 있습니다.
-                </p>
-                <Button 
-                  size="sm"
-                  onClick={() => router.push('/settings')}
-                  className="bg-yellow-600 hover:bg-yellow-700"
-                >
-                  단어장 선택하러 가기
-                </Button>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
+        {/* 헤더 섹션 */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                안녕하세요, {appUser?.displayName || user.email?.split('@')[0]}님! 👋
+              </h1>
+              <p className="text-lg text-gray-600">오늘도 효율적인 단어 학습을 시작해보세요</p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/help')}
+              className="flex items-center gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              도움말
+            </Button>
+          </div>
 
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {statsDisplay.map((stat, idx) => {
-          const Icon = stat.icon
-          return (
-            <Card key={idx}>
+          {/* 학습 통계 섹션 */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">{stat.label}</p>
-                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                    <p className="text-xs text-gray-500 mb-1">오늘 학습</p>
+                    <p className="text-2xl font-bold text-blue-600">{stats.todayWords}</p>
+                    <p className="text-xs text-gray-400">/ 30 목표</p>
                   </div>
-                  <Icon className={`h-8 w-8 ${stat.color} opacity-20`} />
+                  <Target className="h-8 w-8 text-blue-200" />
                 </div>
               </CardContent>
             </Card>
-          )
-        })}
-      </div>
+            
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">총 학습</p>
+                    <p className="text-2xl font-bold text-green-600">{stats.studiedWords}</p>
+                    <p className="text-xs text-gray-400">단어</p>
+                  </div>
+                  <BookOpen className="h-8 w-8 text-green-200" />
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* 빠른 시작 섹션 */}
-      <div className="mb-8">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/study')}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              단어 학습 시작
-              <ChevronRight className="h-5 w-5" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">플래시카드, 리스트 등 다양한 방법으로 단어를 학습하세요.</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">전체 단어</p>
+                    <p className="text-2xl font-bold text-purple-600">{stats.totalWords}</p>
+                    <p className="text-xs text-gray-400">개</p>
+                  </div>
+                  <BarChart3 className="h-8 w-8 text-purple-200" />
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* 단어장 출처 */}
-      {sources.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">업로드된 단어장</h3>
-          <div className="space-y-2">
-            {sources.map((source, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm font-medium">{source.filename}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{source.count}개 단어</span>
-                  {source.filename === '[SAT] 24FW V.ZIP 3K.pdf' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => updateFilename('[SAT] 24FW V.ZIP 3K.pdf', 'veterans_24FW.pdf')}
-                    >
-                      <Edit2 className="h-3 w-3 mr-1" />
-                      이름 변경
-                    </Button>
-                  )}
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">평균 숙련도</p>
+                    <p className="text-2xl font-bold text-orange-600">{stats.masteryAverage}%</p>
+                    <p className="text-xs text-gray-400">마스터</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-orange-200" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">연속 학습</p>
+                    <p className="text-2xl font-bold text-red-600">{stats.streak}</p>
+                    <p className="text-xs text-gray-400">일째</p>
+                  </div>
+                  <Zap className="h-8 w-8 text-red-200" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* 주요 기능 카드 */}
+        <div className="mb-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Rocket className="h-5 w-5" />
+            핵심 기능
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {featureCards.map((feature) => {
+              const Icon = feature.icon
+              return (
+                <Card 
+                  key={feature.id}
+                  className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group overflow-hidden"
+                  onClick={() => router.push(feature.route)}
+                >
+                  <div className={`h-2 ${feature.bgGradient}`} />
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`p-3 rounded-xl ${feature.bgGradient} text-white`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    </div>
+                    <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
+                    <p className="text-sm text-gray-600 mb-4">{feature.description}</p>
+                    <div className="space-y-1">
+                      {feature.features.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs text-gray-500">
+                          <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 시험 카테고리 섹션 */}
+        <div className="mb-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <GraduationCap className="h-5 w-5" />
+            시험 준비
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {examCategories.map((exam) => {
+              const Icon = exam.icon
+              return (
+                <Card 
+                  key={exam.id}
+                  className={`border ${exam.borderColor} ${exam.bgColor} hover:shadow-lg transition-all cursor-pointer group`}
+                  onClick={() => exam.available && router.push(`/study?exam=${exam.id}`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Icon className={`h-8 w-8 ${exam.textColor}`} />
+                      {exam.available && (
+                        <ChevronRight className={`h-4 w-4 ${exam.textColor} opacity-50 group-hover:opacity-100 transition-opacity`} />
+                      )}
+                    </div>
+                    <h3 className={`font-bold text-lg ${exam.textColor} mb-1`}>{exam.title}</h3>
+                    <p className="text-xs text-gray-600 mb-2">{exam.description}</p>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className={`font-medium ${exam.textColor}`}>{exam.wordCount} 단어</span>
+                      <span className="text-gray-500">{exam.difficulty}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 단어장 미선택 안내 */}
+        {noVocabularySelected && (
+          <Card className="mb-8 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-yellow-100 rounded-lg">
+                  <BookOpen className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-yellow-900 mb-2">학습을 시작하려면 단어장을 선택하세요</h3>
+                  <p className="text-yellow-800 text-sm mb-4">
+                    SAT, TOEIC, TOEFL 등 다양한 시험 대비 단어장을 준비했습니다.
+                  </p>
+                  <Button 
+                    onClick={() => router.push('/settings')}
+                    className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+                  >
+                    단어장 선택하기
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </CardContent>
+          </Card>
+        )}
 
-      {/* 최근 단어 섹션 */}
-      {recentWords.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-600" />
-            오늘의 추천 단어
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {recentWords.map((word) => (
-              <Card 
-                key={word.id}
-                className="p-4 cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => openModal(unifiedToVocabularyWord(word))}
-              >
-                <div className="text-center">
-                  <p className="font-bold text-lg mb-1">{word.word}</p>
-                  <p className="text-sm text-gray-600 line-clamp-2">{word.definition || 'No definition available'}</p>
-                </div>
-              </Card>
-            ))}
+        {/* 오늘의 추천 단어 */}
+        {recentWords.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              오늘의 추천 단어
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {recentWords.map((word) => (
+                <Card 
+                  key={word.id}
+                  className="group cursor-pointer hover:shadow-lg transition-all border-0 bg-white"
+                  onClick={() => openModal(unifiedToVocabularyWord(word))}
+                >
+                  <CardContent className="p-4">
+                    <p className="font-bold text-base mb-2 group-hover:text-blue-600 transition-colors">
+                      {word.word}
+                    </p>
+                    <p className="text-xs text-gray-500 line-clamp-2">
+                      {word.definition || 'Click to learn'}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 계정 정보 (작게) */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-center gap-3">
-          <User className="h-5 w-5 text-gray-600" />
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">{user.email}</span> • 
-            가입일: {appUser?.createdAt?.toLocaleDateString('ko-KR') || '알 수 없음'}
-          </div>
+        {/* 빠른 시작 버튼 */}
+        <div className="fixed bottom-8 right-8 z-50">
+          <Button
+            size="lg"
+            onClick={() => router.push('/study')}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all"
+          >
+            <Rocket className="mr-2 h-5 w-5" />
+            학습 시작하기
+          </Button>
         </div>
       </div>
 
@@ -414,7 +540,6 @@ export default function DashboardPage() {
         generatingEtymology={generatingEtymology}
         fetchingPronunciation={fetchingPronunciation}
         onSynonymClick={async (synonymWord) => {
-          // Find the word in all words list
           const synonymWordData = allWords.find(w => w.word.toLowerCase() === synonymWord.toLowerCase())
           
           if (synonymWordData) {
@@ -423,7 +548,6 @@ export default function DashboardPage() {
               openModal(unifiedToVocabularyWord(synonymWordData))
             }, 100)
           } else if (user) {
-            // If not found in current list, try to fetch from database
             try {
               const { words: searchResults } = await vocabularyService.search(synonymWord, user.uid)
               if (searchResults[0]) {

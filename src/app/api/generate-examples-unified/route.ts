@@ -22,6 +22,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // First check if examples already exist
+    const db = getAdminFirestore()
+    const wordAdapter = new WordAdapterServer()
+    const existingWord = await wordAdapter.getWordById(wordId)
+    
+    if (existingWord && existingWord.examples && existingWord.examples.length >= 3) {
+      console.log(`[generate-examples-unified] Word ${word} already has examples, returning existing`)
+      return NextResponse.json({
+        success: true,
+        examples: existingWord.examples,
+        message: 'Using existing examples'
+      })
+    }
+
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return NextResponse.json(
@@ -88,11 +102,10 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
       }
 
       // Update the word in the appropriate collection
-      const db = getAdminFirestore()
-      const wordAdapter = new WordAdapterServer()
+      // (db and wordAdapter already declared above)
       
       // First, try to find which collection the word belongs to
-      const unifiedWord = await wordAdapter.getWordById(wordId)
+      const unifiedWord = existingWord || await wordAdapter.getWordById(wordId)
       
       if (unifiedWord && unifiedWord.source) {
         const collection = unifiedWord.source.collection

@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/components/providers/auth-provider'
 import { photoVocabularyService } from '@/lib/api/photo-vocabulary-service'
-import CameraCapture from './camera-capture'
 import type { ExtractedWord } from '@/types/photo-vocabulary'
 
 interface PhotoUploadProps {
@@ -18,12 +17,12 @@ interface PhotoUploadProps {
 export function PhotoUpload({ onUploadComplete, maxWords = 30 }: PhotoUploadProps) {
   const { user } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [extracting, setExtracting] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [extractionMethod, setExtractionMethod] = useState<'openai' | 'google'>('openai')
-  const [showCamera, setShowCamera] = useState(false)
+  const [extractionMethod, setExtractionMethod] = useState<'openai' | 'google'>('google')
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -121,23 +120,13 @@ export function PhotoUpload({ onUploadComplete, maxWords = 30 }: PhotoUploadProp
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }
-
-  const handleCameraCapture = async (imageFile: File) => {
-    setShowCamera(false)
-    setPreview(URL.createObjectURL(imageFile))
-    await processPhoto(imageFile)
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = ''
+    }
   }
 
   return (
     <div className="w-full space-y-4">
-      {/* Camera Modal */}
-      {showCamera && (
-        <CameraCapture
-          onCapture={handleCameraCapture}
-          onClose={() => setShowCamera(false)}
-        />
-      )}
 
       {/* API Selection */}
       <Card className="p-4">
@@ -174,6 +163,18 @@ export function PhotoUpload({ onUploadComplete, maxWords = 30 }: PhotoUploadProp
 
       {/* Mobile Upload Options */}
       <div className="md:hidden">
+        {/* Camera input for direct camera access */}
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileSelect}
+          className="hidden"
+          id="mobile-camera"
+          disabled={uploading || extracting}
+        />
+        {/* Gallery input without capture */}
         <input
           ref={fileInputRef}
           type="file"
@@ -185,18 +186,17 @@ export function PhotoUpload({ onUploadComplete, maxWords = 30 }: PhotoUploadProp
         />
         {!preview ? (
           <div className="space-y-3">
-            {/* Camera Capture Button */}
-            <Button
-              onClick={() => setShowCamera(true)}
-              disabled={uploading || extracting}
-              className="w-full h-16 bg-blue-500 hover:bg-blue-600"
+            {/* Camera Capture Button - Direct native camera */}
+            <label
+              htmlFor="mobile-camera"
+              className="flex items-center justify-center w-full h-16 bg-blue-500 hover:bg-blue-600 text-white rounded-lg cursor-pointer transition-colors"
             >
               <CameraIcon className="h-8 w-8 mr-3" />
               <div className="text-left">
                 <div className="text-lg font-medium">카메라로 촬영</div>
-                <div className="text-sm opacity-90">실시간 촬영하기</div>
+                <div className="text-sm opacity-90">카메라 앱으로 촬영</div>
               </div>
-            </Button>
+            </label>
 
             {/* Gallery Selection Button */}
             <label
@@ -244,18 +244,6 @@ export function PhotoUpload({ onUploadComplete, maxWords = 30 }: PhotoUploadProp
         />
         {!preview ? (
           <div className="space-y-4">
-            {/* Camera Capture Button for Desktop */}
-            <Button
-              onClick={() => setShowCamera(true)}
-              disabled={uploading || extracting}
-              className="w-full h-16 bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              <CameraIcon className="h-8 w-8 mr-3" />
-              <div>
-                <div className="text-lg font-medium">카메라로 촬영</div>
-                <div className="text-sm opacity-90">웹캠으로 실시간 촬영하기</div>
-              </div>
-            </Button>
 
             {/* Drag & Drop Upload Area */}
             <div

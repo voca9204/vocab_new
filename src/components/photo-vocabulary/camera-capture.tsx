@@ -38,9 +38,9 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          facingMode: { exact: facingMode },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
         },
         audio: false
       })
@@ -206,6 +206,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              capture="environment"
               onChange={handleFileUpload}
               className="hidden"
             />

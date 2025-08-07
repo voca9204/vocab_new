@@ -89,7 +89,9 @@ export interface PhotoVocabularyEntry {
 
 export interface ExtractedWord {
   word: string
-  context?: string
+  context?: string  // Full definition text
+  koreanDefinition?: string  // Parsed Korean definition
+  englishDefinition?: string  // Parsed English definition
   position?: {
     x: number
     y: number
