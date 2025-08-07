@@ -505,28 +505,28 @@ function FlashcardsContent() {
   if (words.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header - Mobile Optimized */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          {/* Top row on mobile - Navigation */}
-          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-4">
+        {/* Header - Simplified Mobile */}
+        <div className="mb-6">
+          {/* Navigation Bar */}
+          <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push('/study')}
-              className="px-2 sm:px-4"
+              className="p-2"
             >
-              <ChevronLeft className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">뒤로</span>
+              <ChevronLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg sm:text-2xl font-bold">플래시카드 학습</h1>
+            <h1 className="text-lg sm:text-xl font-bold whitespace-nowrap">플래시카드 학습</h1>
+            <div className="w-10" /> {/* Spacer for centering */}
           </div>
           
-          {/* Bottom row on mobile - Controls */}
-          <div className="flex items-center gap-2 justify-end">
+          {/* Controls Bar */}
+          <div className="flex items-center gap-2">
             <select
               value={filter.studyMode}
               onChange={(e) => setFilter({ studyMode: e.target.value as 'all' | 'not-studied' | 'studied' })}
-              className="px-2 sm:px-3 py-1 sm:py-2 text-sm sm:text-base border rounded-lg flex-1 sm:flex-none max-w-[150px] sm:max-w-none"
+              className="flex-1 px-3 py-2 text-sm border rounded-lg"
             >
               <option value="all">모든 단어</option>
               <option value="not-studied">미학습</option>
@@ -623,28 +623,28 @@ function FlashcardsContent() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header - Mobile Optimized */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        {/* Top row on mobile - Navigation */}
-        <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-4">
+      {/* Header - Simplified Mobile */}
+      <div className="mb-6">
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/study')}
-            className="px-2 sm:px-4"
+            className="p-2"
           >
-            <ChevronLeft className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">뒤로</span>
+            <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg sm:text-2xl font-bold">플래시카드 학습</h1>
+          <h1 className="text-lg sm:text-xl font-bold whitespace-nowrap">플래시카드 학습</h1>
+          <div className="w-10" /> {/* Spacer for centering */}
         </div>
         
-        {/* Bottom row on mobile - Controls */}
-        <div className="flex items-center gap-2 justify-end">
+        {/* Controls Bar */}
+        <div className="flex items-center gap-2">
           <select
             value={filter.studyMode}
             onChange={(e) => setFilter({ studyMode: e.target.value as 'all' | 'not-studied' | 'studied' })}
-            className="px-2 sm:px-3 py-1 sm:py-2 text-sm sm:text-base border rounded-lg flex-1 sm:flex-none max-w-[150px] sm:max-w-none"
+            className="flex-1 px-3 py-2 text-sm border rounded-lg"
           >
             <option value="all">모든 단어</option>
             <option value="not-studied">미학습</option>
@@ -652,21 +652,21 @@ function FlashcardsContent() {
           </select>
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={shuffleWords}
             title="단어 섞기"
-            className="px-2 sm:px-3"
+            className="h-9 w-9"
           >
-            <Shuffle className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Shuffle className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={resetProgress}
             title="진도 초기화"
-            className="px-2 sm:px-3"
+            className="h-9 w-9"
           >
-            <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />
+            <RotateCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
