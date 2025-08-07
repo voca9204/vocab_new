@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Button } from '@/components/ui'
+import { Button, StudyHeader } from '@/components/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { 
@@ -300,23 +300,15 @@ export default function DailyGoalPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/study')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
-          <h1 className="text-2xl font-bold">일일 목표</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Flame className={`h-5 w-5 ${dailyGoal.studyStreak > 0 ? 'text-orange-500' : 'text-gray-400'}`} />
-          <span className="font-semibold">{dailyGoal.studyStreak}일 연속</span>
-        </div>
-      </div>
+      <StudyHeader 
+        title="일일 목표"
+        rightContent={
+          <div className="flex items-center gap-1">
+            <Flame className={`h-4 w-4 ${dailyGoal.studyStreak > 0 ? 'text-orange-500' : 'text-gray-400'}`} />
+            <span className="text-xs sm:text-sm font-semibold">{dailyGoal.studyStreak}일</span>
+          </div>
+        }
+      />
 
       {/* 목표 진행률 카드 */}
       <Card className="mb-6">

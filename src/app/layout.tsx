@@ -18,8 +18,45 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SAT Vocabulary Learning Platform V2",
-  description: "Next.js + Firebase SAT vocabulary learning with news-based contextual learning",
+  title: "VocaPhile - SAT 어휘 학습",
+  description: "실전 SAT 어휘를 효과적으로 학습하는 스마트 플랫폼",
+  manifest: "/manifest.json",
+  themeColor: "#3B82F6",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "VocaPhile",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "VocaPhile",
+    title: "VocaPhile - SAT 어휘 학습",
+    description: "실전 SAT 어휘를 효과적으로 학습하는 스마트 플랫폼",
+  },
+  twitter: {
+    card: "summary",
+    title: "VocaPhile - SAT 어휘 학습",
+    description: "실전 SAT 어휘를 효과적으로 학습하는 스마트 플랫폼",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({

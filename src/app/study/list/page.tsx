@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Button, Input } from '@/components/ui'
+import { Button, Input, StudyHeader } from '@/components/ui'
 import { Card } from '@/components/ui/card'
 import { 
   Search, 
@@ -237,22 +237,10 @@ export default function VocabularyListPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/study')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
-          <h1 className="text-2xl font-bold">단어 목록</h1>
-        </div>
-        <div className="text-sm text-gray-600">
-          총 {filteredWords.length}개 단어
-        </div>
-      </div>
+      <StudyHeader 
+        title="단어 목록"
+        subtitle={`총 ${filteredWords.length}개 단어`}
+      />
 
       {/* 검색 및 필터 */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">

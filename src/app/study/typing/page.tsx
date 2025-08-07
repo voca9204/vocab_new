@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Button } from '@/components/ui'
+import { Button, StudyHeader } from '@/components/ui'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, Keyboard, CheckCircle, Volume2 } from 'lucide-react'
@@ -224,17 +224,10 @@ export default function TypingPage() {
   if (error) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/study')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
-          <h1 className="text-2xl font-bold">타이핑 연습 (힌트 모드)</h1>
-        </div>
+        <StudyHeader 
+          title="타이핑 연습"
+          subtitle="힌트 모드"
+        />
         <ErrorFallback error={new Error(error)} resetError={handleRetry} />
       </div>
     )
@@ -243,19 +236,10 @@ export default function TypingPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/study')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
-          <h1 className="text-2xl font-bold">타이핑 연습 (힌트 모드)</h1>
-        </div>
-      </div>
+      <StudyHeader 
+        title="타이핑 연습"
+        subtitle="힌트 모드"
+      />
 
       {showPreview && words.length > 0 ? (
         // 단어 미리보기 화면

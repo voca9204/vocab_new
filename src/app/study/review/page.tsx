@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Button } from '@/components/ui'
+import { Button, StudyHeader } from '@/components/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   ChevronLeft,
@@ -287,42 +287,38 @@ export default function ReviewPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/study')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
-          <h1 className="text-2xl font-bold">스마트 복습</h1>
-        </div>
-        <div className="flex gap-2">
+      <StudyHeader 
+        title="스마트 복습"
+        rightContent={
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setShowHelp(!showHelp)}
+            className="p-2"
           >
-            <HelpCircle className="h-4 w-4 mr-1" />
-            도움말
+            <HelpCircle className="h-4 w-4" />
           </Button>
-          <Button
-            variant={reviewType === 'difficult' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setReviewType('difficult')}
-          >
-            어려운 단어
-          </Button>
-          <Button
-            variant={reviewType === 'scheduled' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setReviewType('scheduled')}
-          >
-            복습 예정
-          </Button>
-        </div>
+        }
+      />
+      
+      {/* 복습 타입 선택 */}
+      <div className="flex gap-2 mb-4">
+        <Button
+          variant={reviewType === 'difficult' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setReviewType('difficult')}
+          className="flex-1"
+        >
+          어려운 단어
+        </Button>
+        <Button
+          variant={reviewType === 'scheduled' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setReviewType('scheduled')}
+          className="flex-1"
+        >
+          복습 예정
+        </Button>
       </div>
 
       {/* 도움말 섹션 */}

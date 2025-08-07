@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
-import { Button } from '@/components/ui'
+import { Button, StudyHeader } from '@/components/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   ChevronLeft,
@@ -462,25 +462,17 @@ function QuizContent() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/study')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
-          <h1 className="text-2xl font-bold">퀴즈 모드</h1>
-        </div>
-        {!quizComplete && questions.length > 0 && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Clock className="h-4 w-4" />
-            <span>{Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}</span>
-          </div>
-        )}
-      </div>
+      <StudyHeader 
+        title="퀴즈 학습"
+        rightContent={
+          !quizComplete && questions.length > 0 ? (
+            <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>{Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}</span>
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* 진행률 표시 */}
       {!quizComplete && questions.length > 0 && (
