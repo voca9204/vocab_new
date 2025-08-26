@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin'
-import OpenAI from 'openai'
 
 interface DiscoverRequest {
   word: string
@@ -96,60 +95,35 @@ export async function POST(request: NextRequest) {
       })
     }
     
-    // 2. OpenAI를 사용하여 새 단어 정의 생성
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
+    // 2. 통합 추출 API를 사용하여 새 단어 정의 생성
+    const baseUrl = request.url.split('/api/')[0]
+    const discoveryResponse = await fetch(`${baseUrl}/api/extract`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        word,
+        context,
+        options: {
+          aiModel: 'gpt-4',
+          targetLanguage: 'both'
+        }
+      })
+    })
+    
+    const discoveryResult = await discoveryResponse.json()
+    
+    if (!discoveryResponse.ok || !discoveryResult.success) {
       return NextResponse.json(
-        { success: false, message: 'OpenAI API key not configured' },
-        { status: 500 }
+        { success: false, message: discoveryResult.error || 'Failed to generate word information' },
+        { status: discoveryResponse.status || 500 }
       )
     }
     
-    const openai = new OpenAI({ apiKey })
+    const generatedWord = discoveryResult.word
     
-    const prompt = `You are a vocabulary expert helping students learn new words.
-    
-Generate comprehensive information for the word "${word}"${context ? ` found in context: "${context}"` : ''}.
-
-Please provide the following in JSON format:
-{
-  "partOfSpeech": ["array of parts of speech, e.g., n., v., adj."],
-  "definitions": [
-    {
-      "definition": "Korean definition",
-      "examples": ["2-3 example sentences in English"],
-      "language": "ko"
-    }
-  ],
-  "englishDefinition": "English definition",
-  "etymology": "Word origin and etymology",
-  "synonyms": ["list of synonyms"],
-  "antonyms": ["list of antonyms"],
-  "difficulty": 1-10 (SAT difficulty level),
-  "frequency": 1-10 (usage frequency),
-  "isSAT": boolean (is it a common SAT word?),
-  "pronunciation": "IPA pronunciation"
-}`
-    
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a vocabulary expert. Generate accurate, educational vocabulary information.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 800
-    })
-    
-    const content = completion.choices[0]?.message?.content
-    
-    if (!content) {
+    if (!generatedWord) {
       return NextResponse.json(
         { success: false, message: 'Failed to generate word information' },
         { status: 500 }
@@ -157,8 +131,37 @@ Please provide the following in JSON format:
     }
     
     try {
-      // Parse AI response
-      const wordInfo = JSON.parse(content)
+      // Use the generated word data from unified extraction
+      // Ensure definition is a string
+      let definitionString = ''
+      if (generatedWord.definition) {
+        if (typeof generatedWord.definition === 'object') {
+          // Extract string from object format
+          definitionString = generatedWord.definition.korean || 
+                           generatedWord.definition.english || 
+                           generatedWord.definition.definition || 
+                           JSON.stringify(generatedWord.definition)
+        } else {
+          definitionString = generatedWord.definition
+        }
+      }
+      
+      const wordInfo = {
+        partOfSpeech: generatedWord.partOfSpeech || [],
+        definitions: definitionString ? [{
+          definition: definitionString,
+          examples: generatedWord.examples || [],
+          language: 'ko'
+        }] : [],
+        englishDefinition: generatedWord.englishDefinition || definitionString || '',
+        etymology: generatedWord.etymology || '',
+        synonyms: generatedWord.synonyms || [],
+        antonyms: generatedWord.antonyms || [],
+        difficulty: generatedWord.difficulty || 5,
+        frequency: generatedWord.frequency || 5,
+        isSAT: generatedWord.isSAT || false,
+        pronunciation: generatedWord.pronunciation || ''
+      }
       
       // 3. 원본 단어와의 관계 생성 (있는 경우)
       let relationshipId = null
@@ -185,6 +188,7 @@ Please provide the following in JSON format:
         normalizedWord: word.toLowerCase().replace(/[^a-z]/g, ''),
         pronunciation: wordInfo.pronunciation,
         partOfSpeech: wordInfo.partOfSpeech,
+        definition: definitionString, // Add the main definition as a string field
         definitions: wordInfo.definitions.map((def: any, idx: number) => ({
           id: `def-${idx}`,
           definition: def.definition,
@@ -193,8 +197,8 @@ Please provide the following in JSON format:
           language: def.language || 'ko',
           createdAt: now
         })),
-        etymology: wordInfo.englishDefinition,
-        realEtymology: wordInfo.etymology,
+        englishDefinition: wordInfo.englishDefinition,
+        etymology: wordInfo.etymology,
         synonyms: wordInfo.synonyms || [],
         antonyms: wordInfo.antonyms || [],
         difficulty: wordInfo.difficulty || 5,

@@ -30,7 +30,7 @@ import {
 import { vocabularyService } from '@/lib/api'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
-import { useVocabulary } from '@/contexts/vocabulary-context'
+import { useVocabulary } from '@/contexts/collection-context-v2'
 import type { VocabularyWord } from '@/types'
 import type { UnifiedWord } from '@/types/unified-word'
 
@@ -474,7 +474,7 @@ export default function DashboardPage() {
                     SAT, TOEIC, TOEFL 등 다양한 시험 대비 단어장을 준비했습니다.
                   </p>
                   <Button 
-                    onClick={() => router.push('/settings')}
+                    onClick={() => router.push('/wordbooks')}
                     className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
                   >
                     단어장 선택하기

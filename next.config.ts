@@ -1,118 +1,22 @@
 import type { NextConfig } from "next";
 
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  buildExcludes: [/middleware-manifest\.json$/],
-  runtimeCaching: [
-    {
-      urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'google-fonts',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 365 * 24 * 60 * 60 // 1 year
-        }
-      }
-    },
-    {
-      urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-font-assets',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
-        }
-      }
-    },
-    {
-      urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-image-assets',
-        expiration: {
-          maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60 // 24 hours
-        }
-      }
-    },
-    {
-      urlPattern: /\.(?:js)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-js-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60 // 24 hours
-        }
-      }
-    },
-    {
-      urlPattern: /\.(?:css|less)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-style-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60 // 24 hours
-        }
-      }
-    },
-    {
-      urlPattern: /^https:\/\/vocabulary-app-new\.firebaseapp\.com\/.*/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'firebase-data',
-        networkTimeoutSeconds: 10,
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 60 * 60 // 1 hour
-        }
-      }
-    },
-    {
-      urlPattern: /\/_next\/data\/.+\/.+\.json$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'next-data',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60 // 24 hours
-        }
-      }
-    },
-    {
-      urlPattern: /\.(?:json|xml|csv)$/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'static-data-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60 // 24 hours
-        }
-      }
-    },
-    {
-      urlPattern: /^https:\/\/.*\.vercel\.app\/.*/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'vercel-app',
-        networkTimeoutSeconds: 10,
-        expiration: {
-          maxEntries: 16,
-          maxAgeSeconds: 60 * 60 // 1 hour
-        }
-      }
-    }
-  ]
-})
+// Temporarily disable PWA due to Next.js 15 compatibility issues
+// const withPWA = require('next-pwa')({
+//   dest: 'public',
+//   register: true,
+//   skipWaiting: true,
+//   disable: process.env.NODE_ENV === 'development',
+//   buildExcludes: [/middleware-manifest\.json$/],
+//   fallbacks: {
+//     document: '/offline.html',
+//   },
+//   // ... runtime caching configuration
+// })
 
 const nextConfig: NextConfig = {
   transpilePackages: ['firebase', 'firebase-admin'],
+  swcMinify: true,
+  productionBrowserSourceMaps: false,
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -122,6 +26,8 @@ const nextConfig: NextConfig = {
         tls: false,
       };
     }
+    // Disable webpack optimization temporarily
+    config.optimization.minimize = false;
     return config;
   },
   eslint: {
@@ -137,4 +43,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+// export default withPWA(nextConfig);
+export default nextConfig;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
-import { useVocabulary } from '@/contexts/vocabulary-context'
+import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { Button } from '@/components/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
@@ -19,25 +19,30 @@ import {
   DollarSign,
   ExternalLink,
   Target,
-  Type
+  Type,
+  X
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import { UserSettingsService } from '@/lib/settings/user-settings-service'
 
-interface VocabularySource {
-  filename: string
-  count: number
-  selected: boolean
-}
-
 const settingsService = new UserSettingsService()
 
 export default function SettingsPage() {
-  const { user, loading, isAdmin } = useAuth()
+  const { user, loading: authLoading, isAdmin } = useAuth()
   const router = useRouter()
-  const { refreshWords } = useVocabulary()
-  const [sources, setSources] = useState<VocabularySource[]>([])
-  const [loadingSources, setLoadingSources] = useState(true)
+  const { 
+    collections,
+    selectedCollections,
+    selectCollection,
+    unselectCollection,
+    refreshCollections,
+    refreshWords,
+    userSettings,
+    updateUserSettings,
+    collectionLoading,
+    getStats
+  } = useCollectionV2()
+  
   const [pronunciationStats, setPronunciationStats] = useState({
     total: 0,
     withPronunciation: 0,
@@ -58,21 +63,39 @@ export default function SettingsPage() {
   const [deletingData, setDeletingData] = useState(false)
   const [textSize, setTextSize] = useState<'small' | 'medium' | 'large'>('medium')
   const [updatingTextSize, setUpdatingTextSize] = useState(false)
+  const [displayOptions, setDisplayOptions] = useState({
+    showSynonyms: true,
+    showAntonyms: false,
+    showEtymology: true,
+    showExamples: true
+  })
+  const [updatingDisplayOptions, setUpdatingDisplayOptions] = useState(false)
   const [totalWordCount, setTotalWordCount] = useState<{
     total: number
     collections: Record<string, number>
   } | null>(null)
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
+  const loading = authLoading || collectionLoading
 
   useEffect(() => {
-    if (user) {
-      loadSources()
-      loadUserSettings()
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
+
+  useEffect(() => {
+    if (user && userSettings) {
+      // Load user settings into local state
+      setDailyGoal(userSettings.dailyGoal || 30)
+      setTextSize(userSettings.textSize || 'medium')
+      setDisplayOptions(userSettings.displayOptions || {
+        showSynonyms: true,
+        showAntonyms: false,
+        showEtymology: true,
+        showExamples: true
+      })
+      
+      // Load other stats
       checkPronunciationStats()
       checkExampleStats()
       checkOpenAIUsage()
@@ -80,132 +103,57 @@ export default function SettingsPage() {
         loadTotalWordCount()
       }
     }
-  }, [user, isAdmin])
+  }, [user, userSettings, isAdmin])
 
-  const loadSources = async () => {
+  const checkPronunciationStats = async () => {
     if (!user) return
-
+    
     try {
-      console.log('Loading vocabulary collections from new DB structure')
+      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
+      const withPronunciation = words.filter(word => word.pronunciation && word.pronunciation.trim() !== '').length
+      const withoutPronunciation = words.length - withPronunciation
+      const percentage = words.length > 0 ? Math.round((withPronunciation / words.length) * 100) : 0
       
-      // vocabulary_collections에서 모든 단어장 가져오기
-      const response = await fetch('/api/vocabulary-collections')
-      if (!response.ok) {
-        throw new Error('Failed to fetch vocabulary collections')
-      }
-      
-      const { collections } = await response.json()
-      console.log(`Loaded ${collections.length} vocabulary collections`)
-      console.log('Collections detail:', collections)
-      
-      // 컬렉션별로 단어 수 계산
-      const sourceMap = new Map<string, number>()
-      
-      for (const collection of collections) {
-        // 사용자가 볼 수 있는 단어장만 표시
-        if (collection.isPrivate && collection.userId !== user.uid) {
-          continue // 다른 사용자의 비공개 단어장은 제외
-        }
-        
-        const wordCount = collection.words?.length || 0
-        console.log(`Collection "${collection.name}": ${wordCount} words`)
-        
-        if (wordCount > 0) {
-          sourceMap.set(collection.name || collection.displayName, wordCount)
-          console.log(`✅ Added "${collection.name || collection.displayName}" to sourceMap`)
-        }
-      }
-      
-      // 레거시 컬렉션 확인 부분 제거 - 이제 vocabulary_collections만 사용
-      // 모든 단어는 words 컬렉션에 있고, vocabulary_collections로 그룹화됨
-      
-      // Firestore에서 사용자 설정 가져오기
-      const userSettings = await settingsService.getUserSettings(user.uid)
-      const selectedSources = userSettings?.selectedVocabularies || []
-      
-      const sourceList = Array.from(sourceMap.entries())
-        .map(([filename, count]) => ({ 
-          filename, 
-          count,
-          selected: selectedSources.length === 0 ? true : // 빈 배열 = 전체 선택
-                   selectedSources.includes('__none__') ? false : // '__none__' = 전체 해제
-                   selectedSources.includes(filename) // 개별 선택
-        }))
-        .sort((a, b) => b.count - a.count)
-      
-      console.log('📚 Final sourceList:', sourceList)
-      console.log('📊 sourceMap entries:', Array.from(sourceMap.entries()))
-      
-      setSources(sourceList)
+      setPronunciationStats({
+        total: words.length,
+        withPronunciation,
+        withoutPronunciation,
+        percentage
+      })
     } catch (error) {
-      console.error('Error loading sources:', error)
-      // 오류 시 구 서비스로 폴백
-      try {
-        const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
-        const sourceList = [{
-          filename: 'SAT 단어장',
-          count: words.length,
-          selected: true
-        }]
-        setSources(sourceList)
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError)
+      console.error('Error checking pronunciation stats:', error)
+    }
+  }
+
+  const checkExampleStats = async () => {
+    if (!user) return
+    
+    try {
+      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
+      const withExamples = words.filter(word => word.examples && word.examples.length > 0).length
+      const withoutExamples = words.length - withExamples
+      const percentage = words.length > 0 ? Math.round((withExamples / words.length) * 100) : 0
+      
+      setExampleStats({
+        total: words.length,
+        withExamples,
+        withoutExamples,
+        percentage
+      })
+    } catch (error) {
+      console.error('Error checking example stats:', error)
+    }
+  }
+
+  const checkOpenAIUsage = async () => {
+    try {
+      const response = await fetch('/api/openai-usage')
+      if (response.ok) {
+        const usage = await response.json()
+        setOpenAIUsage(usage)
       }
-    } finally {
-      setLoadingSources(false)
-    }
-  }
-
-  const toggleSource = async (filename: string) => {
-    const updatedSources = sources.map(source => 
-      source.filename === filename 
-        ? { ...source, selected: !source.selected }
-        : source
-    )
-    setSources(updatedSources)
-    
-    // Firestore에 저장
-    const selectedFilenames = updatedSources
-      .filter(s => s.selected)
-      .map(s => s.filename)
-    
-    if (user) {
-      // 아무것도 선택되지 않았으면 '__none__'으로 명시적 표시
-      if (selectedFilenames.length === 0) {
-        await settingsService.updateSelectedVocabularies(user.uid, ['__none__'])
-      } else {
-        await settingsService.updateSelectedVocabularies(user.uid, selectedFilenames)
-      }
-      
-      // VocabularyContext 새로고침
-      await refreshWords()
-    }
-  }
-
-  const selectAll = async () => {
-    const updatedSources = sources.map(source => ({ ...source, selected: true }))
-    setSources(updatedSources)
-    
-    // 전체 선택은 빈 배열로 저장
-    if (user) {
-      await settingsService.updateSelectedVocabularies(user.uid, [])
-      
-      // VocabularyContext 새로고침
-      await refreshWords()
-    }
-  }
-
-  const deselectAll = async () => {
-    const updatedSources = sources.map(source => ({ ...source, selected: false }))
-    setSources(updatedSources)
-    
-    // 모든 파일명을 저장하여 아무것도 선택하지 않음을 표시
-    const allFilenames = sources.map(s => s.filename)
-    if (user) {
-      await settingsService.updateSelectedVocabularies(user.uid, ['__none__'])
-      
-      // VocabularyContext 새로고침
-      await refreshWords()
+    } catch (error) {
+      console.error('Error checking OpenAI usage:', error)
     }
   }
 
@@ -215,8 +163,8 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json()
         setTotalWordCount({
-          total: data.totalCount,
-          collections: data.collectionCounts
+          total: data.totalCount || 0,
+          collections: data.collectionCounts || {}
         })
       }
     } catch (error) {
@@ -224,575 +172,384 @@ export default function SettingsPage() {
     }
   }
 
-  const checkPronunciationStats = async () => {
-    if (!user) return
-
-    try {
-      const response = await fetch(`/api/update-pronunciations?userId=${user.uid}`)
-      if (response.ok) {
-        const data = await response.json()
-        setPronunciationStats(data)
-      }
-    } catch (error) {
-      console.error('Error checking pronunciation stats:', error)
-    }
-  }
-
-  const updatePronunciations = async () => {
-    if (!user || updatingPronunciations) return
-
-    setUpdatingPronunciations(true)
+  // Collection selection handlers
+  const handleToggleCollection = async (collectionId: string) => {
+    const collection = collections.find(c => c.id === collectionId)
+    if (!collection) return
     
-    try {
-      const response = await fetch('/api/update-pronunciations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: user.uid,
-          limit: 50 // 한 번에 50개씩 처리
-        })
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        alert(`${result.updated}개 단어의 발음 정보를 업데이트했습니다.`)
-        
-        // 통계 다시 로드
-        await checkPronunciationStats()
-      } else {
-        const error = await response.json()
-        alert(`오류가 발생했습니다: ${error.message}`)
-      }
-    } catch (error) {
-      console.error('Error updating pronunciations:', error)
-      alert('발음 정보 업데이트 중 오류가 발생했습니다.')
-    } finally {
-      setUpdatingPronunciations(false)
+    if (collection.isSelected) {
+      await unselectCollection(collectionId)
+    } else {
+      await selectCollection(collectionId)
     }
-  }
-
-  const checkExampleStats = async () => {
-    if (!user) return
-
-    try {
-      const response = await fetch(`/api/generate-examples?userId=${user.uid}`)
-      if (response.ok) {
-        const data = await response.json()
-        setExampleStats(data)
-      }
-    } catch (error) {
-      console.error('Error checking example stats:', error)
-    }
-  }
-
-  const generateExamples = async () => {
-    if (!user || generatingExamples) return
-
-    // API 키 확인은 서버 사이드에서 처리됨
-    // 클라이언트에서는 직접 확인 불가
-
-    setGeneratingExamples(true)
     
-    try {
-      const response = await fetch('/api/generate-examples', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: user.uid,
-          limit: 50 // 한 번에 50개씩 처리
-        })
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        alert(`${result.updated}개 단어의 예문을 생성했습니다.`)
-        
-        // 통계 다시 로드
-        await checkExampleStats()
-      } else {
-        const error = await response.json()
-        alert(`오류가 발생했습니다: ${error.message}`)
-      }
-    } catch (error) {
-      console.error('Error generating examples:', error)
-      alert('예문 생성 중 오류가 발생했습니다.')
-    } finally {
-      setGeneratingExamples(false)
-    }
+    // Refresh words after selection change
+    await refreshWords()
   }
 
-  const checkOpenAIUsage = async () => {
-    try {
-      const response = await fetch('/api/openai-usage')
-      if (response.ok) {
-        const data = await response.json()
-        setOpenAIUsage(data)
-      }
-    } catch (error) {
-      console.error('Error checking OpenAI usage:', error)
-    }
-  }
-
-  const loadUserSettings = async () => {
+  const handleUpdateDailyGoal = async () => {
     if (!user) return
-
-    try {
-      const settings = await settingsService.getUserSettings(user.uid)
-      if (settings?.dailyGoal) {
-        setDailyGoal(settings.dailyGoal)
-      }
-      if (settings?.textSize) {
-        setTextSize(settings.textSize)
-      }
-    } catch (error) {
-      console.error('Error loading user settings:', error)
-    }
-  }
-
-  const updateDailyGoal = async (newGoal: number) => {
-    if (!user || updatingDailyGoal) return
-
+    
     setUpdatingDailyGoal(true)
     try {
-      await settingsService.updateDailyGoal(user.uid, newGoal)
-      setDailyGoal(newGoal)
-      alert(`일일 학습 목표가 ${newGoal}개로 변경되었습니다.`)
+      await updateUserSettings({ dailyGoal })
+      alert('일일 목표가 업데이트되었습니다.')
     } catch (error) {
       console.error('Error updating daily goal:', error)
-      alert('일일 목표 변경 중 오류가 발생했습니다.')
+      alert('일일 목표 업데이트에 실패했습니다.')
     } finally {
       setUpdatingDailyGoal(false)
     }
   }
 
-  const updateTextSize = async (newSize: 'small' | 'medium' | 'large') => {
-    if (!user || updatingTextSize) return
-
+  const handleUpdateTextSize = async (size: 'small' | 'medium' | 'large') => {
+    if (!user) return
+    
     setUpdatingTextSize(true)
+    setTextSize(size)
+    
     try {
-      await settingsService.updateTextSize(user.uid, newSize)
-      setTextSize(newSize)
-      // 설정이 변경되었음을 알리는 이벤트 발생
-      window.dispatchEvent(new Event('settings-updated'))
+      await updateUserSettings({ textSize: size })
     } catch (error) {
       console.error('Error updating text size:', error)
-      alert('텍스트 크기 변경 중 오류가 발생했습니다.')
+      alert('텍스트 크기 변경에 실패했습니다.')
     } finally {
       setUpdatingTextSize(false)
     }
   }
 
-  const deleteUserData = async () => {
-    if (!user || deletingData) return
-
-    // 이중 확인
-    const confirmMessage = `🚨 학습 데이터 삭제 확인
-
-다음 데이터가 영구적으로 삭제됩니다:
-• 학습한 단어들의 진도 기록 (정답률, 숙련도 등)
-• 북마크한 단어들
-• 개인 메모 및 노트
-• 학습 통계 및 히스토리
-• 복습 일정 및 스트릭 기록
-
-⚠️ 이 작업은 되돌릴 수 없습니다!
-⚠️ 마스터 단어 데이터는 삭제되지 않으므로 다시 학습 가능합니다.
-
-정말로 삭제하시려면 아래에 "DELETE"를 정확히 입력하세요:`
-
-    const userInput = prompt(confirmMessage)
+  const handleUpdateDisplayOptions = async (option: keyof typeof displayOptions) => {
+    if (!user) return
     
-    if (userInput !== 'DELETE') {
-      if (userInput !== null) { // null이 아니면 사용자가 취소하지 않고 잘못 입력한 것
-        alert('입력이 정확하지 않습니다. 삭제가 취소되었습니다.')
+    setUpdatingDisplayOptions(true)
+    const newOptions = {
+      ...displayOptions,
+      [option]: !displayOptions[option]
+    }
+    setDisplayOptions(newOptions)
+    
+    try {
+      await updateUserSettings({ displayOptions: newOptions })
+    } catch (error) {
+      console.error('Error updating display options:', error)
+      alert('표시 옵션 변경에 실패했습니다.')
+    } finally {
+      setUpdatingDisplayOptions(false)
+    }
+  }
+
+  const updateAllPronunciations = async () => {
+    if (!user) return
+    
+    setUpdatingPronunciations(true)
+    try {
+      const response = await fetch('/api/update-pronunciations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to update pronunciations')
       }
+      
+      const result = await response.json()
+      alert(`${result.updated}개 단어의 발음 정보가 업데이트되었습니다.`)
+      
+      // Refresh stats
+      await checkPronunciationStats()
+      await refreshWords()
+    } catch (error) {
+      console.error('Error updating pronunciations:', error)
+      alert('발음 정보 업데이트에 실패했습니다.')
+    } finally {
+      setUpdatingPronunciations(false)
+    }
+  }
+
+  const generateAllExamples = async () => {
+    if (!user) return
+    
+    setGeneratingExamples(true)
+    try {
+      const response = await fetch('/api/generate-all-examples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate examples')
+      }
+      
+      const result = await response.json()
+      alert(`${result.generated}개 단어의 예문이 생성되었습니다.`)
+      
+      // Refresh stats
+      await checkExampleStats()
+      await refreshWords()
+    } catch (error) {
+      console.error('Error generating examples:', error)
+      alert('예문 생성에 실패했습니다.')
+    } finally {
+      setGeneratingExamples(false)
+    }
+  }
+
+  const deleteAllUserData = async () => {
+    if (!user) return
+    
+    if (!confirm('정말로 모든 학습 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
       return
     }
-
+    
     setDeletingData(true)
-
     try {
       const response = await fetch('/api/delete-user-data', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.uid })
       })
-
-      const result = await response.json()
-
-      if (result.success) {
-        alert(`✅ ${result.message}
-        
-삭제된 데이터:
-• 학습 기록: ${result.deleted.userWords}개
-• 단어장 구독: ${result.deleted.userVocabularies}개
-
-새롭게 시작하실 수 있습니다!`)
-        
-        // 페이지 새로고침하여 UI 업데이트
-        window.location.reload()
-      } else {
-        alert(`❌ 오류: ${result.message}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete user data')
       }
+      
+      alert('모든 학습 데이터가 삭제되었습니다.')
+      await refreshWords()
     } catch (error) {
       console.error('Error deleting user data:', error)
-      alert('데이터 삭제 중 오류가 발생했습니다.')
+      alert('데이터 삭제에 실패했습니다.')
     } finally {
       setDeletingData(false)
     }
   }
 
-  if (loading || loadingSources) {
+  // Get stats
+  const stats = getStats()
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4">설정을 불러오는 중...</p>
         </div>
       </div>
     )
   }
 
-  if (!user) {
-    return null
-  }
-
-  const selectedCount = sources.filter(s => s.selected).length
-  const totalWords = sources
-    .filter(s => s.selected)
-    .reduce((sum, s) => sum + s.count, 0)
-
   return (
-    <div className="container mx-auto py-8 px-4">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/dashboard')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            돌아가기
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">설정</h1>
-            <p className="text-gray-600">단어장 관리 및 학습 설정</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 관리자 전용 섹션 */}
-      {isAdmin && (
-        <>
-          {/* 전체 마스터 단어 DB 통계 */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                전체 마스터 단어 DB 현황
-              </CardTitle>
-              <CardDescription>
-                시스템에 등록된 모든 단어 데이터베이스 통계
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {totalWordCount ? (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">전체 단어 수</p>
-                    <p className="text-3xl font-bold text-blue-600">
-                      {totalWordCount.total.toLocaleString()}개
-                    </p>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-xs text-gray-600 mb-1">마스터 단어 DB</p>
-                      <p className="text-lg font-semibold">
-                        {totalWordCount.collections.words?.toLocaleString() || 0}개
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-xs text-gray-600 mb-1">수능 단어장</p>
-                      <p className="text-lg font-semibold">
-                        {totalWordCount.collections.vocabulary?.toLocaleString() || 0}개
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-xs text-gray-600 mb-1">SAT 단어장</p>
-                      <p className="text-lg font-semibold">
-                        {totalWordCount.collections.veterans_vocabulary?.toLocaleString() || 0}개
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-xs text-gray-600 mb-1">AI 생성 단어</p>
-                      <p className="text-lg font-semibold">
-                        {totalWordCount.collections.ai_generated_words?.toLocaleString() || 0}개
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-4 text-gray-500">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 mx-auto"></div>
-                  <p className="mt-2 text-sm">통계 로딩 중...</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* PDF 업로드 섹션 */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                PDF 단어장 업로드
-              </CardTitle>
-              <CardDescription>
-                새로운 단어장 PDF를 업로드하여 학습 콘텐츠를 추가하세요
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => router.push('/pdf-extract')}>
-                PDF 업로드하기
-              </Button>
-            </CardContent>
-          </Card>
-        </>
-      )}
-
-      {/* 일일 학습 목표 설정 섹션 */}
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => router.back()}
+        className="mb-4"
+      >
+        <ChevronLeft className="h-4 w-4 mr-1" />
+        뒤로 가기
+      </Button>
+      
+      <h1 className="text-3xl font-bold mb-8">설정</h1>
+      
+      {/* 단어장 선택 */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            일일 학습 목표
+            <BookOpen className="h-5 w-5" />
+            단어장 선택
           </CardTitle>
-          <CardDescription>
-            하루에 학습할 단어 개수를 설정하세요
-          </CardDescription>
+          <CardDescription>학습할 단어장을 선택하세요</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-gray-600">현재 목표:</p>
-              <p className="text-2xl font-bold text-blue-600">{dailyGoal}개</p>
-            </div>
-            
-            <div className="grid grid-cols-4 gap-2">
-              {[10, 20, 30, 50].map((goal) => (
-                <Button
-                  key={goal}
-                  variant={dailyGoal === goal ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateDailyGoal(goal)}
-                  disabled={updatingDailyGoal}
-                >
-                  {goal}개
-                </Button>
+          <div className="space-y-2">
+            {/* 공식 단어장 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">공식 단어장</h3>
+              {collections.filter(c => c.type === 'official').map(collection => (
+                <div key={collection.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleToggleCollection(collection.id)}
+                      className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
+                        collection.isSelected 
+                          ? 'bg-blue-600 border-blue-600' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      {collection.isSelected && <Check className="h-3 w-3 text-white" />}
+                    </button>
+                    <div>
+                      <span className="font-medium">{collection.displayName || collection.name}</span>
+                      <span className="text-sm text-gray-500 ml-2">({collection.wordCount}개)</span>
+                      {collection.category && (
+                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                          {collection.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
             
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min="5"
-                max="100"
-                step="5"
-                value={dailyGoal}
-                onChange={(e) => setDailyGoal(Number(e.target.value))}
-                className="flex-1"
-                disabled={updatingDailyGoal}
-              />
-              <Button
-                size="sm"
-                onClick={() => updateDailyGoal(dailyGoal)}
-                disabled={updatingDailyGoal}
-              >
-                설정
-              </Button>
-            </div>
-            
-            <p className="text-xs text-gray-500">
-              추천: 초급자 10-20개, 중급자 20-30개, 고급자 30-50개
+            {/* 개인 단어장 */}
+            {collections.filter(c => c.type === 'personal').length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-600 mb-2">개인 단어장</h3>
+                {collections.filter(c => c.type === 'personal').map(collection => (
+                  <div key={collection.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleToggleCollection(collection.id)}
+                        className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
+                          collection.isSelected 
+                            ? 'bg-blue-600 border-blue-600' 
+                            : 'bg-white border-gray-300'
+                        }`}
+                      >
+                        {collection.isSelected && <Check className="h-3 w-3 text-white" />}
+                      </button>
+                      <div>
+                        <span className="font-medium">{collection.name}</span>
+                        <span className="text-sm text-gray-500 ml-2">({collection.wordCount}개)</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* 선택 통계 */}
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              선택된 단어장: {stats.selectedCollections}개, 
+              총 단어: {stats.totalWords}개
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* 텍스트 크기 설정 섹션 */}
+      {/* 학습 설정 */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            학습 설정
+          </CardTitle>
+          <CardDescription>일일 학습 목표를 설정하세요</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <input
+              type="number"
+              value={dailyGoal}
+              onChange={(e) => setDailyGoal(Number(e.target.value))}
+              className="w-20 px-3 py-2 border rounded-lg"
+              min="1"
+              max="100"
+            />
+            <span className="text-gray-600">개/일</span>
+            <Button
+              onClick={handleUpdateDailyGoal}
+              disabled={updatingDailyGoal}
+              size="sm"
+            >
+              {updatingDailyGoal ? '저장 중...' : '저장'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 표시 설정 */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Type className="h-5 w-5" />
-            텍스트 크기 설정
+            표시 설정
           </CardTitle>
-          <CardDescription>
-            영어 설명, 어원, 예문의 글자 크기를 조절하세요
-          </CardDescription>
+          <CardDescription>단어 카드 표시 옵션을 설정하세요</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                variant={textSize === 'small' ? "default" : "outline"}
-                onClick={() => updateTextSize('small')}
-                disabled={updatingTextSize}
-                className="flex flex-col gap-1 h-auto py-3"
-              >
-                <span className="text-xs">작게</span>
-                <span className="text-sm">Aa</span>
-              </Button>
-              <Button
-                variant={textSize === 'medium' ? "default" : "outline"}
-                onClick={() => updateTextSize('medium')}
-                disabled={updatingTextSize}
-                className="flex flex-col gap-1 h-auto py-3"
-              >
-                <span className="text-xs">보통</span>
-                <span className="text-base">Aa</span>
-              </Button>
-              <Button
-                variant={textSize === 'large' ? "default" : "outline"}
-                onClick={() => updateTextSize('large')}
-                disabled={updatingTextSize}
-                className="flex flex-col gap-1 h-auto py-3"
-              >
-                <span className="text-xs">크게</span>
-                <span className="text-lg">Aa</span>
-              </Button>
-            </div>
-            
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">미리보기:</p>
-              <p className={`text-blue-700 ${
-                textSize === 'small' ? 'text-sm' : 
-                textSize === 'large' ? 'text-lg' : 
-                'text-base'
-              }`}>
-                From Latin "abominari" (ab- 'away from' + ominari 'to foresee'), literally meaning 'to deprecate as an ill omen'.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 단어장 선택 섹션 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                학습할 단어장 선택
-              </CardTitle>
-              <CardDescription>
-                학습하고 싶은 단어장을 선택하세요 (복수 선택 가능)
-              </CardDescription>
-            </div>
+        <CardContent className="space-y-4">
+          {/* 텍스트 크기 */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">텍스트 크기</label>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={selectAll}>
-                전체 선택
-              </Button>
-              <Button size="sm" variant="outline" onClick={deselectAll}>
-                전체 해제
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {sources.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>업로드된 단어장이 없습니다</p>
-              <Button 
-                className="mt-4"
-                onClick={() => router.push('/pdf-extract')}
-              >
-                첫 단어장 업로드하기
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {sources.map((source, idx) => (
-                <div 
-                  key={idx} 
-                  className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
-                    source.selected 
-                      ? 'bg-blue-50 border-blue-300' 
-                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                  }`}
-                  onClick={() => toggleSource(source.filename)}
+              {(['small', 'medium', 'large'] as const).map((size) => (
+                <Button
+                  key={size}
+                  variant={textSize === size ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleUpdateTextSize(size)}
+                  disabled={updatingTextSize}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                      source.selected 
-                        ? 'bg-blue-600 border-blue-600' 
-                        : 'border-gray-300'
-                    }`}>
-                      {source.selected && <Check className="h-3 w-3 text-white" />}
-                    </div>
-                    <div>
-                      <p className="font-medium">{source.filename}</p>
-                      <p className="text-sm text-gray-600">{source.count}개 단어</p>
-                    </div>
-                  </div>
-                </div>
+                  {size === 'small' ? '작게' : size === 'medium' ? '보통' : '크게'}
+                </Button>
               ))}
             </div>
-          )}
-          
-          {sources.length > 0 && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                선택된 단어장: <span className="font-medium">{selectedCount}개</span>
-              </p>
-              <p className="text-sm text-gray-600">
-                총 학습 단어: <span className="font-medium">{totalWords}개</span>
-              </p>
+          </div>
+
+          {/* 표시 옵션 */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">표시 항목</label>
+            <div className="space-y-2">
+              {Object.entries({
+                showSynonyms: '유사어',
+                showAntonyms: '반의어',
+                showEtymology: '어원',
+                showExamples: '예문'
+              }).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={displayOptions[key as keyof typeof displayOptions]}
+                    onChange={() => handleUpdateDisplayOptions(key as keyof typeof displayOptions)}
+                    disabled={updatingDisplayOptions}
+                    className="rounded"
+                  />
+                  <span className="text-sm">{label} 표시</span>
+                </label>
+              ))}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* 발음 정보 업데이트 섹션 */}
-      <Card className="mt-6">
+      {/* 데이터 관리 */}
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Volume2 className="h-5 w-5" />
-            발음 정보 관리
+            <Sparkles className="h-5 w-5" />
+            데이터 관리
           </CardTitle>
-          <CardDescription>
-            단어들의 발음 정보를 자동으로 업데이트합니다
-          </CardDescription>
+          <CardDescription>단어 데이터를 개선하고 관리하세요</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">전체 단어</p>
-                  <p className="font-semibold">{pronunciationStats.total}개</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">발음 정보 있음</p>
-                  <p className="font-semibold text-green-600">
-                    {pronunciationStats.withPronunciation}개 ({pronunciationStats.percentage}%)
-                  </p>
-                </div>
+        <CardContent className="space-y-4">
+          {/* 발음 정보 */}
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Volume2 className="h-4 w-4 text-gray-600" />
+                <span className="font-medium">발음 정보</span>
               </div>
-              {pronunciationStats.withoutPronunciation > 0 && (
-                <p className="text-sm text-orange-600 mt-2">
-                  {pronunciationStats.withoutPronunciation}개 단어의 발음 정보가 없습니다
-                </p>
-              )}
+              <span className="text-sm text-gray-600">
+                {pronunciationStats.withPronunciation} / {pronunciationStats.total} 
+                ({pronunciationStats.percentage}%)
+              </span>
             </div>
-            
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all"
+                style={{ width: `${pronunciationStats.percentage}%` }}
+              />
+            </div>
             <Button
-              onClick={updatePronunciations}
+              onClick={updateAllPronunciations}
               disabled={updatingPronunciations || pronunciationStats.withoutPronunciation === 0}
-              className="w-full"
+              size="sm"
+              variant="outline"
             >
               {updatingPronunciations ? (
                 <>
@@ -802,167 +559,103 @@ export default function SettingsPage() {
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  발음 정보 업데이트
+                  없는 발음 정보 추가 ({pronunciationStats.withoutPronunciation}개)
                 </>
               )}
             </Button>
-            
-            {pronunciationStats.withoutPronunciation === 0 && (
-              <p className="text-sm text-green-600 text-center">
-                ✓ 모든 단어에 발음 정보가 있습니다
-              </p>
-            )}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* AI 예문 생성 섹션 */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            AI 예문 생성
-          </CardTitle>
-          <CardDescription>
-            OpenAI를 사용하여 단어별 예문을 자동으로 생성합니다
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">전체 단어</p>
-                  <p className="font-semibold">{exampleStats.total}개</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">예문 있음</p>
-                  <p className="font-semibold text-green-600">
-                    {exampleStats.withExamples}개 ({exampleStats.percentage}%)
-                  </p>
-                </div>
+          {/* 예문 정보 */}
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-gray-600" />
+                <span className="font-medium">예문 정보</span>
               </div>
-              {exampleStats.withoutExamples > 0 && (
-                <p className="text-sm text-orange-600 mt-2">
-                  {exampleStats.withoutExamples}개 단어에 예문이 없습니다
-                </p>
-              )}
+              <span className="text-sm text-gray-600">
+                {exampleStats.withExamples} / {exampleStats.total} 
+                ({exampleStats.percentage}%)
+              </span>
             </div>
-            
-            {openAIUsage && openAIUsage.costs && (
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <DollarSign className="h-4 w-4 text-blue-600 mt-0.5" />
-                  <div className="text-sm flex-1">
-                    <p className="font-medium text-blue-800 mb-2">OpenAI 사용 요금 정보</p>
-                    <div className="space-y-1 text-blue-700">
-                      <p>• 예문 생성: 단어당 약 ${openAIUsage.costs.perExample}</p>
-                      <p>• 어원 생성: 단어당 약 ${openAIUsage.costs.perEtymology}</p>
-                      <p>• 사용 모델: {openAIUsage.costs.model}</p>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-blue-200">
-                      <a
-                        href={openAIUsage.dashboardUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                      >
-                        실제 사용량 확인하기
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+              <div 
+                className="bg-green-600 h-2 rounded-full transition-all"
+                style={{ width: `${exampleStats.percentage}%` }}
+              />
+            </div>
             <Button
-              onClick={generateExamples}
+              onClick={generateAllExamples}
               disabled={generatingExamples || exampleStats.withoutExamples === 0}
-              className="w-full"
+              size="sm"
+              variant="outline"
             >
               {generatingExamples ? (
                 <>
-                  <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-                  예문 생성 중... (최대 10개)
+                  <Sparkles className="h-4 w-4 mr-2 animate-spin" />
+                  생성 중...
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  AI 예문 생성하기
+                  AI 예문 생성 ({exampleStats.withoutExamples}개)
                 </>
               )}
             </Button>
-            
-            {exampleStats.withoutExamples === 0 && (
-              <p className="text-sm text-green-600 text-center">
-                ✓ 모든 단어에 예문이 있습니다
-              </p>
-            )}
           </div>
+
+          {/* OpenAI 사용량 */}
+          {openAIUsage && (
+            <div className="p-4 bg-yellow-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="h-4 w-4 text-yellow-600" />
+                <span className="font-medium">OpenAI API 사용량</span>
+              </div>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>총 요청: {openAIUsage.totalRequests}회</p>
+                <p>예상 비용: ${openAIUsage.estimatedCost?.toFixed(2)}</p>
+                <p>마지막 요청: {openAIUsage.lastUsed ? new Date(openAIUsage.lastUsed).toLocaleString() : 'N/A'}</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* 데이터 관리 섹션 (선택사항) */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
-            <Trash2 className="h-5 w-5" />
-            데이터 관리
-          </CardTitle>
-          <CardDescription>
-            주의: 이 작업은 되돌릴 수 없습니다
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-              <div className="text-sm text-red-800">
-                <p className="font-medium mb-2">🚨 데이터 삭제 안내</p>
-                <div className="space-y-2 text-red-700">
-                  <div>
-                    <p className="font-medium">삭제되는 데이터:</p>
-                    <ul className="space-y-1 ml-2">
-                      <li>• 개인 학습 기록 (정답률, 숙련도, 진도)</li>
-                      <li>• 북마크한 단어들</li>
-                      <li>• 개인 메모 및 노트</li>
-                      <li>• 학습 통계 및 히스토리</li>
-                      <li>• 복습 일정 및 스트릭 기록</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="font-medium">유지되는 데이터:</p>
-                    <ul className="space-y-1 ml-2">
-                      <li>• 마스터 단어 데이터 (삭제 후 재학습 가능)</li>
-                      <li>• 계정 정보</li>
-                    </ul>
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-red-200">
-                    <p className="font-medium">삭제 시 "DELETE" 입력이 필요합니다</p>
-                  </div>
-                </div>
+      {/* 관리자 전용 */}
+      {isAdmin && totalWordCount && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>관리자 정보</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p>총 단어 수: {totalWordCount.total}개</p>
+              <div className="text-sm text-gray-600">
+                {totalWordCount.collections && Object.entries(totalWordCount.collections).map(([name, count]) => (
+                  <p key={name}>- {name}: {count}개</p>
+                ))}
               </div>
             </div>
-            
-            <Button 
-              variant="outline" 
-              className="w-full text-red-600 hover:bg-red-50 border-red-300"
-              onClick={deleteUserData}
-              disabled={deletingData}
-            >
-              {deletingData ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  삭제 중...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  내 학습 데이터 삭제
-                </>
-              )}
-            </Button>
-          </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 위험 구역 */}
+      <Card className="border-red-200">
+        <CardHeader>
+          <CardTitle className="text-red-600 flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            위험 구역
+          </CardTitle>
+          <CardDescription>이 작업들은 되돌릴 수 없습니다</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="destructive"
+            onClick={deleteAllUserData}
+            disabled={deletingData}
+          >
+            {deletingData ? '삭제 중...' : '모든 학습 데이터 삭제'}
+          </Button>
         </CardContent>
       </Card>
     </div>

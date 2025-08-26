@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오프라인 - Vocabulary V2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon svg {
+            width: 40px;
+            height: 40px;
+            fill: #6b7280;
+        }
+        
+        h1 {
+            color: #1f2937;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            color: #6b7280;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .status-text {
+            color: #92400e;
+            font-size: 14px;
+        }
+        
+        .features {
+            text-align: left;
+            margin: 30px 0;
+        }
+        
+        .features h2 {
+            font-size: 18px;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            color: #10b981;
+        }
+        
+        .feature-icon.disabled {
+            color: #ef4444;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .cached-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                <line x1="21" y1="21" x2="21" y2="21"></line>
+                <line x1="3" y1="3" x2="3" y2="3"></line>
+            </svg>
+        </div>
+        
+        <h1>오프라인 모드</h1>
+        <p>현재 인터넷에 연결되어 있지 않습니다.</p>
+        
+        <div class="status">
+            <p class="status-text">
+                <strong>연결 상태:</strong> 
+                <span id="connection-status">오프라인</span>
+            </p>
+        </div>
+        
+        <div class="features">
+            <h2>오프라인에서 가능한 기능</h2>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>이전에 학습한 단어 복습</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>캐시된 단어 목록 보기</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon disabled">✗</span>
+                <span>새로운 단어 추가</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon disabled">✗</span>
+                <span>진도 동기화</span>
+            </div>
+        </div>
+        
+        <button id="retry-button" onclick="retryConnection()">
+            다시 시도
+        </button>
+        
+        <div class="cached-info">
+            <p>캐시된 데이터: <span id="cache-count">0</span>개 단어</p>
+            <p>마지막 동기화: <span id="last-sync">없음</span></p>
+        </div>
+    </div>
+    
+    <script>
+        // Check connection status
+        function checkConnection() {
+            const statusEl = document.getElementById('connection-status');
+            const retryBtn = document.getElementById('retry-button');
+            
+            if (navigator.onLine) {
+                statusEl.textContent = '온라인 (새로고침 중...)';
+                statusEl.style.color = '#10b981';
+                retryBtn.textContent = '새로고침';
+                
+                // Redirect to home after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                statusEl.textContent = '오프라인';
+                statusEl.style.color = '#ef4444';
+                retryBtn.textContent = '다시 시도';
+            }
+        }
+        
+        // Retry connection
+        function retryConnection() {
+            checkConnection();
+        }
+        
+        // Load cached info
+        async function loadCachedInfo() {
+            try {
+                // Get cache statistics
+                const cacheNames = await caches.keys();
+                let totalItems = 0;
+                
+                for (const name of cacheNames) {
+                    const cache = await caches.open(name);
+                    const keys = await cache.keys();
+                    totalItems += keys.length;
+                }
+                
+                document.getElementById('cache-count').textContent = totalItems;
+                
+                // Get last sync time from localStorage
+                const lastSync = localStorage.getItem('lastSyncTime');
+                if (lastSync) {
+                    const date = new Date(parseInt(lastSync));
+                    document.getElementById('last-sync').textContent = date.toLocaleString('ko-KR');
+                }
+            } catch (error) {
+                console.error('Failed to load cache info:', error);
+            }
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', checkConnection);
+        window.addEventListener('offline', checkConnection);
+        
+        // Initial check
+        checkConnection();
+        loadCachedInfo();
+        
+        // Periodically check connection
+        setInterval(checkConnection, 5000);
+    </script>
+</body>
+</html>

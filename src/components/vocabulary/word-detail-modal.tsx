@@ -8,7 +8,7 @@ import type { UnifiedWord } from '@/types/unified-word'
 import { cn } from '@/lib/utils'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 import { useCache } from '@/contexts/cache-context'
-import { useVocabulary } from '@/contexts/vocabulary-context'
+import { useVocabulary } from '@/contexts/collection-context-v2'
 
 export interface WordDetailModalProps {
   open: boolean
@@ -24,7 +24,26 @@ export interface WordDetailModalProps {
   onSynonymClick?: (synonymWord: string) => void
 }
 
-export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalProps>(
+// Helper function to safely render etymology
+const getEtymologyText = (etymology: any): string => {
+  if (!etymology) return ''
+  if (typeof etymology === 'string') return etymology
+  if (typeof etymology === 'object' && etymology !== null) {
+    // Handle Etymology object type
+    if (etymology.origin) return etymology.origin
+    if (etymology.meaning) return etymology.meaning
+    if (etymology.language) return `${etymology.language}: ${etymology.meaning || ''}`
+    // Last resort - stringify it
+    try {
+      return JSON.stringify(etymology)
+    } catch {
+      return 'Etymology data available'
+    }
+  }
+  return String(etymology)
+}
+
+const WordDetailModalBase = React.forwardRef<HTMLDivElement, WordDetailModalProps>(
   ({ 
     open, 
     onClose, 
@@ -45,7 +64,12 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     const [translatingIndex, setTranslatingIndex] = React.useState<number | null>(null)
     // Track which synonyms we've already generated to prevent duplicate API calls
     const processedSynonyms = React.useRef<Set<string>>(new Set())
-    const { textSize } = useSettings()
+    // Track which words we've already fetched pronunciation for
+    const fetchedPronunciation = React.useRef<Set<string>>(new Set())
+    // Track which words we've already generated etymology for
+    const generatedEtymology = React.useRef<Set<string>>(new Set())
+    
+    const { textSize, displayOptions } = useSettings()
     const { getSynonyms, setSynonyms: setCacheSynonyms } = useCache()
     const { updateWordSynonyms } = useVocabulary()
     
@@ -58,8 +82,12 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
           setTranslations({}) // Clear translations from previous word
           setTranslatingIndex(null) // Reset translating state
         }
+      } else {
+        // Clear tracking refs when modal closes
+        fetchedPronunciation.current.clear()
+        generatedEtymology.current.clear()
+        processedSynonyms.current.clear()
       }
-      // DON'T clear processed tracking when modal closes - keep it to prevent redundant API calls
     }, [word?.id, open])
     
     // 디버깅: 텍스트 크기 확인
@@ -69,123 +97,69 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
       // Process when modal opens with a word
       if (word && open) {
         console.log('[WordDetailModal] New word opened:', word.word, 'ID:', word.id)
-        console.log('[WordDetailModal] Word source:', word.source)
-        console.log('[WordDetailModal] Word structure:', {
-          hasRealEtymology: 'realEtymology' in word,
-          realEtymology: 'realEtymology' in word ? word.realEtymology : undefined,
-          etymologyMeaning: word.etymology?.meaning,
-          etymology: word.etymology,
-          examples: word.examples,
-          definitionsExamples: word.definitions?.[0]?.examples,
-          pronunciation: word.pronunciation,
-          definitions: word.definitions,
-          definitionsLength: word.definitions?.length,
-          firstDefinition: word.definitions?.[0],
-          definition: word.definition
-        })
         
-        // Check what needs to be generated
-        const needsPronunciation = !word.pronunciation && !!onFetchPronunciation
+        // Check what needs to be generated (only if not already processed)
+        const needsPronunciation = !word.pronunciation && 
+                                   !!onFetchPronunciation && 
+                                   !fetchedPronunciation.current.has(word.id) &&
+                                   !fetchingPronunciation
         
         // Check for examples in unified structure (both word.examples and definitions[0].examples)
         const hasDirectExamples = word.examples && word.examples.length > 0
         const hasDefinitionExamples = word.definitions?.[0]?.examples && word.definitions[0].examples.length > 0
         const hasExamples = hasDirectExamples || hasDefinitionExamples
         
-        // For photo vocabulary, prioritize generating quality examples even if some exist
-        const isPhotoVocab = word.source?.collection === 'photo_vocabulary_words'
-        // Force example generation for photo vocabulary words to debug the issue
-        const needsExamples = (!hasExamples || isPhotoVocab) && !!onGenerateExamples
+        // Only generate examples if truly missing
+        const needsExamples = !hasExamples && !!onGenerateExamples && !generatingExamples
         
-        console.log('[WordDetailModal] Examples check:', {
-          directExamples: word.examples,
-          hasDirectExamples,
-          definitionExamples: word.definitions?.[0]?.examples,
-          hasDefinitionExamples,
-          hasExamples,
-          isPhotoVocab,
-          needsExamples,
-          wordSource: word.source
-        })
+        const hasEtymology = !!word.etymology && word.etymology.length > 0
+        const needsEtymology = !hasEtymology && 
+                              !!onGenerateEtymology && 
+                              !generatedEtymology.current.has(word.id) &&
+                              !generatingEtymology
         
-        const hasEtymology = !!word.realEtymology
-        const needsEtymology = !hasEtymology && !!onGenerateEtymology
-        
-        console.log('[WordDetailModal] CRITICAL DEBUG - Needs:', { 
-          pronunciation: needsPronunciation, 
-          examples: needsExamples, 
-          etymology: needsEtymology,
-          callbacks: {
-            onGenerateExamples: !!onGenerateExamples,
-            onGenerateEtymology: !!onGenerateEtymology,
-            onFetchPronunciation: !!onFetchPronunciation
-          },
-          generating: {
-            examples: generatingExamples,
-            etymology: generatingEtymology,
-            pronunciation: fetchingPronunciation
-          },
-          wordSource: word.source,
+        console.log('[WordDetailModal] Generation check:', { 
+          needsPronunciation,
+          needsExamples, 
+          needsEtymology,
           wordId: word.id
         })
         
-        // Log the specific condition check for example generation
-        if (needsExamples && !generatingExamples && onGenerateExamples) {
-          console.log('[WordDetailModal] WILL CALL onGenerateExamples - all conditions met')
-        } else {
-          console.log('[WordDetailModal] NOT CALLING onGenerateExamples because:', {
-            needsExamples,
-            generatingExamples,
-            hasCallback: !!onGenerateExamples
-          })
-        }
-        
-        // Only generate if content is actually missing and not currently generating
-        if ((needsPronunciation && !fetchingPronunciation) || 
-            (needsExamples && !generatingExamples) || 
-            (needsEtymology && !generatingEtymology)) {
-          console.log('[WordDetailModal] Setting up API calls for:', word.word, {
-            needsPronunciation: needsPronunciation && !fetchingPronunciation,
-            needsExamples: needsExamples && !generatingExamples,
-            needsEtymology: needsEtymology && !generatingEtymology
-          })
-          
+        // Only set up API calls if something needs to be generated
+        if (needsPronunciation || needsExamples || needsEtymology) {
           // Debounce and sequence API calls to avoid conflicts
           const timeoutId = setTimeout(async () => {
-            console.log('[WordDetailModal] Timeout executed for:', word.word)
-            
             // 1. First, fetch pronunciation if needed
-            if (needsPronunciation && !fetchingPronunciation && onFetchPronunciation) {
-              console.log('[WordDetailModal] Fetching pronunciation')
-              onFetchPronunciation()
+            if (needsPronunciation) {
+              console.log('[WordDetailModal] Fetching pronunciation for:', word.word)
+              fetchedPronunciation.current.add(word.id)
+              onFetchPronunciation!()
             }
             
             // 2. Then generate examples after a delay
-            if (needsExamples && !generatingExamples && onGenerateExamples) {
-              console.log('[WordDetailModal] Will generate examples')
+            if (needsExamples) {
               setTimeout(() => {
-                console.log('[WordDetailModal] Calling onGenerateExamples')
-                onGenerateExamples()
+                console.log('[WordDetailModal] Generating examples for:', word.word)
+                onGenerateExamples!()
               }, 1000)
             }
             
             // 3. Finally generate etymology after another delay
-            if (needsEtymology && !generatingEtymology && onGenerateEtymology) {
-              console.log('[WordDetailModal] Will generate etymology')
+            if (needsEtymology) {
               setTimeout(() => {
-                console.log('[WordDetailModal] Calling onGenerateEtymology')
-                onGenerateEtymology()
+                console.log('[WordDetailModal] Generating etymology for:', word.word)
+                generatedEtymology.current.add(word.id)
+                onGenerateEtymology!()
               }, 2000)
             }
           }, 500) // Initial delay to debounce rapid opens
           
           return () => {
-            console.log('[WordDetailModal] Cleanup: clearing timeout for:', word.word)
             clearTimeout(timeoutId)
           }
         }
       }
-    }, [word, open, onFetchPronunciation, onGenerateExamples, onGenerateEtymology])
+    }, [word?.id, open, word?.pronunciation, word?.etymology, word?.examples]) // Track content to avoid re-generation
 
     // Load synonyms when modal opens
     React.useEffect(() => {
@@ -196,14 +170,15 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
       })
       
       if (word && open) {
-        setSynonyms([]) // Reset synonyms for new word
-        
         // 먼저 DB에 저장된 유사어가 있는지 확인
         if ('synonyms' in word && word.synonyms && word.synonyms.length > 0) {
           console.log('[WordDetailModal] Using DB synonyms for:', word.word, word.synonyms)
           setSynonyms(word.synonyms)
           return
         }
+        
+        // No DB synonyms, reset for new generation
+        setSynonyms([])
         
         // CacheContext에서 캐시 확인
         const cachedSynonyms = getSynonyms(word.word)
@@ -231,12 +206,14 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
               
               if (response.ok) {
                 const data = await response.json()
+                console.log('[WordDetailModal] Synonym API response for', word.word, ':', data)
                 const synonymList = data.synonyms || []
+                console.log('[WordDetailModal] Setting synonyms for', word.word, ':', synonymList)
                 setSynonyms(synonymList)
                 
                 // CacheContext에 저장
                 setCacheSynonyms(word.word, synonymList)
-                console.log('[WordDetailModal] Cached synonyms for:', word.word)
+                console.log('[WordDetailModal] Cached synonyms for:', word.word, 'Count:', synonymList.length)
                 
                 // DB에 유사어 업데이트 (백그라운드에서 실행)
                 if (synonymList.length > 0) {
@@ -343,98 +320,142 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                     뜻
                   </span>
                   <p className={cn("text-base sm:text-lg break-words flex-1", getTextSizeClass(textSize))}>
-                    {word.definition || word.definitions?.[0]?.definition || word.definitions?.[0]?.text || 'No definition available'}
+                    {(() => {
+                      // Handle different definition formats
+                      const def = word.definition
+                      if (!def) {
+                        return word.definitions?.[0]?.definition || word.definitions?.[0]?.text || 'No definition available'
+                      }
+                      
+                      // If definition is an object (from AI generation), extract the appropriate language
+                      if (typeof def === 'object' && def !== null) {
+                        // Check for korean, english, or any other property
+                        return (def as any).korean || (def as any).english || (def as any).definition || JSON.stringify(def)
+                      }
+                      
+                      // If it's a string, return as is
+                      return def
+                    })()}
                   </p>
                 </div>
               </div>
 
               {/* 유사어 섹션 추가 */}
-              <div className="mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
-                  <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium inline-block w-fit">
-                    유사어
-                  </span>
-                  <div className="flex-1">
-                    {generatingSynonyms ? (
-                      <span className="text-sm text-green-600 flex items-center gap-1">
-                        <Sparkles className="h-4 w-4 animate-pulse" />
-                        AI가 유사어를 생성하고 있습니다...
-                      </span>
-                    ) : synonyms.length > 0 ? (
+              {displayOptions.showSynonyms && (
+                <div className="mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                    <span className="text-sm px-2 py-0.5 rounded bg-green-100 text-green-700 font-medium inline-block w-fit">
+                      유사어
+                    </span>
+                    <div className="flex-1">
+                      {generatingSynonyms ? (
+                        <span className="text-sm text-green-600 flex items-center gap-1">
+                          <Sparkles className="h-4 w-4 animate-pulse" />
+                          AI가 유사어를 생성하고 있습니다...
+                        </span>
+                      ) : synonyms.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {synonyms.map((synonym, idx) => (
+                            <button
+                              key={idx}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                console.log('Synonym clicked:', synonym)
+                                // 타이밍 문제 해결을 위해 약간의 지연 후 실행
+                                if (onSynonymClick) {
+                                  onSynonymClick(synonym)
+                                  // onClose는 새 모달이 열리면서 자동으로 처리되도록 함
+                                } else {
+                                  onClose() // fallback
+                                }
+                              }}
+                              className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100 transition-colors cursor-pointer"
+                            >
+                              {synonym}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500 italic">유사어를 불러오는 중...</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 반의어 섹션 추가 */}
+              {displayOptions.showAntonyms && word.antonyms && word.antonyms.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                    <span className="text-sm px-2 py-0.5 rounded bg-red-100 text-red-700 font-medium inline-block w-fit">
+                      반의어
+                    </span>
+                    <div className="flex-1">
                       <div className="flex flex-wrap gap-2">
-                        {synonyms.map((synonym, idx) => (
+                        {word.antonyms.map((antonym, idx) => (
                           <button
                             key={idx}
                             onClick={(e) => {
                               e.stopPropagation()
-                              console.log('Synonym clicked:', synonym)
-                              // 타이밍 문제 해결을 위해 약간의 지연 후 실행
                               if (onSynonymClick) {
-                                onSynonymClick(synonym)
-                                // onClose는 새 모달이 열리면서 자동으로 처리되도록 함
+                                onSynonymClick(antonym)
                               } else {
-                                onClose() // fallback
+                                onClose()
                               }
                             }}
-                            className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100 transition-colors cursor-pointer"
+                            className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm hover:bg-red-100 transition-colors cursor-pointer"
                           >
-                            {synonym}
+                            {antonym}
                           </button>
                         ))}
                       </div>
-                    ) : (
-                      <span className="text-sm text-gray-500 italic">유사어를 불러오는 중...</span>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* 영어 정의 */}
-              {word.etymology && (
+              {displayOptions.showEtymology && word.englishDefinition && (
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="font-semibold text-blue-800 mb-1">영어 정의</h3>
                   <p className={cn("text-blue-700", getTextSizeClass(textSize))}>
-                    {typeof word.etymology === 'string' 
-                      ? word.etymology 
-                      : word.etymology.origin || word.etymology.meaning || ''}
+                    {word.englishDefinition}
                   </p>
                 </div>
               )}
 
               {/* 어원 - 클릭하면 표시 */}
-              <div className="border border-purple-200 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setShowEtymology(!showEtymology)}
-                  className="w-full p-3 sm:p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
-                >
-                  <h3 className="font-semibold text-purple-800 text-sm sm:text-base">어원</h3>
-                  {showEtymology ? (
-                    <ChevronUp className="h-4 w-4 text-purple-600" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-purple-600" />
-                  )}
-                </button>
-                {showEtymology && (
-                  <div className="p-4 bg-white border-t border-purple-200">
-                    {word.realEtymology ? (
-                      <p className={cn("text-purple-700", getTextSizeClass(textSize))}>
-                        {word.realEtymology}
-                      </p>
-                    ) : (word.etymology && typeof word.etymology === 'object' && word.etymology.meaning) ? (
-                      <p className={cn("text-purple-700", getTextSizeClass(textSize))}>
-                        {word.etymology.meaning}
-                      </p>
-                    ) : generatingEtymology ? (
-                      <p className="text-sm text-purple-600 flex items-center gap-1">
-                        <Sparkles className="h-4 w-4 animate-pulse" />
-                        AI가 어원을 분석하고 있습니다...
-                      </p>
+              {displayOptions.showEtymology && (
+                <div className="border border-purple-200 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setShowEtymology(!showEtymology)}
+                    className="w-full p-3 sm:p-4 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between text-left"
+                  >
+                    <h3 className="font-semibold text-purple-800 text-sm sm:text-base">어원</h3>
+                    {showEtymology ? (
+                      <ChevronUp className="h-4 w-4 text-purple-600" />
                     ) : (
-                      <p className="text-sm text-gray-500 italic">어원 정보가 없습니다</p>
+                      <ChevronDown className="h-4 w-4 text-purple-600" />
                     )}
-                  </div>
-                )}
-              </div>
+                  </button>
+                  {showEtymology && (
+                    <div className="p-4 bg-white border-t border-purple-200">
+                      {word.etymology ? (
+                        <p className={cn("text-purple-700", getTextSizeClass(textSize))}>
+                          {getEtymologyText(word.etymology)}
+                        </p>
+                      ) : generatingEtymology ? (
+                        <p className="text-sm text-purple-600 flex items-center gap-1">
+                          <Sparkles className="h-4 w-4 animate-pulse" />
+                          AI가 어원을 분석하고 있습니다...
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">어원 정보가 없습니다</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {false && (
                 <div className="p-4 bg-gray-50 rounded-lg text-center">
@@ -449,7 +470,7 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                 </div>
               )}
 
-              {(() => {
+              {displayOptions.showExamples && (() => {
                 // Get examples from unified structure
                 const examples = word.examples || []
                 
@@ -542,13 +563,16 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
                 )
               })()}
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div>
-                  <p className="text-sm text-gray-600">난이도</p>
-                  <p className={`font-semibold ${getDifficultyColor(word.difficulty || 5)}`}>
-                    Level {word.difficulty}
-                  </p>
-                </div>
+              <div className={`grid ${word.source?.collection === 'personal_collection_words' ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t`}>
+                {/* Only show difficulty for non-personal collection words */}
+                {word.source?.collection !== 'personal_collection_words' && (
+                  <div>
+                    <p className="text-sm text-gray-600">난이도</p>
+                    <p className={`font-semibold ${getDifficultyColor(word.difficulty || 5)}`}>
+                      Level {word.difficulty}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-600">학습 상태</p>
                   <p className="font-semibold">
@@ -572,4 +596,18 @@ export const WordDetailModal = React.forwardRef<HTMLDivElement, WordDetailModalP
     )
   }
 )
+WordDetailModalBase.displayName = "WordDetailModalBase"
+
+// Memoized version with custom comparison
+export const WordDetailModal = React.memo(WordDetailModalBase, (prevProps, nextProps) => {
+  // Only re-render if these props change
+  return (
+    prevProps.open === nextProps.open &&
+    prevProps.word?.id === nextProps.word?.id &&
+    prevProps.generatingExamples === nextProps.generatingExamples &&
+    prevProps.generatingEtymology === nextProps.generatingEtymology &&
+    prevProps.fetchingPronunciation === nextProps.fetchingPronunciation
+  )
+})
+
 WordDetailModal.displayName = "WordDetailModal"

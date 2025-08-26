@@ -302,11 +302,15 @@ export const DiscoveryModal = React.forwardRef<HTMLDivElement, DiscoveryModalPro
                 )}
 
                 {/* Etymology - Only show real etymology, not English definition */}
-                {existingWord.realEtymology && (
+                {existingWord.etymology && (
                   <div>
                     <h4 className="font-medium mb-2">어원</h4>
                     <p className="text-gray-700 text-sm">
-                      {existingWord.realEtymology}
+                      {typeof existingWord.etymology === 'string' 
+                        ? existingWord.etymology 
+                        : typeof existingWord.etymology === 'object' && existingWord.etymology !== null
+                          ? (existingWord.etymology as any).origin || (existingWord.etymology as any).meaning || ''
+                          : String(existingWord.etymology)}
                     </p>
                   </div>
                 )}
@@ -377,11 +381,15 @@ export const DiscoveryModal = React.forwardRef<HTMLDivElement, DiscoveryModalPro
                 )}
 
                 {/* Etymology */}
-                {(discoveredWord.realEtymology || discoveredWord.etymology) && (
+                {discoveredWord.etymology && (
                   <div>
                     <h4 className="font-medium mb-2">어원</h4>
                     <p className="text-gray-700 text-sm">
-                      {discoveredWord.realEtymology || discoveredWord.etymology}
+                      {typeof discoveredWord.etymology === 'string' 
+                        ? discoveredWord.etymology 
+                        : typeof discoveredWord.etymology === 'object' && discoveredWord.etymology !== null
+                          ? (discoveredWord.etymology as any).origin || (discoveredWord.etymology as any).meaning || ''
+                          : String(discoveredWord.etymology)}
                     </p>
                   </div>
                 )}

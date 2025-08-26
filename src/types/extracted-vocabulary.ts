@@ -6,8 +6,8 @@ export interface ExtractedVocabulary {
   partOfSpeech: string[]
   examples: string[]
   pronunciation?: string
-  etymology?: string // 영어 정의 (영어 설명)
-  realEtymology?: string // 실제 어원 (단어의 기원과 역사)
+  englishDefinition?: string  // 영어 정의
+  etymology?: string          // 어원 (단어의 기원과 역사)
   synonyms?: string[]
   antonyms?: string[]
   difficulty?: number // 1-10

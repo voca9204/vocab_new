@@ -26,7 +26,9 @@ import {
   RefreshCw,
   BarChart,
   FileUp,
-  List
+  List,
+  Shield,
+  FolderOpen
 } from 'lucide-react'
 
 interface NavItem {
@@ -76,8 +78,18 @@ export function Sidebar() {
     },
     {
       title: '대시보드',
-      href: '/dashboard',
+      href: '/unified-dashboard',
       icon: <BarChart className="h-4 w-4" />
+    },
+    {
+      title: '단어장 관리',
+      href: '/wordbooks',
+      icon: <BookText className="h-4 w-4" />
+    },
+    {
+      title: '단어장 탐색',
+      href: '/collections',
+      icon: <FolderOpen className="h-4 w-4" />
     },
     {
       title: '학습',
@@ -116,11 +128,25 @@ export function Sidebar() {
         }
       ]
     },
-    ...(isAdmin ? [{
-      title: 'PDF 업로드',
-      href: '/pdf-extract',
-      icon: <FileUp className="h-4 w-4" />
-    }] : []),
+    ...(isAdmin ? [
+      {
+        title: '관리자',
+        href: '/admin',
+        icon: <Shield className="h-4 w-4" />,
+        children: [
+          {
+            title: '단어장 관리',
+            href: '/admin/collections',
+            icon: <FolderOpen className="h-4 w-4" />
+          },
+          {
+            title: 'PDF 업로드',
+            href: '/pdf-extract',
+            icon: <FileUp className="h-4 w-4" />
+          }
+        ]
+      }
+    ] : []),
     {
       title: '설정',
       href: '/settings',

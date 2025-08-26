@@ -15,7 +15,8 @@ import {
   Check,
   Volume2,
   HelpCircle,
-  Sparkles
+  Sparkles,
+  BookOpen
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import type { VocabularyWord } from '@/types'
@@ -54,12 +55,21 @@ export default function ReviewPage() {
       
       console.log(`Loaded ${allWords.length} words for review`)
       
+      // 단어가 없으면 빈 상태로 설정
+      if (allWords.length === 0) {
+        setWords([])
+        setReviewWords([])
+        setLoading(false)
+        return
+      }
+      
       // 사용자의 학습 기록 가져오기 (user_words 컬렉션에서)
       const { UserWordService } = await import('@/lib/vocabulary-v2/user-word-service')
       const userWordService = new UserWordService()
       const userStudiedWords = await userWordService.getUserStudiedWords(user.uid)
       
       console.log(`User has studied ${userStudiedWords.length} words total`)
+      console.log('[Review] User studied words sample:', userStudiedWords.slice(0, 3))
       
       // 마스터 단어 정보와 매칭
       const wordsWithUserData = userStudiedWords.map(userWord => {
@@ -128,6 +138,13 @@ export default function ReviewPage() {
           })
         }
       }
+      
+      console.log(`[Review] Found ${toReview.length} words to review (type: ${reviewType})`)
+      console.log('[Review] Review words sample:', toReview.slice(0, 3).map(w => ({ 
+        word: w.word, 
+        masteryLevel: w.learningMetadata?.masteryLevel,
+        timesStudied: w.learningMetadata?.timesStudied 
+      })))
       
       // 난이도순으로 정렬 (어려운 것부터)
       toReview.sort((a, b) => (a.learningMetadata?.masteryLevel || 0) - (b.learningMetadata?.masteryLevel || 0))
@@ -423,7 +440,21 @@ export default function ReviewPage() {
       </div>
 
       {/* 복습 카드 */}
-      {reviewWords.length === 0 ? (
+      {words.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">학습할 단어가 없습니다</h3>
+            <p className="text-gray-600 mb-4">먼저 단어장을 선택해주세요</p>
+            <Button 
+              onClick={() => router.push('/unified-dashboard')}
+              className="mx-auto"
+            >
+              단어장 선택하기
+            </Button>
+          </CardContent>
+        </Card>
+      ) : reviewWords.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <RefreshCw className="h-12 w-12 mx-auto mb-4 text-gray-400" />

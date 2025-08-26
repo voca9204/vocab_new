@@ -1,0 +1,2451 @@
+[
+  {
+    "word": "sought",
+    "definition": "after desirable, attractive, fashionable, popular, preferred 인기 있는, 수요가 있는",
+    "context": "sought-after desirable, attractive, fashionable, popular, preferred 인기 있는, 수요가 있는",
+    "pageNum": 4,
+    "confidence": 0.9
+  },
+  {
+    "word": "erratic",
+    "definition": "변덕스러운, 별난, 이상한",
+    "synonyms": [
+      "unpredictable",
+      "aberrant",
+      "abnormal",
+      "eccentric",
+      "irregular",
+      "strange",
+      "peculiar"
+    ],
+    "context": "erratic unpredictable, aberrant, abnormal, eccentric, irregular, strange, peculiar    변덕스러운, 별난, 이상한",
+    "pageNum": 2,
+    "confidence": 0.8
+  },
+  {
+    "word": "dwindle",
+    "definition": "서서히 줄이다, 점차 감소시키다",
+    "synonyms": [
+      "decrease",
+      "diminish",
+      "reduce",
+      "abate",
+      "lessen"
+    ],
+    "context": "dwindle decrease, diminish, reduce, abate, lessen 서서히 줄이다, 점차 감소시키다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "irresistible",
+    "definition": "억누를 수 없는, 너무 매혹적인",
+    "synonyms": [
+      "enchanting",
+      "tempting",
+      "overpowering",
+      "overwhelming",
+      "alluring"
+    ],
+    "context": "irresistible enchanting, tempting, overpowering, overwhelming, alluring 억누를 수 없는, 너무 매혹적인",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "ascertain",
+    "definition": "확정하다, 확인하다",
+    "synonyms": [
+      "determine",
+      "find",
+      "realize"
+    ],
+    "context": "ascertain determine, find out, realize 확정하다, 확인하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "consummate",
+    "definition": "완료하다, 완성하다",
+    "synonyms": [
+      "complete",
+      "finish",
+      "perfect"
+    ],
+    "context": "consummate complete, finish, perfect 완료하다, 완성하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "intimidate",
+    "definition": "위협해  ~시키다",
+    "synonyms": [
+      "frighten"
+    ],
+    "context": "intimidate frighten 위협해  ~시키다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "multiply",
+    "definition": "늘리다, 증대[증가]시키다",
+    "synonyms": [
+      "aggrandize",
+      "amplify",
+      "augment",
+      "increase",
+      "enlarge",
+      "expand"
+    ],
+    "context": "multiply aggrandize, amplify, augment, increase, enlarge, expand 늘리다, 증대[증가]시키다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "finance",
+    "definition": "자금을 공급하다",
+    "synonyms": [
+      "pay",
+      "endow",
+      "fund",
+      "patronize",
+      "sponsor",
+      "support",
+      "subsidize"
+    ],
+    "context": "finance pay for, endow, fund, patronize, sponsor, support, subsidize 자금을 공급하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "assign",
+    "definition": "배정하다, 지정하다",
+    "synonyms": [
+      "delegate",
+      "specify",
+      "appoint",
+      "designate"
+    ],
+    "context": "assign delegate, specify, appoint, designate 배정하다, 지정하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "threaten",
+    "definition": "위협하다, 위태롭게 하다.",
+    "synonyms": [
+      "endanger",
+      "intimidate",
+      "jeopardize",
+      "menace"
+    ],
+    "context": "threaten endanger, intimidate, jeopardize, menace 위협하다, 위태롭게 하다.",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "archaic",
+    "definition": "구식의, 오래된",
+    "synonyms": [
+      "old",
+      "primitive",
+      "outdated",
+      "antiquated",
+      "outmoded"
+    ],
+    "context": "archaic old, primitive, outdated, antiquated, outmoded, out-of-date 구식의, 오래된",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "subdue",
+    "definition": "진압하다, 억제하다",
+    "synonyms": [
+      "control",
+      "reduce",
+      "conquer",
+      "defeat",
+      "overpower",
+      "vanquish"
+    ],
+    "context": "subdue control, reduce, conquer, defeat, overpower, vanquish 진압하다, 억제하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "reassure",
+    "definition": "안심시키다, 확신을 갖게 하다",
+    "synonyms": [
+      "build",
+      "confidence",
+      "encourage",
+      "assure",
+      "comfort",
+      "console",
+      "soothe"
+    ],
+    "context": "reassure build confidence of, encourage, assure, comfort, console, soothe 안심시키다, 확신을 갖게 하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "discharge",
+    "definition": "놓아주다, 배출하다 / 수행하다, 이행하다",
+    "synonyms": [
+      "release",
+      "carry"
+    ],
+    "context": "discharge release / carry out 놓아주다, 배출하다 / 수행하다, 이행하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "infirm",
+    "definition": "약한, (체력이나 기관이) 쇠약한",
+    "synonyms": [
+      "frail",
+      "weak",
+      "feeble",
+      "fragile"
+    ],
+    "context": "infirm frail, weak, feeble, fragile 약한, (체력이나 기관이) 쇠약한",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "utilize",
+    "definition": "이용하다, 쓰다",
+    "synonyms": [
+      "employ",
+      "use",
+      "apply",
+      "bestow",
+      "exercise",
+      "exploit",
+      "handle"
+    ],
+    "context": "utilize employ, use, apply, bestow, exercise, exploit, handle 이용하다, 쓰다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "patron",
+    "definition": "단골 손님, 고객",
+    "synonyms": [
+      "customer",
+      "client",
+      "guest"
+    ],
+    "context": "patron customer, client, guest 단골 손님, 고객",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "inauspicious",
+    "definition": "불운한, 불길한",
+    "synonyms": [
+      "ominous",
+      "unfavorable",
+      "baleful",
+      "baneful",
+      "threatening",
+      "unlucky"
+    ],
+    "context": "inauspicious ominous, unfavorable, baleful, baneful, threatening, unlucky 불운한, 불길한",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "incise",
+    "definition": "자르다, 새기다",
+    "synonyms": [
+      "carve",
+      "cut",
+      "engrave",
+      "slice",
+      "slit"
+    ],
+    "context": "incise carve, cut, engrave, slice, slit 자르다, 새기다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "capitalize",
+    "definition": "자기 이익을 위해) 이용하다",
+    "synonyms": [
+      "take",
+      "advantage",
+      "abuse",
+      "exploit",
+      "impose",
+      "play",
+      "use"
+    ],
+    "context": "capitalize on take advantage of, abuse, exploit, impose on, play on, use (자기 이익을 위해) 이용하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "obsolete",
+    "definition": "시대에 처진, 오래된  / 쓸모 없는",
+    "synonyms": [
+      "archaic",
+      "outdated",
+      "date",
+      "ancient",
+      "use",
+      "unused",
+      "dead",
+      "disused",
+      "superseded"
+    ],
+    "context": "obsolete archaic, outdated, out of date, ancient, outworn/out of use, unused, dead, disused, superseded 시대에 처진, 오래된  / 쓸모 없는",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "account",
+    "definition": "원인이 되다/설명하다/비율을 차지하다",
+    "synonyms": [
+      "cause",
+      "give",
+      "reason",
+      "explain",
+      "clarify",
+      "comprise",
+      "make",
+      "compose",
+      "constitute"
+    ],
+    "context": "account for cause, give reason for/ explain, clarify, describe/ comprise, make up, compose, constitute 원인이 되다/설명하다/비율을 차지하다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "decimate",
+    "definition": "없애다, 종식시키다",
+    "synonyms": [
+      "destroy",
+      "reduce",
+      "annihilate",
+      "demolish",
+      "devastate",
+      "extinguish",
+      "ruin",
+      "wreck"
+    ],
+    "context": "decimate destroy, reduce, annihilate, demolish, devastate, extinguish, ruin, wreck 없애다, 종식시키다",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "drastic",
+    "definition": "강력한, 과감한/ 철저한",
+    "synonyms": [
+      "extreme",
+      "rapid",
+      "severe",
+      "striking",
+      "extensive",
+      "forceful",
+      "radical",
+      "thorough",
+      "exhaustive"
+    ],
+    "context": "drastic extreme, rapid, severe, striking, extensive, forceful, radical, strong/ thorough, exhaustive 강력한, 과감한/ 철저한",
+    "pageNum": 0,
+    "confidence": 0.75
+  },
+  {
+    "word": "lucrative",
+    "definition": "수지맞는, 이익을 내는, 수익성이 좋은",
+    "synonyms": [
+      "fruitful",
+      "gainful",
+      "profitable",
+      "advantageous",
+      "worthwhile"
+    ],
+    "context": "lucrative fruitful, gainful, profitable, advantageous, worthwhile 수지맞는, 이익을 내는, 수익성이 좋은",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "obscure",
+    "definition": "불분명한, 애매한",
+    "synonyms": [
+      "dim",
+      "uncertain",
+      "unclear",
+      "murky",
+      "ambiguous",
+      "vague"
+    ],
+    "context": "obscure (adj.) dim, uncertain, unclear, murky, ambiguous, vague 불분명한, 애매한",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "prominent",
+    "definition": "expert,  famous,  notable,  renowned,  outstanding,  celebrated,  distinguished/  important  /",
+    "synonyms": [
+      "expert",
+      "famous",
+      "notable",
+      "renowned",
+      "outstanding",
+      "celebrated",
+      "important"
+    ],
+    "context": "prominent expert,  famous,  notable,  renowned,  outstanding,  celebrated,  distinguished/  important  /",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "pronounced",
+    "definition": "뚜렷한, 현저한",
+    "synonyms": [
+      "decided",
+      "distinct",
+      "marked",
+      "notable",
+      "obvious",
+      "significant",
+      "strongest",
+      "definite"
+    ],
+    "context": "pronounced decided, distinct, marked, notable, obvious, significant, strongest, definite 뚜렷한, 현저한",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "advocate",
+    "definition": "지지하다, 옹호하다",
+    "synonyms": [
+      "argue",
+      "promote",
+      "recommend",
+      "speak",
+      "favor",
+      "support",
+      "champion",
+      "endorse"
+    ],
+    "context": "advocate argue for, promote, recommend, speak in favor of, support, champion, endorse 지지하다, 옹호하다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "comprise",
+    "definition": "으로 구성되다, 포함하다  / 구성하다",
+    "synonyms": [
+      "made",
+      "consist",
+      "contain",
+      "include",
+      "make",
+      "account",
+      "constitute"
+    ],
+    "context": "comprise be made up of, consist of, contain, include / make up, account for, constitute ~으로 구성되다, 포함하다  / 구성하다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "disperse",
+    "definition": "흩어지게 하다, 퍼뜨리다",
+    "synonyms": [
+      "disseminate",
+      "dissipate",
+      "scatter",
+      "spread",
+      "diffuse",
+      "distribute"
+    ],
+    "context": "disperse disseminate, dissipate, scatter, spread out, diffuse, distribute 흩어지게 하다, 퍼뜨리다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "exploit",
+    "definition": "이용[활용]하다, 부당 사용하다",
+    "synonyms": [
+      "make",
+      "use",
+      "use",
+      "utilize",
+      "harness",
+      "take",
+      "advantage",
+      "use",
+      "advantage"
+    ],
+    "context": "exploit make use of, use, utilize, harness, take advantage of, use to advantage 이용[활용]하다, 부당 사용하다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "offset",
+    "definition": "v. balance, counter, counterbalance, make up/",
+    "synonyms": [
+      "balance",
+      "counter",
+      "counterbalance",
+      "make"
+    ],
+    "context": "offset v. balance, counter, counterbalance, make up/",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "postulate",
+    "definition": "주장하다, 가정하다, 요구하다",
+    "synonyms": [
+      "assume",
+      "claim",
+      "hypothesize",
+      "premise",
+      "presume",
+      "demand",
+      "require",
+      "propose"
+    ],
+    "context": "postulate assume, claim, hypothesize, premise, presume, demand, require, propose 주장하다, 가정하다, 요구하다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "adjacent",
+    "definition": "인접한, 가까운",
+    "synonyms": [
+      "neighboring",
+      "beside",
+      "close",
+      "near",
+      "next"
+    ],
+    "context": "adjacent (to) nearby[near by], neighboring, beside, close to, near, next to 인접한, 가까운",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "analogous",
+    "definition": "유사한, 닮은",
+    "synonyms": [
+      "comparable",
+      "similar",
+      "correspondent",
+      "resembling",
+      "alike",
+      "parallel"
+    ],
+    "context": "analogous comparable, similar, correspondent, resembling, alike, parallel 유사한, 닮은",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "arduous",
+    "definition": "힘든, 어려운",
+    "synonyms": [
+      "difficult",
+      "demanding",
+      "exacting",
+      "formidable",
+      "laborious",
+      "severe",
+      "toilsome"
+    ],
+    "context": "arduous difficult, demanding, exacting, formidable, laborious, severe, toilsome 힘든, 어려운",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "conclusive",
+    "definition": "결정적인, 최종적인",
+    "synonyms": [
+      "definitive",
+      "decisive",
+      "absolute",
+      "clear",
+      "final"
+    ],
+    "context": "conclusive definitive, decisive, absolute, clear, final 결정적인, 최종적인",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "inadvertently",
+    "definition": "무심코, 우연히",
+    "synonyms": [
+      "accidentally",
+      "unintentionally",
+      "without",
+      "knowing",
+      "casually",
+      "chance",
+      "fortuitously",
+      "incidentally"
+    ],
+    "context": "inadvertently accidentally, unintentionally, without knowing, casually, by chance, fortuitously, incidentally 무심코, 우연히",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "indigenous",
+    "definition": "고유한, 토착의",
+    "synonyms": [
+      "native",
+      "aboriginal",
+      "born",
+      "endemic"
+    ],
+    "context": "indigenous native, aboriginal, born, endemic 고유한, 토착의",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "manifest",
+    "definition": "adj. apparent, clear, definite, distinct, evident, obvious, patent",
+    "synonyms": [
+      "apparent",
+      "clear",
+      "definite",
+      "distinct",
+      "evident",
+      "obvious",
+      "patent"
+    ],
+    "context": "manifest adj. apparent, clear, definite, distinct, evident, obvious, patent",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "modest",
+    "definition": "많지 않은, 보통의, 알맞은, 적절한, 한정된",
+    "synonyms": [
+      "small",
+      "simple",
+      "ordinary",
+      "plain",
+      "large",
+      "limited",
+      "moderate",
+      "reasonable",
+      "temperate"
+    ],
+    "context": "modest (fairly) small, simple, ordinary, plain, not (too) large, limited, moderate, reasonable, temperate 많지 않은, 보통의, 알맞은, 적절한, 한정된",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "unprecedented",
+    "definition": "전례 없는, 유례 없는",
+    "synonyms": [
+      "initial",
+      "new",
+      "novel",
+      "unique",
+      "unlike",
+      "anything",
+      "past",
+      "unaccustomed"
+    ],
+    "context": "unprecedented initial, new, not seen[existing] before, novel, unique, unlike anything in the past, unaccustomed 전례 없는, 유례 없는",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "configuration",
+    "definition": "form,   shape,   appearance,   formation,   structure,   format,   arrangement,   layout,   design,",
+    "synonyms": [
+      "form",
+      "shape",
+      "appearance",
+      "formation",
+      "structure",
+      "format",
+      "arrangement",
+      "layout",
+      "design"
+    ],
+    "context": "configuration form,   shape,   appearance,   formation,   structure,   format,   arrangement,   layout,   design,",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "deviate",
+    "definition": "벗어나게 하다, 빗나가게 하다",
+    "synonyms": [
+      "depart",
+      "divert",
+      "deflect",
+      "turn",
+      "aside",
+      "turn",
+      "off",
+      "veer"
+    ],
+    "context": "deviate depart, divert, deflect, turn aside, turn off, veer 벗어나게 하다, 빗나가게 하다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "encompass",
+    "definition": "포함하다, 내포하다",
+    "synonyms": [
+      "include",
+      "comprehend",
+      "contain",
+      "embody",
+      "embrace",
+      "involve"
+    ],
+    "context": "encompass include, comprehend, contain, embody, embrace, involve 포함하다, 내포하다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "forage",
+    "definition": "식량) 찾아 나서다 / 먹이를 주다",
+    "synonyms": [
+      "search",
+      "seek",
+      "hunt",
+      "look",
+      "feed"
+    ],
+    "context": "forage search (for food), seek (for food), hunt, look / feed (식량) 찾아 나서다 / 먹이를 주다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "inflate",
+    "definition": "부풀리다, 팽창시키다",
+    "synonyms": [
+      "expand",
+      "enlarge",
+      "amplify",
+      "increase",
+      "magnify",
+      "swell"
+    ],
+    "context": "inflate expand, enlarge, amplify, increase, magnify, swell 부풀리다, 팽창시키다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "initiate",
+    "definition": "시작하다, 개시하다",
+    "synonyms": [
+      "begin",
+      "originate",
+      "start",
+      "commence",
+      "inaugurate",
+      "launch"
+    ],
+    "context": "initiate begin, originate, start, commence, inaugurate, launch 시작하다, 개시하다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "intrigue",
+    "definition": "흥미를 끌다, 매료시키다",
+    "synonyms": [
+      "attract",
+      "fascinate",
+      "interest",
+      "appeal",
+      "excite"
+    ],
+    "context": "intrigue attract, fascinate, interest, appeal, excite 흥미를 끌다, 매료시키다",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "pinpoint",
+    "definition": "locate exactly, find, locate, discover, detect, track down, spot /",
+    "synonyms": [
+      "locate",
+      "exactly",
+      "find",
+      "locate",
+      "discover",
+      "detect",
+      "track",
+      "spot"
+    ],
+    "context": "pinpoint locate exactly, find, locate, discover, detect, track down, spot /",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "identify",
+    "definition": "precisely, clearly identify, determine, distinguish, identify, recognize",
+    "synonyms": [
+      "precisely",
+      "clearly",
+      "identify",
+      "determine",
+      "distinguish",
+      "identify",
+      "recognize"
+    ],
+    "context": "identify precisely, clearly identify, determine, distinguish, identify, recognize",
+    "pageNum": 1,
+    "confidence": 0.75
+  },
+  {
+    "word": "prolong",
+    "definition": "늘이다, 연장하다",
+    "synonyms": [
+      "extend",
+      "draw",
+      "elongate",
+      "lengthen",
+      "protract",
+      "stretch"
+    ],
+    "context": "prolong extend, draw out, elongate, lengthen, protract, stretch 늘이다, 연장하다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "feasible",
+    "definition": "가능한, 실행할 수 있는",
+    "synonyms": [
+      "achievable",
+      "possible",
+      "practicable",
+      "viable",
+      "workable"
+    ],
+    "context": "feasible achievable, possible, practicable, viable, workable 가능한, 실행할 수 있는",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "ephemeral",
+    "definition": "순식간의, 덧없는",
+    "synonyms": [
+      "living",
+      "short",
+      "time",
+      "evanescent",
+      "momentary",
+      "transitory",
+      "temporary",
+      "transient"
+    ],
+    "context": "ephemeral living in a short time, short-lived, evanescent, momentary, transitory, temporary, transient 순식간의, 덧없는",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "invariably",
+    "definition": "언제나, 예외 없이",
+    "synonyms": [
+      "always",
+      "without",
+      "exception",
+      "continually",
+      "perpetually"
+    ],
+    "context": "invariably always, without exception, continually, perpetually 언제나, 예외 없이",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "plausible",
+    "definition": "그럴듯한, 설득력 있는",
+    "synonyms": [
+      "believable",
+      "possible",
+      "reasonable",
+      "credible",
+      "likely",
+      "probable"
+    ],
+    "context": "plausible believable, possible, reasonable, credible, likely, probable 그럴듯한, 설득력 있는",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "pragmatic",
+    "definition": "현실적인, 실제적인",
+    "synonyms": [
+      "practical",
+      "realistic",
+      "sensible"
+    ],
+    "context": "pragmatic practical, realistic, sensible 현실적인, 실제적인",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "impetus",
+    "definition": "자극, 기동력",
+    "synonyms": [
+      "incentive",
+      "motivation",
+      "stimulus",
+      "catalyst",
+      "impulse",
+      "motivation"
+    ],
+    "context": "impetus incentive, motivation, stimulus, catalyst, impulse, motivation 자극, 기동력",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "allocate",
+    "definition": "할당하다, 배정하다",
+    "synonyms": [
+      "allot",
+      "assign",
+      "disperse",
+      "distribute",
+      "provide",
+      "allow"
+    ],
+    "context": "allocate allot, assign, disperse, distribute, provide, allow 할당하다, 배정하다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "compensate",
+    "definition": "결점, 손해) 보완하다, 상쇄하다",
+    "synonyms": [
+      "adjust",
+      "balance",
+      "recoup",
+      "remunerate"
+    ],
+    "context": "compensate for adjust, balance, recoup, remunerate (결점, 손해) 보완하다, 상쇄하다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "engulf",
+    "definition": "빨아들이다, 휩쓸리게 하다",
+    "synonyms": [
+      "swallow"
+    ],
+    "context": "engulf swallow 빨아들이다, 휩쓸리게 하다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "efface",
+    "definition": "지우다, 말살하다",
+    "synonyms": [
+      "destroy",
+      "eradicate"
+    ],
+    "context": "efface destroy, eradicate 지우다, 말살하다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "magnify",
+    "definition": "크게 하다, 확대 하다",
+    "synonyms": [
+      "amplify",
+      "enlarge",
+      "intensify",
+      "enhance",
+      "heighten",
+      "strengthen"
+    ],
+    "context": "magnify amplify, enlarge, intensify, enhance, heighten, strengthen 크게 하다, 확대 하다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "magnitude",
+    "definition": "크기, 규모 / 2 중요(성)",
+    "synonyms": [
+      "extent",
+      "size",
+      "dimension",
+      "proportion",
+      "importance",
+      "consequence",
+      "significance"
+    ],
+    "context": "magnitude 1 extent, size, dimension, proportion / 2 importance, consequence, significance 1 크기, 규모 / 2 중요(성)",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "comparable",
+    "definition": "유사한, 거의 동등한",
+    "synonyms": [
+      "equivalent",
+      "analogous",
+      "akin",
+      "close",
+      "near",
+      "similar"
+    ],
+    "context": "comparable equivalent, analogous, akin, close, near, similar 유사한, 거의 동등한",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "comprehensive",
+    "definition": "광범위한, 포괄적인, 철저한",
+    "synonyms": [
+      "broad",
+      "complete",
+      "inclusive",
+      "long",
+      "showing",
+      "extensive",
+      "understanding",
+      "thorough",
+      "general"
+    ],
+    "context": "comprehensive broad, complete, inclusive, long, showing extensive understanding, thorough, general 광범위한, 포괄적인, 철저한",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "exclusively",
+    "definition": "오로지, 전적으로",
+    "synonyms": [
+      "entirely",
+      "solely"
+    ],
+    "context": "exclusively entirely, only, solely 오로지, 전적으로",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "ingenious",
+    "definition": "독창적인, 영리한",
+    "synonyms": [
+      "clever",
+      "creative",
+      "innovative",
+      "creative",
+      "original"
+    ],
+    "context": "ingenious clever, creative, innovative, creative, original 독창적인, 영리한",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "eclectic",
+    "definition": "선택된; 다양성을 지닌",
+    "synonyms": [
+      "particular",
+      "select",
+      "diverse",
+      "various"
+    ],
+    "context": "eclectic particular, select, selective; diverse, various 선택된; 다양성을 지닌",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "prolific",
+    "definition": "다산의, 풍부한",
+    "synonyms": [
+      "abundant",
+      "fertile",
+      "productive",
+      "fecund",
+      "fruitful",
+      "luxuriant",
+      "productive"
+    ],
+    "context": "prolific abundant, fertile, productive, fecund, fruitful, luxuriant, productive 다산의, 풍부한",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "aggregate",
+    "definition": "집단, 집합체",
+    "synonyms": [
+      "collection",
+      "blend",
+      "combination",
+      "mass",
+      "mix"
+    ],
+    "context": "aggregate collection, blend, combination, mass, mix 집단, 집합체",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "attribute",
+    "definition": "n. characteristic, quality, trait, character, feature",
+    "synonyms": [
+      "characteristic",
+      "quality",
+      "trait",
+      "character",
+      "feature"
+    ],
+    "context": "attribute n. characteristic, quality, trait, character, feature",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "paradox",
+    "definition": "모순, 역설",
+    "synonyms": [
+      "contradiction",
+      "anomaly"
+    ],
+    "context": "paradox contradiction, anomaly 모순, 역설",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "embark",
+    "definition": "시작하다, 착수하다/ 배에 태우다, 싣다",
+    "synonyms": [
+      "start",
+      "begin",
+      "establish",
+      "initiate",
+      "commence",
+      "board",
+      "ship",
+      "board"
+    ],
+    "context": "embark start, begin, establish, initiate, commence, inaugurate/ board ship, go on board 시작하다, 착수하다/ 배에 태우다, 싣다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "induce",
+    "definition": "1 persuade, stimulate, convince, draw, prevail",
+    "synonyms": [
+      "persuade",
+      "stimulate",
+      "convince",
+      "draw",
+      "prevail"
+    ],
+    "context": "induce 1 persuade, stimulate, convince, draw, prevail",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "proliferate",
+    "definition": "빠르게) 증식[증가] 하다",
+    "synonyms": [
+      "increase",
+      "become",
+      "numerous",
+      "multiply",
+      "grow",
+      "rapidly"
+    ],
+    "context": "proliferate increase, become numerous, multiply, grow rapidly (빠르게) 증식[증가] 하다",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "secrete",
+    "definition": "1 discharge, produce, release, emit, excrete, send out",
+    "synonyms": [
+      "discharge",
+      "produce",
+      "release",
+      "emit",
+      "excrete",
+      "send"
+    ],
+    "context": "secrete 1 discharge, produce, release, emit, excrete, send out",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "formidable",
+    "definition": "1 difficult (to deal with), arduous, hard, laborious",
+    "synonyms": [
+      "difficult",
+      "deal",
+      "arduous",
+      "hard",
+      "laborious"
+    ],
+    "context": "formidable 1 difficult (to deal with), arduous, hard, laborious",
+    "pageNum": 2,
+    "confidence": 0.75
+  },
+  {
+    "word": "meager",
+    "definition": "부족한, 불충분한",
+    "synonyms": [
+      "scanty",
+      "scarce",
+      "thin",
+      "low",
+      "inadequate",
+      "deficient"
+    ],
+    "context": "meager scanty, scarce, thin, very low, inadequate, deficient 부족한, 불충분한",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "potent",
+    "definition": "강력한, 세력이 있는",
+    "synonyms": [
+      "powerful",
+      "strong",
+      "forceful",
+      "robust"
+    ],
+    "context": "potent powerful, strong, forceful, robust 강력한, 세력이 있는",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "reluctant",
+    "definition": "마지못해 하는, 싫은",
+    "synonyms": [
+      "averse",
+      "disinclined",
+      "hesitant",
+      "loath",
+      "unwilling",
+      "afraid"
+    ],
+    "context": "reluctant averse, disinclined, hesitant, loath, unwilling, afraid 마지못해 하는, 싫은",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "relic",
+    "definition": "유물, 유적",
+    "synonyms": [
+      "remains",
+      "remnants"
+    ],
+    "context": "relic remains, remnants 유물, 유적",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "repercussion",
+    "definition": "영향, 반향",
+    "synonyms": [
+      "consequence",
+      "effect",
+      "result",
+      "outcome"
+    ],
+    "context": "repercussion consequence, effect, result, outcome 영향, 반향",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "stipulation",
+    "definition": "규정, 조건",
+    "synonyms": [
+      "requirement",
+      "condition",
+      "provision",
+      "reservation"
+    ],
+    "context": "stipulation requirement, condition, provision, reservation 규정, 조건",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "coincide",
+    "definition": "일치하다, 동시에 일어나다",
+    "synonyms": [
+      "accord",
+      "agree",
+      "correspond",
+      "answer",
+      "same",
+      "time",
+      "concur"
+    ],
+    "context": "coincide with accord with, agree with, correspond with, answer to, be at the same time, concur with 일치하다, 동시에 일어나다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "commission",
+    "definition": "위탁, 위임, 고용; 명령, 지시",
+    "synonyms": [
+      "hire",
+      "employ",
+      "order"
+    ],
+    "context": "commission hire, employ, engagement; order 위탁, 위임, 고용; 명령, 지시",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "confine",
+    "definition": "한정하다, 제한하다, 가두다, 감금하다",
+    "synonyms": [
+      "limit",
+      "bar",
+      "circumscribe",
+      "restrict",
+      "enclose",
+      "imprison",
+      "trap"
+    ],
+    "context": "confine limit, bar, circumscribe, restrict, enclose, imprison, trap 한정하다, 제한하다, 가두다, 감금하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "contract",
+    "definition": "줄이다, 줄어들다; 계약하다",
+    "synonyms": [
+      "shorten",
+      "agree",
+      "pledge",
+      "promise",
+      "undertake"
+    ],
+    "context": "contract shorten, reduce; agree, pledge, promise, undertake 줄이다, 줄어들다; 계약하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "impart",
+    "definition": "물건이나 성향을) 주다",
+    "synonyms": [
+      "give",
+      "provide",
+      "afford",
+      "bestow",
+      "confer",
+      "grant",
+      "supply"
+    ],
+    "context": "impart give, provide, afford, bestow, confer, grant, supply (물건이나 성향을) 주다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "abrupt",
+    "definition": "갑작스러운, 뜻밖의, 험준한, 가파른",
+    "synonyms": [
+      "sudden",
+      "surprising",
+      "hasty",
+      "impetuous",
+      "precipitate",
+      "precipitous"
+    ],
+    "context": "abrupt sudden, surprising, hasty, impetuous, precipitate, precipitous 갑작스러운, 뜻밖의, 험준한, 가파른",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "extant",
+    "definition": "지금도 남아있는, 현존하는",
+    "synonyms": [
+      "existence",
+      "living",
+      "existing",
+      "remaining",
+      "still",
+      "existent",
+      "surviving"
+    ],
+    "context": "extant in existence, living, existing, remaining, still existent, surviving 지금도 남아있는, 현존하는",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "impermeable",
+    "definition": "통과할 수 없는, 스며들지 않는",
+    "synonyms": [
+      "impenetrable",
+      "impassable",
+      "impervious"
+    ],
+    "context": "impermeable impenetrable, impassable, impervious 통과할 수 없는, 스며들지 않는",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "momentous",
+    "definition": "중대한, 중요한",
+    "synonyms": [
+      "significant",
+      "critical",
+      "crucial",
+      "decisive",
+      "important",
+      "pivotal"
+    ],
+    "context": "momentous significant, critical, crucial, decisive, important, pivotal 중대한, 중요한",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "phenomenal",
+    "definition": "보통이 아닌, 놀랄만한",
+    "synonyms": [
+      "extraordinary",
+      "incredible",
+      "outstanding",
+      "rare",
+      "remarkable",
+      "singular",
+      "unique"
+    ],
+    "context": "phenomenal extraordinary, incredible, outstanding, rare, remarkable, singular, unique 보통이 아닌, 놀랄만한",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "uniformly",
+    "definition": "고르게, 규칙적으로, 한결같이",
+    "synonyms": [
+      "consistently",
+      "evenly",
+      "invariable",
+      "without",
+      "variation"
+    ],
+    "context": "uniformly consistently, evenly, invariable, without variation, smooth(ly) 고르게, 규칙적으로, 한결같이",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "mandate",
+    "definition": "요구, 지시 2. 위임  (사항), 권한 부여",
+    "synonyms": [
+      "ordering",
+      "instruction",
+      "order",
+      "command",
+      "charge",
+      "commission",
+      "ruling",
+      "authority"
+    ],
+    "context": "mandate 1 ordering, instruction, order, command, charge, commission, ruling 2 authority 1 요구, 지시 2. 위임  (사항), 권한 부여",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "abound",
+    "definition": "에 많이 있다",
+    "synonyms": [
+      "numerous",
+      "abundant",
+      "filled",
+      "full",
+      "teem"
+    ],
+    "context": "abound in 1 be numerous (in), be abundant (in) / 2. be filled with, be full of, teem with 1 (in) ~에 많이 있다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "bombard",
+    "definition": "충격을 주다, 공격하다",
+    "synonyms": [
+      "hit",
+      "strike"
+    ],
+    "context": "bombard hit, strike 충격을 주다, 공격하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "compress",
+    "definition": "압축하다, 채워 넣다",
+    "synonyms": [
+      "compact",
+      "crush",
+      "pack",
+      "press",
+      "squeeze"
+    ],
+    "context": "compress compact, crush, pack, press, squeeze 압축하다, 채워 넣다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "conquer",
+    "definition": "정복하다, 극복하다",
+    "synonyms": [
+      "defeat",
+      "beat",
+      "triumph",
+      "vanquish",
+      "overcome",
+      "control",
+      "cope",
+      "deal",
+      "get",
+      "master"
+    ],
+    "context": "conquer defeat, beat, triumph over, vanquish, overcome, control, cope with, deal with, get over, master 정복하다, 극복하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "course",
+    "definition": "따라 나아가다, 흐르다",
+    "synonyms": [
+      "run",
+      "flow",
+      "stream"
+    ],
+    "context": "course run (through), flow (Through), stream (through) (~through) 따라 나아가다, 흐르다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "disband",
+    "definition": "해체하다, 해산하다",
+    "synonyms": [
+      "dismiss",
+      "break",
+      "disentangle",
+      "disperse",
+      "dissolve",
+      "scatter",
+      "separate"
+    ],
+    "context": "disband dismiss, break up, disentangle, disperse, dissolve, scatter, separate 해체하다, 해산하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "dissipate",
+    "definition": "흩어지게 하다, 분산시키다; 낭비하다",
+    "synonyms": [
+      "disperse",
+      "dispelled",
+      "disappear",
+      "dissolve",
+      "scatter",
+      "squander",
+      "waste"
+    ],
+    "context": "dissipate disperse, be dispelled, disappear, dissolve, scatter, vanish; squander, waste 흩어지게 하다, 분산시키다; 낭비하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "elongate",
+    "definition": "시간, 공간적으로) 연장하다, 늘이다",
+    "synonyms": [
+      "lengthen",
+      "stretch",
+      "extend"
+    ],
+    "context": "elongate lengthen, stretch, extend (시간, 공간적으로) 연장하다, 늘이다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "furnish",
+    "definition": "공급하다, 제공하다",
+    "synonyms": [
+      "provide",
+      "afford",
+      "bestow",
+      "equip",
+      "give",
+      "offer",
+      "supply"
+    ],
+    "context": "furnish provide, afford, bestow, equip, give, offer, supply 공급하다, 제공하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "enigmatic",
+    "definition": "수수께끼의[같은], 알기 어려운",
+    "synonyms": [
+      "mysterious",
+      "puzzling",
+      "unfathomable"
+    ],
+    "context": "enigmatic mysterious, puzzling, unfathomable 수수께끼의[같은], 알기 어려운",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "resilient",
+    "definition": "회복력 있는, 강한",
+    "synonyms": [
+      "recover",
+      "durable",
+      "hardy",
+      "strong"
+    ],
+    "context": "resilient easy[quick] to recover, durable, hardy, strong 회복력 있는, 강한",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "utterly",
+    "definition": "완전히, 전적으로, 철저히",
+    "synonyms": [
+      "absolutely",
+      "completely",
+      "altogether",
+      "entirely",
+      "thoroughly",
+      "wholly"
+    ],
+    "context": "utterly absolutely, completely, altogether, entirely, thoroughly, wholly 완전히, 전적으로, 철저히",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "reconcile",
+    "definition": "화해시키다; 인정하다, 감수하다",
+    "synonyms": [
+      "make",
+      "people",
+      "friendly",
+      "settle",
+      "make",
+      "peace",
+      "accept",
+      "true",
+      "accept",
+      "come"
+    ],
+    "context": "reconcile make people friendly, settle, make peace between; accept as true, accept, come to accept 화해시키다; 인정하다, 감수하다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "deem",
+    "definition": "라 생각하다, 여기다",
+    "synonyms": [
+      "consider"
+    ],
+    "context": "deem consider ~라 생각하다, 여기다",
+    "pageNum": 3,
+    "confidence": 0.75
+  },
+  {
+    "word": "immobile",
+    "definition": "정지된, 움직이지 않는",
+    "synonyms": [
+      "motionless",
+      "stationary",
+      "standing",
+      "static"
+    ],
+    "context": "immobile motionless, stationary, standing, static 정지된, 움직이지 않는",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "incompatible",
+    "definition": "과) 맞지 않다, 용납하지 않다",
+    "synonyms": [
+      "conflict",
+      "odds",
+      "contrary",
+      "different",
+      "inconsistent",
+      "opposition"
+    ],
+    "context": "incompatible with in conflict with, at odds with, contrary to, different to, inconsistent with, in opposition to (~과) 맞지 않다, 용납하지 않다",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "inordinate",
+    "definition": "과도한, 지나친",
+    "synonyms": [
+      "excessive",
+      "extravagant",
+      "extreme",
+      "immoderate",
+      "lavish"
+    ],
+    "context": "inordinate excessive, extravagant, extreme, immoderate, lavish   과도한, 지나친",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "intricate",
+    "definition": "복잡한, 난해한",
+    "synonyms": [
+      "complex",
+      "complicated",
+      "elaborated",
+      "involved",
+      "sophisticated"
+    ],
+    "context": "intricate complex, complicated, elaborated, involved, sophisticated 복잡한, 난해한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "intrinsic",
+    "definition": "본질적인, 원래 갖추어진",
+    "synonyms": [
+      "fundamental",
+      "inherent",
+      "essential",
+      "inborn",
+      "ingrained",
+      "innate",
+      "integral",
+      "extrinsic"
+    ],
+    "context": "intrinsic fundamental, inherent, essential ,inborn, ingrained, innate, integral // (ant.) extrinsic 본질적인, 원래 갖추어진",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "inviolable",
+    "definition": "불가침의, 침범할 수 없는",
+    "synonyms": [
+      "without",
+      "exception",
+      "allowing",
+      "attack",
+      "allowing",
+      "exception"
+    ],
+    "context": "inviolable without exception, allowing no attack, allowing no exception 불가침의, 침범할 수 없는",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "luminous",
+    "definition": "빛나는, 밝은",
+    "synonyms": [
+      "brilliant",
+      "gleaming",
+      "shining",
+      "bright",
+      "glowing",
+      "lucent",
+      "lucid"
+    ],
+    "context": "luminous brilliant, gleaming, shining, bright, glowing, lucent, lucid 빛나는, 밝은",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "meticulous",
+    "definition": "지나치게) 꼼꼼한, 세심한",
+    "synonyms": [
+      "careful",
+      "detailed",
+      "conscientious",
+      "painstaking"
+    ],
+    "context": "meticulous (extremely) careful, detailed, conscientious, painstaking (지나치게) 꼼꼼한, 세심한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "myriad",
+    "definition": "무수한  (명사 무수, 다수)",
+    "synonyms": [
+      "countless",
+      "innumerable",
+      "numberless",
+      "numerous",
+      "unnumbered"
+    ],
+    "context": "myriad countless, innumerable, many, numberless, numerous, unnumbered 무수한  (명사 무수, 다수)",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "pertinent",
+    "definition": "적절한, 관계가 있는",
+    "synonyms": [
+      "applicable",
+      "appropriate",
+      "relative",
+      "relevant",
+      "apposite",
+      "material"
+    ],
+    "context": "pertinent applicable, appropriate, relative, relevant, apposite, material 적절한, 관계가 있는",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "static",
+    "definition": "거의 변하지 않는",
+    "synonyms": [
+      "unchanging",
+      "constant",
+      "consistent",
+      "invariable",
+      "stable",
+      "steady",
+      "unvarying"
+    ],
+    "context": "static unchanging, constant, consistent, invariable, stable, steady, unvarying 거의 변하지 않는",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "tentative",
+    "definition": "불확실한, 조심스러운",
+    "synonyms": [
+      "uncertain",
+      "cautious",
+      "hesitant",
+      "timid"
+    ],
+    "context": "tentative uncertain, cautious, hesitant, timid 불확실한, 조심스러운",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "impediment",
+    "definition": "장애(물), 방해(물)",
+    "synonyms": [
+      "barrier",
+      "clog",
+      "encumbrance",
+      "hindrance",
+      "obstacle",
+      "obstruction"
+    ],
+    "context": "impediment barrier, clog, encumbrance, hindrance, obstacle, obstruction 장애(물), 방해(물)",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "perish",
+    "definition": "사라지다, 타락하다, 죽다",
+    "synonyms": [
+      "decay",
+      "die",
+      "disappear",
+      "spoil",
+      "vanish",
+      "wither"
+    ],
+    "context": "perish decay, die, disappear, spoil, vanish, wither 사라지다, 타락하다, 죽다",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "aberrant",
+    "definition": "정도를 벗어난, 비정상적인",
+    "synonyms": [
+      "abnormal",
+      "atypical",
+      "anomalous",
+      "divergent",
+      "deviating",
+      "irregular"
+    ],
+    "context": "aberrant abnormal, atypical, anomalous, divergent, deviating, irregular 정도를 벗어난, 비정상적인",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "accustomed",
+    "definition": "익숙해진, 길들여진",
+    "synonyms": [
+      "used",
+      "familiar"
+    ],
+    "context": "accustomed to used to, familiar, with 익숙해진, 길들여진",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "brittle",
+    "definition": "부서지기 쉬운",
+    "synonyms": [
+      "breakable",
+      "easily",
+      "broken",
+      "delicate",
+      "fragile",
+      "friable"
+    ],
+    "context": "brittle (easily) breakable, easily broken, delicate, fragile, friable 부서지기 쉬운",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "bustling",
+    "definition": "떠들썩한, 부산한",
+    "synonyms": [
+      "active",
+      "busy",
+      "lively",
+      "crowded"
+    ],
+    "context": "bustling active, busy, lively, crowded 떠들썩한, 부산한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "chancy",
+    "definition": "위험한/ 불확실한, 믿을 수 없는",
+    "synonyms": [
+      "risky",
+      "hazardous",
+      "precarious",
+      "uncertain",
+      "unpredictable"
+    ],
+    "context": "chancy risky, hazardous, perilous/ precarious, uncertain, unpredictable 위험한/ 불확실한, 믿을 수 없는",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "intermittent",
+    "definition": "간헐적인, 주기적인",
+    "synonyms": [
+      "happening",
+      "time",
+      "time",
+      "sporadic",
+      "irregular",
+      "occasional",
+      "periodic"
+    ],
+    "context": "intermittent happening from time to time, sporadic, irregular, occasional, periodic 간헐적인, 주기적인",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "overly",
+    "definition": "지나치게, 몹시",
+    "synonyms": [
+      "excessively",
+      "inordinately"
+    ],
+    "context": "overly excessively, inordinately, too 지나치게, 몹시",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "palatial",
+    "definition": "호화로운, 웅대한",
+    "synonyms": [
+      "magnificent",
+      "deluxe",
+      "grand",
+      "lavish",
+      "luxurious",
+      "splendid",
+      "opulent"
+    ],
+    "context": "palatial magnificent, deluxe, grand, lavish, luxurious, splendid, opulent 호화로운, 웅대한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "precarious",
+    "definition": "위태로운, 위험한; 불확실한",
+    "synonyms": [
+      "insecure",
+      "dangerous",
+      "unstable",
+      "insecure",
+      "uncertain",
+      "unstable",
+      "unpredictable"
+    ],
+    "context": "precarious insecure, dangerous, unstable, unsafe; insecure, uncertain, unstable, unpredictable 위태로운, 위험한; 불확실한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "pristine",
+    "definition": "원시 상태의, 자연 그대로의; 소박한",
+    "synonyms": [
+      "early",
+      "pure",
+      "unspoiled",
+      "flawless",
+      "immaculate"
+    ],
+    "context": "pristine early, primitive; pure, unspoiled, flawless, immaculate 원시 상태의, 자연 그대로의; 소박한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "stringent",
+    "definition": "엄중한, 엄격한",
+    "synonyms": [
+      "strict",
+      "firm",
+      "harsh",
+      "rigid",
+      "rigorous",
+      "severe"
+    ],
+    "context": "stringent strict, firm, harsh, rigid, rigorous, severe 엄중한, 엄격한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "unwieldy",
+    "definition": "무거워서) 다루기 힘든, 부피가 큰",
+    "synonyms": [
+      "awkward",
+      "clumsy",
+      "heavy",
+      "massive",
+      "ponderous"
+    ],
+    "context": "unwieldy awkward, clumsy, heavy, massive, ponderous (무거워서) 다루기 힘든, 부피가 큰",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "allegiance",
+    "definition": "충성, 충의",
+    "synonyms": [
+      "loyalty",
+      "devotion",
+      "faithfulness",
+      "fidelity",
+      "obedience"
+    ],
+    "context": "allegiance loyalty, devotion, faithfulness, fidelity, obedience 충성, 충의",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "sophistication",
+    "definition": "전문적 기술; 세련, 정교;세상물정에 익숙함",
+    "synonyms": [
+      "expertise",
+      "refinement",
+      "experience",
+      "worldliness"
+    ],
+    "context": "sophistication expertise, technology; refinement, urbanity; experience, worldliness 전문적 기술; 세련, 정교;세상물정에 익숙함",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "converge",
+    "definition": "모이다, 모으다, 집중시키다",
+    "synonyms": [
+      "concentrate",
+      "come",
+      "together",
+      "meet",
+      "move",
+      "closer",
+      "focus"
+    ],
+    "context": "converge concentrate, come together, meet, move closer, focus 모이다, 모으다, 집중시키다",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "discern",
+    "definition": "보고) 알아보다, 분간하다",
+    "synonyms": [
+      "identify",
+      "observe",
+      "distinguish",
+      "spy",
+      "note",
+      "perceive",
+      "regard"
+    ],
+    "context": "discern identify, observe, distinguish, (e) spy, note, perceive, regard (보고) 알아보다, 분간하다",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "discernible",
+    "definition": "1 perceptible, appreciable, detectable, palpable",
+    "synonyms": [
+      "perceptible",
+      "appreciable",
+      "detectable",
+      "palpable"
+    ],
+    "context": "discernible 1 perceptible, appreciable, detectable, palpable",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "give",
+    "definition": "일으키다, 낳다",
+    "synonyms": [
+      "rise",
+      "cause",
+      "produce",
+      "yield"
+    ],
+    "context": "give rise to cause, produce, yield 일으키다, 낳다",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "transplant",
+    "definition": "옮겨 심다, 옮기다",
+    "synonyms": [
+      "displace",
+      "place",
+      "another",
+      "context",
+      "remove",
+      "shift",
+      "transfer",
+      "transpose"
+    ],
+    "context": "transplant displace, place in another context, remove, shift, transfer, transpose 옮겨 심다, 옮기다",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "vanish",
+    "definition": "없어지다, 사라지다",
+    "synonyms": [
+      "disappear",
+      "lose",
+      "clear",
+      "evaporate",
+      "fade"
+    ],
+    "context": "vanish disappear, lose, clear, evaporate, fade 없어지다, 사라지다",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "decisive",
+    "definition": "결정적인, 중대한, 명확한",
+    "synonyms": [
+      "definitive",
+      "important",
+      "significant"
+    ],
+    "context": "decisive definitive, important, significant 결정적인, 중대한, 명확한",
+    "pageNum": 4,
+    "confidence": 0.75
+  },
+  {
+    "word": "calculatedly",
+    "definition": "일부러, 고의로",
+    "synonyms": [
+      "deliberately",
+      "purposely"
+    ],
+    "context": "calculatedly deliberately, purposely 일부러, 고의로",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "random",
+    "definition": "되는 대로의, 마구 잡이의",
+    "synonyms": [
+      "arbitrary",
+      "haphazard",
+      "occasional",
+      "rampant",
+      "unplanning",
+      "unsystematic",
+      "unusual"
+    ],
+    "context": "random arbitrary, haphazard, occasional, rampant, unplanning, unsystematic, unusual 되는 대로의, 마구 잡이의",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "renowned",
+    "definition": "유명한, 이름 높은",
+    "synonyms": [
+      "famous",
+      "celebrated",
+      "eminent",
+      "notable",
+      "preeminent",
+      "prominent"
+    ],
+    "context": "renowned famous, celebrated, eminent, notable, preeminent, prominent, well-known 유명한, 이름 높은",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "undisputed",
+    "definition": "accepted  by  everyone,  accepted  as  true,  acknowledged,  no  doubt,  admitted,  indisputable,",
+    "synonyms": [
+      "accepted",
+      "everyone",
+      "accepted",
+      "true",
+      "acknowledged",
+      "doubt",
+      "admitted",
+      "indisputable"
+    ],
+    "context": "undisputed accepted  by  everyone,  accepted  as  true,  acknowledged,  no  doubt,  admitted,  indisputable,",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "constellation",
+    "definition": "집합체, 일단, 무리",
+    "synonyms": [
+      "collection",
+      "combination"
+    ],
+    "context": "constellation collection, combination 집합체, 일단, 무리",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "demise",
+    "definition": "사망, 종말, 소멸",
+    "synonyms": [
+      "decline",
+      "decrease",
+      "disappearance",
+      "end",
+      "death",
+      "passing"
+    ],
+    "context": "demise decline, decrease, disappearance, end, death, passing 사망, 종말, 소멸",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "prowess",
+    "definition": "expertise,  ability,  capability,  capacity,  mastery,  proficiency,  skill;  ambition,  audacity,  ",
+    "synonyms": [
+      "expertise",
+      "ability",
+      "capability",
+      "capacity",
+      "mastery",
+      "proficiency",
+      "ambition",
+      "audacity",
+      "bravery"
+    ],
+    "context": "prowess expertise,  ability,  capability,  capacity,  mastery,  proficiency,  skill;  ambition,  audacity,  bravery,",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "appreciate",
+    "definition": "recognize, understand, acknowledge, be aware of, be conscious of, comprehend, realize; value,",
+    "synonyms": [
+      "recognize",
+      "understand",
+      "acknowledge",
+      "aware",
+      "conscious",
+      "comprehend",
+      "value"
+    ],
+    "context": "appreciate recognize, understand, acknowledge, be aware of, be conscious of, comprehend, realize; value,",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "diverge",
+    "definition": "벗어나다, 나뉘다, 갈라지다; 달라지다",
+    "synonyms": [
+      "move",
+      "apart",
+      "separate",
+      "divide",
+      "different",
+      "differ",
+      "disagree"
+    ],
+    "context": "diverge move apart, separate, divide, split; be different, differ, disagree 벗어나다, 나뉘다, 갈라지다; 달라지다",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "embellish",
+    "definition": "꾸미다, 장식하다",
+    "synonyms": [
+      "make",
+      "attractive",
+      "adorn",
+      "decorate",
+      "ornament"
+    ],
+    "context": "embellish make attractive, adorn, decorate, ornament 꾸미다, 장식하다",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "disputatious",
+    "definition": "논쟁적인, 논쟁을 좋아하는",
+    "synonyms": [
+      "contentious",
+      "aggressive",
+      "argumentative",
+      "bellicose",
+      "belligerent",
+      "pugnacious",
+      "quarrelsome"
+    ],
+    "context": "disputatious contentious, aggressive, argumentative, bellicose, belligerent, pugnacious, quarrelsome 논쟁적인, 논쟁을 좋아하는",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "eminent",
+    "definition": "우수한, 주목할 만한",
+    "synonyms": [
+      "distinguished",
+      "notable",
+      "outstanding",
+      "preeminent",
+      "prestigious",
+      "signal",
+      "superior"
+    ],
+    "context": "eminent distinguished, notable, outstanding, preeminent, prestigious, signal, superior 우수한, 주목할 만한",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "improbable",
+    "definition": "일어날 것 같지 않은, 사실 같지 않은",
+    "synonyms": [
+      "implausible",
+      "inconceivable",
+      "questionable",
+      "unlikely",
+      "doubtful",
+      "dubious"
+    ],
+    "context": "improbable implausible, inconceivable, questionable, unlikely, doubtful, dubious 일어날 것 같지 않은, 사실 같지 않은",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "incidentally",
+    "definition": "그런데, 덧붙여 말하 자면",
+    "synonyms": [
+      "way"
+    ],
+    "context": "incidentally by the way 그런데, 덧붙여 말하 자면",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "intangible",
+    "definition": "실체가 없는, 무형의",
+    "synonyms": [
+      "nonmaterial",
+      "abstract",
+      "impalpable",
+      "untouchable"
+    ],
+    "context": "intangible nonmaterial, abstract, impalpable, untouchable 실체가 없는, 무형의",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "primordial",
+    "definition": "최초의, 근본적인, 원시시  대부터 있는",
+    "synonyms": [
+      "beginning",
+      "ancient",
+      "primal",
+      "primeval",
+      "primitive"
+    ],
+    "context": "primordial beginning, ancient, primal, primeval, primitive 최초의, 근본적인, 원시시  대부터 있는",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "steadfast",
+    "definition": "확고한, 변치 않는",
+    "synonyms": [
+      "constant",
+      "enduring",
+      "firm",
+      "resolute",
+      "steady",
+      "unwavering",
+      "fixed",
+      "immobile"
+    ],
+    "context": "steadfast constant, enduring, firm, resolute, steady, unwavering, fixed, immobile 확고한, 변치 않는",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "urbane",
+    "definition": "세련된, 우아한, 도시풍의",
+    "synonyms": [
+      "cultivated",
+      "civilized",
+      "polished",
+      "refined",
+      "sophisticated"
+    ],
+    "context": "urbane cultivated, civilized, polished, refined, sophisticated 세련된, 우아한, 도시풍의",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "susceptible",
+    "definition": "민감한, ~받기 쉬운; 받아들일 수 있는",
+    "synonyms": [
+      "likely",
+      "prone",
+      "vulnerable",
+      "exposed",
+      "liable",
+      "sensitive",
+      "acceptable"
+    ],
+    "context": "susceptible likely (to get), prone, vulnerable, exposed, liable, sensitive, subject; acceptable 민감한, ~받기 쉬운; 받아들일 수 있는",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "conjecture",
+    "definition": "n. conclusion, assumption, postulation, presumption, speculation, supposition, surmise, theory",
+    "synonyms": [
+      "conclusion",
+      "assumption",
+      "postulation",
+      "presumption",
+      "speculation",
+      "supposition",
+      "surmise",
+      "theory"
+    ],
+    "context": "conjecture n. conclusion, assumption, postulation, presumption, speculation, supposition, surmise, theory",
+    "pageNum": 5,
+    "confidence": 0.75
+  },
+  {
+    "word": "enactment",
+    "definition": "제정, 입법(화), 인가",
+    "synonyms": [
+      "establishment",
+      "approval",
+      "authorization",
+      "ratification",
+      "sanction"
+    ],
+    "context": "enactment establishment, approval, authorization, ratification, sanction 제정, 입법(화), 인가",
+    "pageNum": 5,
+    "confidence": 0.75
+  }
+]

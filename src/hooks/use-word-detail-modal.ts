@@ -97,17 +97,6 @@ export function useWordDetailModal() {
             return { ...prev, examples: result.examples }
           })
           
-          // Also update from DB after a delay for persistence
-          setTimeout(async () => {
-            const updatedWord = await wordAdapter.getWordById(word.id)
-            if (updatedWord) {
-              setSelectedWord(prev => {
-                if (!prev) return null
-                return { ...prev, examples: updatedWord.examples }
-              })
-            }
-          }, 1000)
-          
           // Dispatch custom event for list page to reload
           const event = new CustomEvent('word-updated', {
             detail: { wordId: word.id, type: 'examples' }
@@ -138,10 +127,10 @@ export function useWordDetailModal() {
       return
     }
     
-    // Check unified structure
-    const hasEtymology = word.realEtymology
+    // Check unified structure - etymology field (not englishDefinition)
+    const hasEtymology = word.etymology && typeof word.etymology === 'string' && word.etymology.length > 0
     if (hasEtymology) {
-      console.log('[useWordDetailModal] Word already has etymology')
+      console.log('[useWordDetailModal] Word already has etymology:', word.etymology)
       return
     }
     
@@ -166,19 +155,8 @@ export function useWordDetailModal() {
           // Update local state immediately with the generated etymology
           setSelectedWord(prev => {
             if (!prev) return null
-            return { ...prev, realEtymology: result.etymology }
+            return { ...prev, etymology: result.etymology }
           })
-          
-          // Also update from DB after a delay for persistence
-          setTimeout(async () => {
-            const updatedWord = await wordAdapter.getWordById(word.id)
-            if (updatedWord) {
-              setSelectedWord(prev => {
-                if (!prev) return null
-                return { ...prev, realEtymology: updatedWord.realEtymology }
-              })
-            }
-          }, 1000)
           
           // Dispatch custom event for list page to reload
           const event = new CustomEvent('word-updated', {
@@ -201,21 +179,34 @@ export function useWordDetailModal() {
     setFetchingPronunciation(true)
     
     try {
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.word)}`)
+      // Use new API that fetches AND saves pronunciation
+      const response = await fetch('/api/fetch-save-pronunciation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: word.word,
+          wordId: word.id,
+          userId: user.uid
+        })
+      })
+      
       if (response.ok) {
-        const data = await response.json()
-        const phonetic = data[0]?.phonetic || 
-                        data[0]?.phonetics?.[0]?.text ||
-                        data[0]?.phonetics?.find((p: any) => p.text)?.text
-                        
-        if (phonetic && word.id) {
+        const result = await response.json()
+        
+        if (result.pronunciation) {
           // Update local state with unified structure
-          console.log('Pronunciation fetched:', phonetic, 'for word:', word.word)
+          console.log('Pronunciation fetched and saved:', result.pronunciation, 'for word:', word.word)
           
           setSelectedWord(prev => prev ? {
             ...prev,
-            pronunciation: phonetic
+            pronunciation: result.pronunciation
           } : null)
+          
+          // Dispatch custom event for list page to reload
+          const event = new CustomEvent('word-updated', {
+            detail: { wordId: word.id, type: 'pronunciation' }
+          })
+          window.dispatchEvent(event)
         }
       }
     } catch (error) {

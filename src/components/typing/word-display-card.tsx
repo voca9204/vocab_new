@@ -26,12 +26,17 @@ export function WordDisplayCard({
   return (
     <div className="text-center mb-8">
       <p className="text-gray-600 mb-4">다음 단어를 입력하세요:</p>
-      <h2 className="text-xl font-semibold mb-2">
-        {word.definitions[0]?.text || 'No definition available'}
+      
+      {/* 한글 뜻 표시 - UnifiedWord의 definition 필드 사용 */}
+      <h2 className="text-2xl font-bold mb-2 text-gray-900">
+        {word.definition || word.definitions[0]?.definition || '정의 없음'}
       </h2>
       
-      {word.etymology?.origin && (
-        <p className="text-sm text-gray-500">{word.etymology.origin}</p>
+      {/* 영어 정의 표시 (있는 경우) */}
+      {(word.englishDefinition || word.definitions[0]?.text || word.etymology?.origin) && (
+        <p className="text-lg text-gray-600 mb-2">
+          {word.englishDefinition || word.definitions[0]?.text || word.etymology?.origin}
+        </p>
       )}
       
       <div className="flex justify-center gap-2 mt-4">

@@ -2,6 +2,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
@@ -13,11 +15,8 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from './config'
 import type { User as AppUser } from '@/types'
 
-// Google Auth Provider 초기화
-const googleProvider = new GoogleAuthProvider()
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-})
+// Google Auth Provider 초기화 - 전역 변수 제거
+// 각 로그인 시도마다 새로운 인스턴스를 생성함
 
 // 사용자 회원가입
 export const registerUser = async (
@@ -64,7 +63,15 @@ export const loginUser = async (
 // Google 로그인
 export const loginWithGoogle = async (): Promise<UserCredential> => {
   try {
-    const userCredential = await signInWithPopup(auth, googleProvider)
+    // 매번 새로운 GoogleAuthProvider 인스턴스 생성
+    const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    })
+    
+    console.log('Attempting Google sign in with popup...')
+    const userCredential = await signInWithPopup(auth, provider)
+    console.log('Google sign in successful:', userCredential.user.email)
     
     // Firestore에 사용자 문서 생성 (첫 로그인 시)
     await createUserDocument(userCredential.user)
@@ -73,8 +80,30 @@ export const loginWithGoogle = async (): Promise<UserCredential> => {
     await updateLastLogin(userCredential.user.uid)
     
     return userCredential
-  } catch (error) {
+  } catch (error: any) {
     console.error('Google login error:', error)
+    console.error('Error code:', error.code)
+    console.error('Error message:', error.message)
+    throw error
+  }
+}
+
+// 리다이렉트 결과 처리
+export const handleRedirectResult = async (): Promise<UserCredential | null> => {
+  try {
+    const result = await getRedirectResult(auth)
+    if (result) {
+      // Firestore에 사용자 문서 생성 (첫 로그인 시)
+      await createUserDocument(result.user)
+      
+      // 마지막 로그인 시간 업데이트
+      await updateLastLogin(result.user.uid)
+      
+      return result
+    }
+    return null
+  } catch (error) {
+    console.error('Redirect result error:', error)
     throw error
   }
 }

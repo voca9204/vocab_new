@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { Button, Input, StudyHeader } from '@/components/ui'
 import { Card } from '@/components/ui/card'
 import { 
@@ -21,11 +22,12 @@ import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
 import { useWordDiscovery } from '@/hooks/use-word-discovery'
 import { DiscoveryModal } from '@/components/vocabulary/discovery-modal'
+import { VirtualWordList } from '@/components/vocabulary/virtual-word-list'
 
 export default function VocabularyListPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [words, setWords] = useState<UnifiedWord[]>([])
+  const { words: contextWords, wordLoading: contextLoading, selectedCollections, updateWordSynonyms } = useCollectionV2()
   const [filteredWords, setFilteredWords] = useState<UnifiedWord[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -61,14 +63,14 @@ export default function VocabularyListPage() {
   // 유사어 클릭 핸들러 - 해당 단어를 찾아서 모달 열기
   const handleSynonymClick = async (synonymWord: string) => {
     console.log('🔍 [VocabularyListPage] Synonym clicked:', synonymWord)
-    console.log('📋 Current loaded words count:', words.length)
+    console.log('📋 Current loaded words count:', contextWords.length)
     
     try {
       // 약간의 지연을 추가하여 이전 모달이 완전히 정리되도록 함
       await new Promise(resolve => setTimeout(resolve, 100))
       
       // 1. 현재 로드된 단어 목록에서 먼저 찾기
-      const localMatch = words.find(w => 
+      const localMatch = contextWords.find(w => 
         w.word.toLowerCase() === synonymWord.toLowerCase()
       )
       
@@ -100,93 +102,28 @@ export default function VocabularyListPage() {
     }
   }
 
+  // Use context words instead of loading separately
   useEffect(() => {
-    if (user) {
-      loadWords()
-    }
-  }, [user])
+    setLoading(contextLoading)
+  }, [contextLoading])
 
-  // 페이지가 다시 포커스를 받았을 때 데이터 새로고침
+  // Context will handle updates automatically
   useEffect(() => {
-    const handleFocus = () => {
-      if (user && !loading) {
-        console.log('Page regained focus, reloading words...')
-        loadWords()
-      }
+    if (contextWords.length > 0) {
+      console.log('Context words updated:', contextWords.length)
     }
+  }, [contextWords])
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && user && !loading) {
-        console.log('Page became visible, reloading words...')
-        loadWords()
-      }
-    }
-
-    // 커스텀 이벤트 리스너 추가 (AI 생성 완료 시)
-    const handleWordUpdated = (event: Event) => {
-      const customEvent = event as CustomEvent
-      console.log('Word updated event received:', customEvent.detail)
-      if (user && !loading) {
-        loadWords()
-      }
-    }
-
-    window.addEventListener('focus', handleFocus)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('word-updated', handleWordUpdated)
-
-    return () => {
-      window.removeEventListener('focus', handleFocus)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('word-updated', handleWordUpdated)
-    }
-  }, [user, loading])
-
-  useEffect(() => {
-    filterWords()
-  }, [searchTerm, filterType, words])
-
-  const loadWords = async () => {
-    if (!user) return
-
-    try {
-      console.log('Loading words using WordAdapter')
-      
-      // WordAdapter를 사용하여 통합된 단어 데이터 가져오기
-      const wordsData = await wordAdapter.getWords(3000)
-      
-      console.log(`Loaded ${wordsData.length} words from WordAdapter`)
-      
-      if (wordsData.length === 0) {
-        console.log('No words found')
-        setWords([])
-        setFilteredWords([])
-        setLoading(false)
-        return
-      }
-      
-      // 알파벳순으로 정렬
-      const sortedWords = wordsData.sort((a, b) => a.word.localeCompare(b.word))
-      
-      console.log('Processed words:', sortedWords.length)
-      setWords(sortedWords)
-      setFilteredWords(sortedWords)
-    } catch (error) {
-      console.error('Error loading words:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const filterWords = () => {
-    let filtered = words
+  // Memoized filter function to prevent infinite loops
+  const filterWords = useCallback(() => {
+    let filtered = contextWords
 
     // 검색어 필터링 (UnifiedWord 구조에 맞게 수정)
     if (searchTerm) {
       filtered = filtered.filter(word => 
         word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (word.definition && word.definition.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (word.etymology && word.etymology.toLowerCase().includes(searchTerm.toLowerCase()))
+        (word.englishDefinition && word.englishDefinition.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     }
 
@@ -204,7 +141,12 @@ export default function VocabularyListPage() {
     }
 
     setFilteredWords(filtered)
-  }
+  }, [contextWords, searchTerm, filterType])
+
+  // Apply filters when dependencies change
+  useEffect(() => {
+    filterWords()
+  }, [filterWords])
 
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty <= 3) return 'text-green-600'
@@ -239,7 +181,8 @@ export default function VocabularyListPage() {
       {/* 헤더 */}
       <StudyHeader 
         title="단어 목록"
-        subtitle={`총 ${filteredWords.length}개 단어`}
+        subtitle={`${selectedCollections.map(wb => wb.name).join(', ')} - ${filteredWords.length}개 단어${filteredWords.length > 50 ? ' (가상 스크롤링 활성화)' : ''}`}
+        backPath="/unified-dashboard"
       />
 
       {/* 검색 및 필터 */}
@@ -286,10 +229,20 @@ export default function VocabularyListPage() {
         </div>
       </div>
 
-      {/* 단어 목록 */}
+      {/* 단어 목록 - Virtual Scrolling 적용 */}
       {loading ? (
         <div className="text-center py-8">로딩 중...</div>
+      ) : filteredWords.length > 50 ? (
+        // 50개 이상일 때 Virtual Scrolling 사용
+        <div className="h-[calc(100vh-300px)]">
+          <VirtualWordList
+            words={filteredWords}
+            onWordClick={openModal}
+            className="bg-gray-50 rounded-lg p-2"
+          />
+        </div>
       ) : (
+        // 50개 미만일 때는 기존 그리드 레이아웃 사용
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredWords.map((word) => (
             <Card 
@@ -318,19 +271,36 @@ export default function VocabularyListPage() {
                   {(word.studyStatus?.reviewCount || 0) > 0 && (
                     <Check className="h-4 w-4 text-green-600" />
                   )}
-                  <span className={`text-sm font-medium ${getDifficultyColor(word.difficulty || 5)}`}>
-                    Lv.{word.difficulty}
-                  </span>
+                  {/* Only show difficulty for non-personal collection words */}
+                  {word.source?.collection !== 'personal_collection_words' && (
+                    <span className={`text-sm font-medium ${getDifficultyColor(word.difficulty || 5)}`}>
+                      Lv.{word.difficulty}
+                    </span>
+                  )}
                 </div>
               </div>
               
               <p className="text-sm text-gray-700 mb-1 break-words whitespace-normal">
-                {word.definition || 'No definition available'}
+                {(() => {
+                  if (!word.definition) return 'No definition available'
+                  
+                  // Etymology 정보가 포함된 경우 첫 줄만 표시
+                  const lines = word.definition.split('\n')
+                  const firstLine = lines[0].trim()
+                  
+                  // "From" 또는 "Etymology"로 시작하는 라인 제거
+                  const cleanedLines = lines.filter(line => 
+                    !line.trim().startsWith('From ') && 
+                    !line.trim().toLowerCase().includes('etymology')
+                  )
+                  
+                  return cleanedLines.length > 0 ? cleanedLines[0] : firstLine
+                })()}
               </p>
               
-              {word.etymology && (
+              {word.englishDefinition && (
                 <p className="text-xs text-gray-500 break-words whitespace-normal">
-                  {word.etymology}
+                  {word.englishDefinition}
                 </p>
               )}
               

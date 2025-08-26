@@ -21,6 +21,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if etymology already exists
+    const db = getAdminFirestore()
+    const wordAdapter = new WordAdapterServer()
+    const existingWord = await wordAdapter.getWordById(wordId)
+    
+    if (existingWord && existingWord.etymology && existingWord.etymology.length > 0) {
+      console.log(`[generate-etymology-unified] Word ${word} already has etymology, returning existing`)
+      return NextResponse.json({
+        success: true,
+        etymology: existingWord.etymology,
+        message: 'Using existing etymology'
+      })
+    }
+
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return NextResponse.json(
@@ -77,11 +91,10 @@ Definition: ${definition}`
     }
 
     // Update the word in the appropriate collection
-    const db = getAdminFirestore()
-    const wordAdapter = new WordAdapterServer()
+    // (db and wordAdapter already declared above)
     
     // First, try to find which collection the word belongs to
-    const unifiedWord = await wordAdapter.getWordById(wordId)
+    const unifiedWord = existingWord || await wordAdapter.getWordById(wordId)
     
     if (unifiedWord && unifiedWord.source) {
       const collection = unifiedWord.source.collection
@@ -89,7 +102,7 @@ Definition: ${definition}`
       
       // Update based on collection type
       await db.collection(collection).doc(wordId).update({
-        realEtymology: etymology,
+        etymology: etymology,
         updatedAt: new Date()
       })
       

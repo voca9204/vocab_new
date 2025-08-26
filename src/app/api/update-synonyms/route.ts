@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[update-synonyms] Updating synonyms for ${wordId} in ${collection}`)
+    console.log(`[update-synonyms] Synonyms to save:`, synonyms, `Count:`, synonyms?.length)
 
     const db = getAdminFirestore()
     
@@ -27,6 +28,12 @@ export async function POST(request: NextRequest) {
     if (collection === 'photo_vocabulary_words') {
       // Photo vocabulary words store synonyms directly
       await db.collection('photo_vocabulary_words').doc(wordId).update({
+        synonyms: synonyms || [],
+        updatedAt: new Date()
+      })
+    } else if (collection === 'personal_collection_words') {
+      // Personal collection words store synonyms directly
+      await db.collection('personal_collection_words').doc(wordId).update({
         synonyms: synonyms || [],
         updatedAt: new Date()
       })

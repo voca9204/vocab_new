@@ -34,7 +34,13 @@ const storage = getStorage(app)
 // 개발 환경에서 Emulator 연결 (Firebase SDK v11 호환)
 const useEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true'
 
+console.log('🎯 Emulator 설정 확인:', {
+  useEmulator,
+  envVar: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR
+})
+
 if (useEmulator) {
+  console.log('🚀 Firebase Emulator 연결 시작...')
   try {
     // Auth Emulator 연결
     connectAuthEmulator(auth, 'http://localhost:9199', { disableWarnings: true })

@@ -1,0 +1,4370 @@
+[
+  {
+    "id": "1DmcgTB1NQv9zgIPi2LB",
+    "data": {
+      "id": "1DmcgTB1NQv9zgIPi2LB",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "utilitarian",
+      "normalizedWord": "utilitarian",
+      "definition": "실용적인, 효용적인 (designed to be useful or practical rather than attractive)",
+      "context": "실용적인, 효용적인 (designed to be useful or practical rather than attractive)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "1h3xZDEMq8brpmO3bbvS",
+    "data": {
+      "id": "1h3xZDEMq8brpmO3bbvS",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "however",
+      "normalizedWord": "however",
+      "definition": "그러나, 하지만 (used to introduce a statement that contrasts with or seems to contradict something that has been said previously)",
+      "context": "그러나, 하지만 (used to introduce a statement that contrasts with or seems to contradict something that has been said previously)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "1l3Ka5FLoe6qEae22uzK",
+    "data": {
+      "id": "1l3Ka5FLoe6qEae22uzK",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "albums",
+      "normalizedWord": "albums",
+      "definition": "앨범 (a collection of recordings or photographs, typically bound together)",
+      "context": "앨범 (a collection of recordings or photographs, typically bound together)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "1zsDLyRAtivPjK8b4a2U",
+    "data": {
+      "id": "1zsDLyRAtivPjK8b4a2U",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "owteGDu2xeASXq0wEZAP",
+      "word": "assist",
+      "normalizedWord": "assist",
+      "definition": "돕다, 지원하다 (to help or provide support to someone or something)",
+      "context": "돕다, 지원하다 (to help or provide support to someone or something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755123998,
+        "_nanoseconds": 877000000
+      },
+      "updatedAt": {
+        "_seconds": 1755123999,
+        "_nanoseconds": 222000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "2aS21hDRFHb8yVZteR8E",
+    "data": {
+      "id": "2aS21hDRFHb8yVZteR8E",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "perspective",
+      "normalizedWord": "perspective",
+      "definition": "관점 (A particular attitude toward or way of regarding something; a point of view.)",
+      "context": "관점 (A particular attitude toward or way of regarding something; a point of view.)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "4mHDhJpiGyqHuNu35gBc",
+    "data": {
+      "id": "4mHDhJpiGyqHuNu35gBc",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "images",
+      "normalizedWord": "images",
+      "definition": "이미지들 (visual representations or impressions of something)",
+      "context": "이미지들 (visual representations or impressions of something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "56AEi3KeiqMvJ6PpOJZc",
+    "data": {
+      "id": "56AEi3KeiqMvJ6PpOJZc",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "advanced",
+      "normalizedWord": "advanced",
+      "definition": "고급의, 진보된 (highly developed or complex; beyond the basic level)",
+      "context": "고급의, 진보된 (highly developed or complex; beyond the basic level)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "5u4HJuJjgho5lAqMCJEf",
+    "data": {
+      "id": "5u4HJuJjgho5lAqMCJEf",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "full",
+      "normalizedWord": "full",
+      "definition": "완전한, 전체의 (complete or entire; having all parts or elements)",
+      "context": "완전한, 전체의 (complete or entire; having all parts or elements)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "5x0mcwuwJmlMVAuvFUd2",
+    "data": {
+      "id": "5x0mcwuwJmlMVAuvFUd2",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "unqualified",
+      "normalizedWord": "unqualified",
+      "definition": "자격미달의 (not having the necessary skills, knowledge, or qualifications for a particular job or task)",
+      "context": "자격미달의 (not having the necessary skills, knowledge, or qualifications for a particular job or task)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "67ttMcwerwSPn837RUeT",
+    "data": {
+      "id": "67ttMcwerwSPn837RUeT",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "prior",
+      "normalizedWord": "prior",
+      "definition": "이전의, 앞선 (existing or occurring before something else)",
+      "context": "이전의, 앞선 (existing or occurring before something else)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "6Bmy1EH18iZCgHWMtKzi",
+    "data": {
+      "id": "6Bmy1EH18iZCgHWMtKzi",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "landed",
+      "normalizedWord": "landed",
+      "definition": "착륙한, 도착한 (having arrived at a destination, especially after a journey)",
+      "context": "착륙한, 도착한 (having arrived at a destination, especially after a journey)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "6QChNEtnVERcuJkmCr5X",
+    "data": {
+      "id": "6QChNEtnVERcuJkmCr5X",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "prolong",
+      "normalizedWord": "prolong",
+      "definition": "연장하다 (to extend the duration of something)",
+      "context": "연장하다 (to extend the duration of something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "7R4vB24hnUSFGtHromiq",
+    "data": {
+      "id": "7R4vB24hnUSFGtHromiq",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "text",
+      "normalizedWord": "text",
+      "definition": "텍스트 (a written or printed work, especially one of considerable length)",
+      "context": "텍스트 (a written or printed work, especially one of considerable length)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "8rGGGy5CqhIM1lUNP8xU",
+    "data": {
+      "id": "8rGGGy5CqhIM1lUNP8xU",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "view",
+      "normalizedWord": "view",
+      "definition": "관점, 시각 (a particular way of considering or regarding something)",
+      "context": "관점, 시각 (a particular way of considering or regarding something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "9IlUJairXXZo4OWsIkzm",
+    "data": {
+      "id": "9IlUJairXXZo4OWsIkzm",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "analysis",
+      "normalizedWord": "analysis",
+      "definition": "분석 (the process of examining something in detail to understand it better or draw conclusions)",
+      "context": "분석 (the process of examining something in detail to understand it better or draw conclusions)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "9fqZ2qFvfYITrM7WiSUv",
+    "data": {
+      "id": "9fqZ2qFvfYITrM7WiSUv",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "flexible",
+      "normalizedWord": "flexible",
+      "definition": "유연한 (capable of bending easily without breaking; adaptable to change)",
+      "context": "유연한 (capable of bending easily without breaking; adaptable to change)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "BR0wtHdKmefwEx3r0nMV",
+    "data": {
+      "id": "BR0wtHdKmefwEx3r0nMV",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "benign",
+      "normalizedWord": "benign",
+      "definition": "온화한, 해가 없는 (gentle and kindly; not harmful)",
+      "context": "온화한, 해가 없는 (gentle and kindly; not harmful)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "BkCJdCMbt67W7GTYTnVL",
+    "data": {
+      "id": "BkCJdCMbt67W7GTYTnVL",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "implement",
+      "normalizedWord": "implement",
+      "definition": "실행하다 (To put a plan or decision into effect)",
+      "context": "실행하다 (To put a plan or decision into effect)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "Cxl0RZfdFnQGK6z4NAHk",
+    "data": {
+      "id": "Cxl0RZfdFnQGK6z4NAHk",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "sprawl",
+      "normalizedWord": "sprawl",
+      "definition": "무질서하게 퍼지다 (to spread out over a large area in an untidy or irregular way)",
+      "context": "무질서하게 퍼지다 (to spread out over a large area in an untidy or irregular way)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "CyqP69ZBEI9LRgPH5SoS",
+    "data": {
+      "id": "CyqP69ZBEI9LRgPH5SoS",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "disperse",
+      "normalizedWord": "disperse",
+      "definition": "흩어지게 하다 (to cause to separate and move in different directions)",
+      "context": "흩어지게 하다 (to cause to separate and move in different directions)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "DPFJIJtO9IqCdhfYHoen",
+    "data": {
+      "id": "DPFJIJtO9IqCdhfYHoen",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "services",
+      "normalizedWord": "services",
+      "definition": "서비스 (the action of helping or doing work for someone)",
+      "context": "서비스 (the action of helping or doing work for someone)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "DQXYqGmmoXpmCPIY9ljE",
+    "data": {
+      "id": "DQXYqGmmoXpmCPIY9ljE",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "disposition",
+      "normalizedWord": "disposition",
+      "definition": "기질, 성향 (a person's inherent qualities of mind and character)",
+      "context": "기질, 성향 (a person's inherent qualities of mind and character)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "EB6Mx6vnZWtku6tGrXSf",
+    "data": {
+      "id": "EB6Mx6vnZWtku6tGrXSf",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "public",
+      "normalizedWord": "public",
+      "definition": "공공의, 대중의 (relating to or concerning the people as a whole)",
+      "context": "공공의, 대중의 (relating to or concerning the people as a whole)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "FetNk8DkgunnVna1IHTT",
+    "data": {
+      "id": "FetNk8DkgunnVna1IHTT",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "release",
+      "normalizedWord": "release",
+      "definition": "방출하다, 해방하다 (to set free or allow to escape)",
+      "context": "방출하다, 해방하다 (to set free or allow to escape)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "FpWdReHT5cRpOU43LZsF",
+    "data": {
+      "id": "FpWdReHT5cRpOU43LZsF",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "once",
+      "normalizedWord": "once",
+      "definition": "한 번 (one time; at one occasion)",
+      "context": "한 번 (one time; at one occasion)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "H5K7jo6bXMGUhHAkKIyu",
+    "data": {
+      "id": "H5K7jo6bXMGUhHAkKIyu",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "range",
+      "normalizedWord": "range",
+      "definition": "범위, 영역 (the extent or scope of something)",
+      "context": "범위, 영역 (the extent or scope of something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "HqnVmpLynIvw4vIInryP",
+    "data": {
+      "id": "HqnVmpLynIvw4vIInryP",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "even",
+      "normalizedWord": "even",
+      "definition": "심지어, 조차 (used to emphasize something surprising or extreme)",
+      "context": "심지어, 조차 (used to emphasize something surprising or extreme)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "I2zTFb0acDva9Aoo18hs",
+    "data": {
+      "id": "I2zTFb0acDva9Aoo18hs",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "internet",
+      "normalizedWord": "internet",
+      "definition": "인터넷 (a global computer network providing a variety of information and communication facilities)",
+      "context": "인터넷 (a global computer network providing a variety of information and communication facilities)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "K6voNjhrZ5kwWCnBnz4P",
+    "data": {
+      "id": "K6voNjhrZ5kwWCnBnz4P",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "moment",
+      "normalizedWord": "moment",
+      "definition": "순간, 잠깐 (a very brief period of time)",
+      "context": "순간, 잠깐 (a very brief period of time)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "KpqSUMD4ouqtcTjSwFY2",
+    "data": {
+      "id": "KpqSUMD4ouqtcTjSwFY2",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "critics",
+      "normalizedWord": "critics",
+      "definition": "비평가들 (people who express opinions about the merits and faults of something)",
+      "context": "비평가들 (people who express opinions about the merits and faults of something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "MgLdvtm9dZZUps3qUUq9",
+    "data": {
+      "id": "MgLdvtm9dZZUps3qUUq9",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "world",
+      "normalizedWord": "world",
+      "definition": "세계, 지구 (the planet we live on; the realm of human existence and experience)",
+      "context": "세계, 지구 (the planet we live on; the realm of human existence and experience)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "NLBWzBna5KLf96s1BhYp",
+    "data": {
+      "id": "NLBWzBna5KLf96s1BhYp",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "rest",
+      "normalizedWord": "rest",
+      "definition": "휴식, 쉬는 시간 (a period of relaxation or cessation of work)",
+      "context": "휴식, 쉬는 시간 (a period of relaxation or cessation of work)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "NbTlFqMFRAwgHLBOM2f4",
+    "data": {
+      "id": "NbTlFqMFRAwgHLBOM2f4",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "profess",
+      "normalizedWord": "profess",
+      "definition": "공식적으로 선언하다, 주장하다 (to declare or affirm openly)",
+      "context": "공식적으로 선언하다, 주장하다 (to declare or affirm openly)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "O3yTufBhnkHYgwoZKFyl",
+    "data": {
+      "id": "O3yTufBhnkHYgwoZKFyl",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "excluding",
+      "normalizedWord": "excluding",
+      "definition": "을 제외하고 (not including; leaving out)",
+      "context": "을 제외하고 (not including; leaving out)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "OCHyMgWXxzeutNGBT52R",
+    "data": {
+      "id": "OCHyMgWXxzeutNGBT52R",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "marginal",
+      "normalizedWord": "marginal",
+      "definition": "주변의, 미미한 (related to or situated at the edge; insignificant in amount or effect)",
+      "context": "주변의, 미미한 (related to or situated at the edge; insignificant in amount or effect)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "ODyE7iFX65t1ZuFGJdL7",
+    "data": {
+      "id": "ODyE7iFX65t1ZuFGJdL7",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "wrangle",
+      "normalizedWord": "wrangle",
+      "definition": "논쟁하다, 언쟁하다 (to argue or dispute, often in a noisy or angry manner)",
+      "context": "논쟁하다, 언쟁하다 (to argue or dispute, often in a noisy or angry manner)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "OynFh0w7Egj47J4kNfhK",
+    "data": {
+      "id": "OynFh0w7Egj47J4kNfhK",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "listen",
+      "normalizedWord": "listen",
+      "definition": "듣다 (to hear and pay attention to sounds or spoken words)",
+      "context": "듣다 (to hear and pay attention to sounds or spoken words)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "PuEUFjJbEoNWRrNDBihX",
+    "data": {
+      "id": "PuEUFjJbEoNWRrNDBihX",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "help",
+      "normalizedWord": "help",
+      "definition": "도움이 되다 (to provide assistance or support)",
+      "context": "도움이 되다 (to provide assistance or support)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "RJHq1NzaoH5gcIUj7Ftw",
+    "data": {
+      "id": "RJHq1NzaoH5gcIUj7Ftw",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "questions",
+      "normalizedWord": "questions",
+      "definition": "질문들 (inquiries or interrogative statements seeking information)",
+      "context": "질문들 (inquiries or interrogative statements seeking information)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "RKLzrlcfjy2n5F8KSHZ9",
+    "data": {
+      "id": "RKLzrlcfjy2n5F8KSHZ9",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "supremacy",
+      "normalizedWord": "supremacy",
+      "definition": "우월성 (The state of being superior to others in authority, power, or status.)",
+      "context": "우월성 (The state of being superior to others in authority, power, or status.)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "RkAmM4N8Bg4YiONuMKOE",
+    "data": {
+      "id": "RkAmM4N8Bg4YiONuMKOE",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "ise",
+      "normalizedWord": "ise",
+      "definition": "이세 (to be, to exist)",
+      "context": "이세 (to be, to exist)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "RmQRT0hbosaZuqbliwhZ",
+    "data": {
+      "id": "RmQRT0hbosaZuqbliwhZ",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "file",
+      "normalizedWord": "file",
+      "definition": "파일 (a collection of documents or data stored together)",
+      "context": "파일 (a collection of documents or data stored together)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "SFvHdMHMTXRAlYAxe6lb",
+    "data": {
+      "id": "SFvHdMHMTXRAlYAxe6lb",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "provide",
+      "normalizedWord": "provide",
+      "definition": "제공하다, 주다 (to supply or make available something needed or wanted)",
+      "context": "제공하다, 주다 (to supply or make available something needed or wanted)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "SQ249rop9raYh1E5VU0U",
+    "data": {
+      "id": "SQ249rop9raYh1E5VU0U",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "happy",
+      "normalizedWord": "happy",
+      "definition": "행복한, 기쁜 (feeling or showing pleasure or contentment)",
+      "context": "행복한, 기쁜 (feeling or showing pleasure or contentment)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "Sz3S1cttPdrwkeLk6tAO",
+    "data": {
+      "id": "Sz3S1cttPdrwkeLk6tAO",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "stock",
+      "normalizedWord": "stock",
+      "definition": "재고, 저장품 (a supply of goods or materials available for use or sale)",
+      "context": "재고, 저장품 (a supply of goods or materials available for use or sale)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "TK3pzCnoBDJtkoJaJr8P",
+    "data": {
+      "id": "TK3pzCnoBDJtkoJaJr8P",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "wear",
+      "normalizedWord": "wear",
+      "definition": "입다, 착용하다 (to have clothing or an accessory on one's body)",
+      "context": "입다, 착용하다 (to have clothing or an accessory on one's body)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "TMCI3ZO54faeK9N64h16",
+    "data": {
+      "id": "TMCI3ZO54faeK9N64h16",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "remedy",
+      "normalizedWord": "remedy",
+      "definition": "교정하다 (to correct or improve a situation or condition)",
+      "context": "교정하다 (to correct or improve a situation or condition)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "UInMpOxJOfcFNj2NEHwI",
+    "data": {
+      "id": "UInMpOxJOfcFNj2NEHwI",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "affiliate",
+      "normalizedWord": "affiliate",
+      "definition": "제휴하다, 연계하다 (to officially attach or connect to a larger organization or group)",
+      "context": "제휴하다, 연계하다 (to officially attach or connect to a larger organization or group)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "UMkGC8FqNAhhzIawLtGN",
+    "data": {
+      "id": "UMkGC8FqNAhhzIawLtGN",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "groundbreaking",
+      "normalizedWord": "groundbreaking",
+      "definition": "획기적인 (innovative or pioneering, introducing new ideas or methods)",
+      "context": "획기적인 (innovative or pioneering, introducing new ideas or methods)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "UsD6BFM4MKVjYuBQK3pR",
+    "data": {
+      "id": "UsD6BFM4MKVjYuBQK3pR",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "hands",
+      "normalizedWord": "hands",
+      "definition": "손 (the end part of a person's arm used for holding, touching, or manipulating objects)",
+      "context": "손 (the end part of a person's arm used for holding, touching, or manipulating objects)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "V6iCb1Df91raB5K5Bewn",
+    "data": {
+      "id": "V6iCb1Df91raB5K5Bewn",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "thrive",
+      "normalizedWord": "thrive",
+      "definition": "번창하다, 잘 자라다 (to grow or develop successfully or vigorously)",
+      "context": "번창하다, 잘 자라다 (to grow or develop successfully or vigorously)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "VNMUtIHlLjhOjbLQ0lZk",
+    "data": {
+      "id": "VNMUtIHlLjhOjbLQ0lZk",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "meticulous",
+      "normalizedWord": "meticulous",
+      "definition": "꼼꼼한 (showing great attention to detail; very careful and precise)",
+      "context": "꼼꼼한 (showing great attention to detail; very careful and precise)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "Vefy6i7vRtZPGV75i74R",
+    "data": {
+      "id": "Vefy6i7vRtZPGV75i74R",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "online",
+      "normalizedWord": "online",
+      "definition": "온라인, 인터넷에 연결된 상태에서 (connected to or available through the internet)",
+      "context": "온라인, 인터넷에 연결된 상태에서 (connected to or available through the internet)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "WM5sRfv6usyeyaceEb1Y",
+    "data": {
+      "id": "WM5sRfv6usyeyaceEb1Y",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "further",
+      "normalizedWord": "further",
+      "definition": "더욱, 더 나아가 (to a greater extent; additionally)",
+      "context": "더욱, 더 나아가 (to a greater extent; additionally)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "WMLVWHDnMMqLfpHuqdrx",
+    "data": {
+      "id": "WMLVWHDnMMqLfpHuqdrx",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "anotch",
+      "normalizedWord": "anotch",
+      "definition": "약간의, 미미한 (slight or minimal in degree)",
+      "context": "약간의, 미미한 (slight or minimal in degree)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "XDY9eWIt3SAzIvfx6MXk",
+    "data": {
+      "id": "XDY9eWIt3SAzIvfx6MXk",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "unaddressed",
+      "normalizedWord": "unaddressed",
+      "definition": "처리되지 않은, 다루어지지 않은 (not dealt with or considered)",
+      "context": "처리되지 않은, 다루어지지 않은 (not dealt with or considered)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "XRPe0GqWBpxuqMZShz5A",
+    "data": {
+      "id": "XRPe0GqWBpxuqMZShz5A",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "preview",
+      "normalizedWord": "preview",
+      "definition": "미리 보기 (an opportunity to see or experience something before it is fully presented or released)",
+      "context": "미리 보기 (an opportunity to see or experience something before it is fully presented or released)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "XbOm2MEl2hil63BQ7qWD",
+    "data": {
+      "id": "XbOm2MEl2hil63BQ7qWD",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "reviews",
+      "normalizedWord": "reviews",
+      "definition": "검토하다, 재검토하다 (to examine or assess something critically)",
+      "context": "검토하다, 재검토하다 (to examine or assess something critically)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "Y07qK7ZogFuL6lABfFn0",
+    "data": {
+      "id": "Y07qK7ZogFuL6lABfFn0",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "social",
+      "normalizedWord": "social",
+      "definition": "사회적인, 사회와 관련된 (relating to society or its organization)",
+      "context": "사회적인, 사회와 관련된 (relating to society or its organization)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "a2o2VPIazXyaB5pkVFpq",
+    "data": {
+      "id": "a2o2VPIazXyaB5pkVFpq",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "extract",
+      "normalizedWord": "extract",
+      "definition": "추출하다, 뽑다 (to remove or take out, especially by effort or force)",
+      "context": "추출하다, 뽑다 (to remove or take out, especially by effort or force)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "aMBn4pay1srwTjqG7Ood",
+    "data": {
+      "id": "aMBn4pay1srwTjqG7Ood",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "accessible",
+      "normalizedWord": "accessible",
+      "definition": "접근 가능한, 이용할 수 있는 (able to be reached or entered; easy to approach or use)",
+      "context": "접근 가능한, 이용할 수 있는 (able to be reached or entered; easy to approach or use)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "bm4lTKZXb74ganDbduv2",
+    "data": {
+      "id": "bm4lTKZXb74ganDbduv2",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "music",
+      "normalizedWord": "music",
+      "definition": "음악 (the art of arranging sounds in time to produce a composition that expresses ideas, emotions, or a story)",
+      "context": "음악 (the art of arranging sounds in time to produce a composition that expresses ideas, emotions, or a story)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "d8rbfDMRgnlQ32MaylpU",
+    "data": {
+      "id": "d8rbfDMRgnlQ32MaylpU",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "owteGDu2xeASXq0wEZAP",
+      "word": "sorry",
+      "normalizedWord": "sorry",
+      "definition": "미안한, 유감스러운 (feeling regret or sorrow for something)",
+      "context": "미안한, 유감스러운 (feeling regret or sorrow for something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755123998,
+        "_nanoseconds": 877000000
+      },
+      "updatedAt": {
+        "_seconds": 1755123999,
+        "_nanoseconds": 222000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "egY8JoCqTwqbsGpxFYIN",
+    "data": {
+      "id": "egY8JoCqTwqbsGpxFYIN",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "canon",
+      "normalizedWord": "canon",
+      "definition": "정경, 규범 (a general rule, law, principle, or criterion by which something is judged)",
+      "context": "정경, 규범 (a general rule, law, principle, or criterion by which something is judged)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "gRd7vjQA9z6LHW2xlOTI",
+    "data": {
+      "id": "gRd7vjQA9z6LHW2xlOTI",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "belabor",
+      "normalizedWord": "belabor",
+      "definition": "과도하게 설명하다, 반복하다 (to explain or discuss something in excessive detail or to an unnecessary degree)",
+      "context": "과도하게 설명하다, 반복하다 (to explain or discuss something in excessive detail or to an unnecessary degree)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "hOMe0VMSKKNx5Om7n3mO",
+    "data": {
+      "id": "hOMe0VMSKKNx5Om7n3mO",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "general",
+      "normalizedWord": "general",
+      "definition": "일반적인, 보편적인 (relating to or affecting all or most people, things, or cases)",
+      "context": "일반적인, 보편적인 (relating to or affecting all or most people, things, or cases)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "i8JKF1ap5fUXJXZjWnuZ",
+    "data": {
+      "id": "i8JKF1ap5fUXJXZjWnuZ",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "exclusively",
+      "normalizedWord": "exclusively",
+      "definition": "독점적으로, 오직 (only or solely; not shared with others)",
+      "context": "독점적으로, 오직 (only or solely; not shared with others)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "kA6VX8nASMoSGYlrTcxB",
+    "data": {
+      "id": "kA6VX8nASMoSGYlrTcxB",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "marginalize",
+      "normalizedWord": "marginalize",
+      "definition": "소외시키다 (to treat a person or group as insignificant or peripheral)",
+      "context": "소외시키다 (to treat a person or group as insignificant or peripheral)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "lvGzNfMERR5gvwLmxZDq",
+    "data": {
+      "id": "lvGzNfMERR5gvwLmxZDq",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "swift",
+      "normalizedWord": "swift",
+      "definition": "신속한, 빠른 (moving or capable of moving at high speed; occurring quickly)",
+      "context": "신속한, 빠른 (moving or capable of moving at high speed; occurring quickly)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "mZlnK3sG50hvJS1dikqY",
+    "data": {
+      "id": "mZlnK3sG50hvJS1dikqY",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "post",
+      "normalizedWord": "post",
+      "definition": "게시하다, 발표하다 (to place or display something in a public area for others to see)",
+      "context": "게시하다, 발표하다 (to place or display something in a public area for others to see)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "n3QPgUxOTRj9JRQjPHp3",
+    "data": {
+      "id": "n3QPgUxOTRj9JRQjPHp3",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "concentrate",
+      "normalizedWord": "concentrate",
+      "definition": "집중하다 (to focus one's attention or mental effort on a particular task or subject)",
+      "context": "집중하다 (to focus one's attention or mental effort on a particular task or subject)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "nMDzoHVODnAfaMmJ6uaQ",
+    "data": {
+      "id": "nMDzoHVODnAfaMmJ6uaQ",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "pretend",
+      "normalizedWord": "pretend",
+      "definition": "가장하다, ~인 척하다 (to act as if something is true when it is not)",
+      "context": "가장하다, ~인 척하다 (to act as if something is true when it is not)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "o9NZAb33eqzQhv6KIInu",
+    "data": {
+      "id": "o9NZAb33eqzQhv6KIInu",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "flee",
+      "normalizedWord": "flee",
+      "definition": "도망치다 (to run away from a place or situation of danger)",
+      "context": "도망치다 (to run away from a place or situation of danger)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "pBJI9NCsCXpn5LJ7pKkv",
+    "data": {
+      "id": "pBJI9NCsCXpn5LJ7pKkv",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "interlocutor",
+      "normalizedWord": "interlocutor",
+      "definition": "대화자, 대화 상대 (a person who takes part in a conversation or dialogue)",
+      "context": "대화자, 대화 상대 (a person who takes part in a conversation or dialogue)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "pwyBl6AyUckiYUHNcTYN",
+    "data": {
+      "id": "pwyBl6AyUckiYUHNcTYN",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "need",
+      "normalizedWord": "need",
+      "definition": "필요하다 (to require something because it is essential or important)",
+      "context": "필요하다 (to require something because it is essential or important)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "qIwuR1ndG588KdjNTjP7",
+    "data": {
+      "id": "qIwuR1ndG588KdjNTjP7",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "releases",
+      "normalizedWord": "releases",
+      "definition": "방출하다, 해방하다 (to set free or allow to escape)",
+      "context": "방출하다, 해방하다 (to set free or allow to escape)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "qRWfbyjju4qiP6PyK8Si",
+    "data": {
+      "id": "qRWfbyjju4qiP6PyK8Si",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "resolved",
+      "normalizedWord": "resolved",
+      "definition": "결정된, 확고한 (determined or firm in purpose or belief)",
+      "context": "결정된, 확고한 (determined or firm in purpose or belief)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "qSW01FjQDTjCtCTBMfdy",
+    "data": {
+      "id": "qSW01FjQDTjCtCTBMfdy",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "replica",
+      "normalizedWord": "replica",
+      "definition": "복제물, 복사본 (an exact copy or reproduction of something)",
+      "context": "복제물, 복사본 (an exact copy or reproduction of something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "rkL21GnwlW9BvfZbKtq6",
+    "data": {
+      "id": "rkL21GnwlW9BvfZbKtq6",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "dogmatic",
+      "normalizedWord": "dogmatic",
+      "definition": "독단적인, 고집스러운 (asserting opinions in a rigid or inflexible manner without consideration for others' viewpoints)",
+      "context": "독단적인, 고집스러운 (asserting opinions in a rigid or inflexible manner without consideration for others' viewpoints)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "t51ByXss2AktBJCqbPDC",
+    "data": {
+      "id": "t51ByXss2AktBJCqbPDC",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "trivial",
+      "normalizedWord": "trivial",
+      "definition": "하찮은 (of little value or importance; insignificant)",
+      "context": "하찮은 (of little value or importance; insignificant)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "tElvru0wIfZyU3ZpQqXQ",
+    "data": {
+      "id": "tElvru0wIfZyU3ZpQqXQ",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "sharing",
+      "normalizedWord": "sharing",
+      "definition": "공유하는 것, 나누는 것 (the act of having or using something in common with others)",
+      "context": "공유하는 것, 나누는 것 (the act of having or using something in common with others)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "tLh2KKVoH6wrEtkCZm0X",
+    "data": {
+      "id": "tLh2KKVoH6wrEtkCZm0X",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "enter",
+      "normalizedWord": "enter",
+      "definition": "입장하다, 들어가다 (to come or go into a place)",
+      "context": "입장하다, 들어가다 (to come or go into a place)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "tcF1qjBaeYEUxaxrThf2",
+    "data": {
+      "id": "tcF1qjBaeYEUxaxrThf2",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "comparable",
+      "normalizedWord": "comparable",
+      "definition": "비교할 수 있는, 유사한 (able to be compared; similar in some way)",
+      "context": "비교할 수 있는, 유사한 (able to be compared; similar in some way)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "isActive": true,
+      "synonyms": [
+        "similar",
+        "analogous",
+        "alike",
+        "equivalent",
+        "like"
+      ],
+      "examples": [
+        "When looking at their test scores, it was clear that Jane and John had comparable results, both scoring in the top percentile.",
+        "The two laptops were comparable in terms of performance and price, making it difficult for the customer to choose between them.",
+        "While the student's essay was comparable to previous submissions in terms of structure, it stood out with its unique perspective and insightful analysis."
+      ],
+      "realEtymology": null,
+      "etymology": null,
+      "englishDefinition": "From Latin \"comparabilis\" (com- \"together\" + parabilis \"able to be prepared\"), meaning \"able to be compared\". The word entered English in the late 14th century with the sense of \"worthy of comparison\" or \"similar in some way\".",
+      "updatedAt": {
+        "_seconds": 1754622094,
+        "_nanoseconds": 902000000
+      }
+    }
+  },
+  {
+    "id": "tcd0MTxrh3hGvSsmRMI1",
+    "data": {
+      "id": "tcd0MTxrh3hGvSsmRMI1",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "train",
+      "normalizedWord": "train",
+      "definition": "기차 (a mode of transportation that runs on tracks)",
+      "context": "기차 (a mode of transportation that runs on tracks)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "temp-1754711452577_adhere_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_adhere_1754711460450",
+      "word": "adhere",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 3,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_cardinal_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_cardinal_1754711460450",
+      "word": "cardinal",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_compauble_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_compauble_1754711460450",
+      "word": "compauble",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_concepntiate_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_concepntiate_1754711460450",
+      "word": "concepntiate",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 6,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_disperse_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_disperse_1754711460450",
+      "word": "disperse",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_enter_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_enter_1754711460450",
+      "word": "enter",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 2,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_excluding_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_excluding_1754711460450",
+      "word": "excluding",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_flexible_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_flexible_1754711460450",
+      "word": "flexible",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_fragrance_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_fragrance_1754711460450",
+      "word": "fragrance",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 451000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 451000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_prolong_1754711460449",
+    "data": {
+      "id": "temp-1754711452577_prolong_1754711460449",
+      "word": "prolong",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 3,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_remedy_1754711460449",
+    "data": {
+      "id": "temp-1754711452577_remedy_1754711460449",
+      "word": "remedy",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 3,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_stock_1754711460449",
+    "data": {
+      "id": "temp-1754711452577_stock_1754711460449",
+      "word": "stock",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 2,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_supremacy_1754711460449",
+    "data": {
+      "id": "temp-1754711452577_supremacy_1754711460449",
+      "word": "supremacy",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_train_1754711460450",
+    "data": {
+      "id": "temp-1754711452577_train_1754711460450",
+      "word": "train",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 2,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 450000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1754711452577_unqualified_1754711460449",
+    "data": {
+      "id": "temp-1754711452577_unqualified_1754711460449",
+      "word": "unqualified",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 5,
+      "frequency": 50,
+      "collectionId": "temp-1754711452577",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1754711452577/1754711457552-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "updatedAt": {
+        "_seconds": 1754711460,
+        "_nanoseconds": 449000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_adhere_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_adhere_1755712914502",
+      "word": "adhere",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 3,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_cardinal_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_cardinal_1755712914502",
+      "word": "cardinal",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_compauble_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_compauble_1755712914502",
+      "word": "compauble",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_concepntiate_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_concepntiate_1755712914502",
+      "word": "concepntiate",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 6,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_disperse_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_disperse_1755712914502",
+      "word": "disperse",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_enter_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_enter_1755712914502",
+      "word": "enter",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 2,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_excluding_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_excluding_1755712914502",
+      "word": "excluding",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_flexible_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_flexible_1755712914502",
+      "word": "flexible",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_fragrance_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_fragrance_1755712914502",
+      "word": "fragrance",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_prolong_1755712914501",
+    "data": {
+      "id": "temp-1755712907580_prolong_1755712914501",
+      "word": "prolong",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 3,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_remedy_1755712914501",
+    "data": {
+      "id": "temp-1755712907580_remedy_1755712914501",
+      "word": "remedy",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 3,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_stock_1755712914501",
+    "data": {
+      "id": "temp-1755712907580_stock_1755712914501",
+      "word": "stock",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 2,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_supremacy_1755712914501",
+    "data": {
+      "id": "temp-1755712907580_supremacy_1755712914501",
+      "word": "supremacy",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 4,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 501000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_train_1755712914502",
+    "data": {
+      "id": "temp-1755712907580_train_1755712914502",
+      "word": "train",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 2,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 502000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "temp-1755712907580_unqualified_1755712914500",
+    "data": {
+      "id": "temp-1755712907580_unqualified_1755712914500",
+      "word": "unqualified",
+      "definition": "정의를 추가해주세요",
+      "context": "Found in image: \"unqualified 자격미달의\n해지게 하다\nwear\nFull\n충분한\nprolong 연장하...\"",
+      "partOfSpeech": [
+        "n."
+      ],
+      "difficulty": 5,
+      "frequency": 50,
+      "collectionId": "temp-1755712907580",
+      "userId": "AovMjWvB6lg37MDWdR2vTwXY0GC2",
+      "imageUrl": "https://storage.googleapis.com/vocabulary-app-new.firebasestorage.app/photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "fileName": "photo-vocabulary/AovMjWvB6lg37MDWdR2vTwXY0GC2/temp-1755712907580/1755712911297-photo_2025-08-03 18.15.30.jpeg",
+      "createdAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 500000000
+      },
+      "updatedAt": {
+        "_seconds": 1755712914,
+        "_nanoseconds": 500000000
+      },
+      "isActive": true,
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "lastStudiedAt": null
+      }
+    }
+  },
+  {
+    "id": "tiXMpFCbQa3BehSnNhyW",
+    "data": {
+      "id": "tiXMpFCbQa3BehSnNhyW",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "spread",
+      "normalizedWord": "spread",
+      "definition": "퍼지다, 펼쳐지다 (to extend or distribute over a wide area)",
+      "context": "퍼지다, 펼쳐지다 (to extend or distribute over a wide area)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "uA4TLLul6XfqICo4DiWl",
+    "data": {
+      "id": "uA4TLLul6XfqICo4DiWl",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "fragrance",
+      "normalizedWord": "fragrance",
+      "definition": "향기 (a pleasant or sweet smell)",
+      "context": "향기 (a pleasant or sweet smell)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "uozdhRFPZfrhtH2HKf0y",
+    "data": {
+      "id": "uozdhRFPZfrhtH2HKf0y",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "invaluable",
+      "normalizedWord": "invaluable",
+      "definition": "값을 매길 수 없는",
+      "context": "값을 매길 수 없는",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "updatedAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 781000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "vB30U3vuLWqdrrTeaWkt",
+    "data": {
+      "id": "vB30U3vuLWqdrrTeaWkt",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "ZlKWf64Ihh0FgJUl1MmE",
+      "word": "marginally",
+      "normalizedWord": "marginally",
+      "definition": "약간, 미미하게 (to a small extent; slightly)",
+      "context": "약간, 미미하게 (to a small extent; slightly)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754547160,
+        "_nanoseconds": 812000000
+      },
+      "updatedAt": {
+        "_seconds": 1754547161,
+        "_nanoseconds": 41000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "vZEzGmIMpBFDf3rqHmGQ",
+    "data": {
+      "id": "vZEzGmIMpBFDf3rqHmGQ",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "jtJOHHxoQEbbKMYpzgtx",
+      "word": "unable",
+      "normalizedWord": "unable",
+      "definition": "할 수 없는, 불가능한 (not able to do something)",
+      "context": "할 수 없는, 불가능한 (not able to do something)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130917,
+        "_nanoseconds": 969000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130919,
+        "_nanoseconds": 134000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "wNsa9dUYSI6kO0j2BdVW",
+    "data": {
+      "id": "wNsa9dUYSI6kO0j2BdVW",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "allowed",
+      "normalizedWord": "allowed",
+      "definition": "허용된, 허락된 (permitted or granted permission)",
+      "context": "허용된, 허락된 (permitted or granted permission)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "zBVkEehEzwETmib4rx95",
+    "data": {
+      "id": "zBVkEehEzwETmib4rx95",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "well",
+      "normalizedWord": "well",
+      "definition": "잘, 훌륭하게 (in a good or satisfactory manner)",
+      "context": "잘, 훌륭하게 (in a good or satisfactory manner)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "zBvzoJUTfX2L5mmydqIa",
+    "data": {
+      "id": "zBvzoJUTfX2L5mmydqIa",
+      "userId": "Mj9vDclmasWLTxOfsuuJkgDsvGH3",
+      "collectionId": "KZ6IQZsW0y6LlPn9zDu4",
+      "word": "easily",
+      "normalizedWord": "easily",
+      "definition": "쉽게, 용이하게 (without difficulty; with little effort)",
+      "context": "쉽게, 용이하게 (without difficulty; with little effort)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1755130762,
+        "_nanoseconds": 379000000
+      },
+      "updatedAt": {
+        "_seconds": 1755130763,
+        "_nanoseconds": 640000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "id": "zuSusTTAA8izRddpZ8PA",
+    "data": {
+      "id": "zuSusTTAA8izRddpZ8PA",
+      "userId": "WKVvLj464wW8kGy4L4nX433DpTm2",
+      "collectionId": "SawUlC70hnknyEE9hE3q",
+      "word": "adhere",
+      "normalizedWord": "adhere",
+      "definition": "부착하다, 고수하다 (to stick to something or to follow closely)",
+      "context": "부착하다, 고수하다 (to stick to something or to follow closely)",
+      "position": null,
+      "pronunciation": null,
+      "difficulty": null,
+      "frequency": null,
+      "relatedWords": [],
+      "studyStatus": {
+        "studied": false,
+        "masteryLevel": 0,
+        "reviewCount": 0,
+        "correctCount": 0,
+        "incorrectCount": 0,
+        "firstStudiedAt": null,
+        "lastStudiedAt": null,
+        "nextReviewAt": null
+      },
+      "createdAt": {
+        "_seconds": 1754545226,
+        "_nanoseconds": 530000000
+      },
+      "isActive": true,
+      "synonyms": [
+        "stick",
+        "cling",
+        "attach",
+        "bond",
+        "cohere"
+      ],
+      "examples": [
+        "During the debate, the candidate made sure to adhere to their campaign promises to gain the trust of the voters.",
+        "To prevent the poster from falling off the wall, I used strong adhesive to adhere it securely.",
+        "In order to succeed in their project, the team needed to adhere to the strict deadline set by their supervisor."
+      ],
+      "realEtymology": null,
+      "etymology": null,
+      "englishDefinition": "From Latin 'adhaerere' (ad- 'to' + haerere 'to stick'), meaning 'to stick to'. The word entered English in the late 16th century, retaining its original sense of sticking or clinging closely to something.",
+      "updatedAt": {
+        "_seconds": 1754622094,
+        "_nanoseconds": 902000000
+      }
+    }
+  }
+]

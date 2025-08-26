@@ -6,7 +6,7 @@ import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
 import { useWordDiscovery } from '@/hooks/use-word-discovery'
-import { useVocabulary } from '@/contexts/vocabulary-context'
+import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { useCache } from '@/contexts/cache-context'
 import { WordAdapter } from '@/lib/adapters/word-adapter'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
@@ -31,15 +31,23 @@ import {
 import { cn } from '@/lib/utils'
 import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
 import type { PhotoVocabularyWord } from '@/types/photo-vocabulary-collection'
-import type { VocabularyWord } from '@/types/vocabulary'
+import type { VocabularyWord } from '@/types'
 
 function FlashcardsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const { textSize } = useSettings()
-  const { words: vocabularyWords, loading: wordsLoading, filter, setFilter, updateWordSynonyms } = useVocabulary()
+  const { words: vocabularyWords, wordLoading: wordsLoading, filter, setFilter, updateWordSynonyms, selectedCollections } = useCollectionV2()
   const { getSynonyms, setSynonyms: setCacheSynonyms } = useCache()
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('[Flashcards] Component mounted/updated')
+    console.log('[Flashcards] selectedCollections:', selectedCollections.length, selectedCollections.map(c => c.name))
+    console.log('[Flashcards] vocabularyWords:', vocabularyWords.length)
+    console.log('[Flashcards] wordsLoading:', wordsLoading)
+  }, [selectedCollections, vocabularyWords, wordsLoading])
   
   // Check if we're loading from photo collection
   const source = searchParams.get('source')
@@ -50,6 +58,8 @@ function FlashcardsContent() {
   const [photoWords, setPhotoWords] = useState<PhotoVocabularyWord[]>([])
   const [loadingPhotoWords, setLoadingPhotoWords] = useState(false)
   
+  // NO FALLBACK - only use UnifiedVocabularyContext
+  
   // Combined words based on source - ensure examples are properly mapped
   const words = isPhotoCollection ? 
     photoWords.map(pw => {
@@ -58,7 +68,7 @@ function FlashcardsContent() {
         hasDefinition: !!pw.definition,
         hasContext: !!pw.context,
         hasEtymology: 'etymology' in pw,
-        hasRealEtymology: 'realEtymology' in pw,
+        hasEtymology: 'etymology' in pw,
         hasExamples: 'examples' in pw && pw.examples?.length > 0,
         examples: pw.examples,
         hasSynonyms: 'synonyms' in pw && pw.synonyms?.length > 0
@@ -81,8 +91,8 @@ function FlashcardsContent() {
         frequency: pw.frequency || 50,
         isSAT: true,
         partOfSpeech: pw.partOfSpeech || [],
+        englishDefinition: pw.englishDefinition || pw.etymology || null,
         etymology: pw.etymology || null,
-        realEtymology: pw.realEtymology || null,
         // IMPORTANT: Map examples consistently for WordDetailModal
         examples: pw.examples || [],
         synonyms: pw.synonyms || [],  // Preserve existing synonyms
@@ -115,15 +125,32 @@ function FlashcardsContent() {
       })
       return word
     }) : 
-    vocabularyWords
+    vocabularyWords // NO FALLBACK - only use context words
   
-  const [currentIndex, setCurrentIndex] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('flashcard-progress')
-      return saved ? parseInt(saved, 10) : 0
+  // Generate a unique key for the current collection set
+  const getProgressKey = () => {
+    const collectionIds = selectedCollections.map(c => c.id).sort().join('-')
+    return `flashcard-progress-${collectionIds}`
+  }
+
+  // Load saved progress from localStorage
+  const getSavedProgress = () => {
+    try {
+      const key = getProgressKey()
+      const saved = localStorage.getItem(key)
+      if (saved) {
+        const savedIndex = parseInt(saved, 10)
+        if (!isNaN(savedIndex) && savedIndex >= 0) {
+          return savedIndex
+        }
+      }
+    } catch (error) {
+      console.error('[Flashcards] Error loading saved progress:', error)
     }
     return 0
-  })
+  }
+
+  const [currentIndex, setCurrentIndex] = useState(() => getSavedProgress())
   const [showAnswer, setShowAnswer] = useState(false)
   const [isShuffled, setIsShuffled] = useState(false)
   const [showWordDetail, setShowWordDetail] = useState(false)
@@ -161,6 +188,9 @@ function FlashcardsContent() {
     handleWordStudy
   } = useWordDiscovery()
 
+  // NO FALLBACK - removed direct loading logic
+  // Users must select wordbooks from the dashboard
+  
   // Load photo collection words if needed
   useEffect(() => {
     const loadPhotoWords = async () => {
@@ -180,14 +210,26 @@ function FlashcardsContent() {
     loadPhotoWords()
   }, [isPhotoCollection, collectionId])
 
+  // Save progress to localStorage whenever currentIndex changes
   useEffect(() => {
-    if (typeof window !== 'undefined' && words.length > 0) {
+    if (selectedCollections.length > 0 && words.length > 0) {
+      try {
+        const key = getProgressKey()
+        localStorage.setItem(key, currentIndex.toString())
+        console.log(`[Flashcards] Saved progress: ${currentIndex} to ${key}`)
+      } catch (error) {
+        console.error('[Flashcards] Error saving progress:', error)
+      }
+    }
+  }, [currentIndex, selectedCollections, words.length])
+
+  useEffect(() => {
+    if (words.length > 0) {
       const validIndex = Math.min(currentIndex, words.length - 1)
       // currentIndex가 범위를 벗어나면 수정
       if (currentIndex !== validIndex) {
         setCurrentIndex(validIndex)
       }
-      localStorage.setItem('flashcard-progress', validIndex.toString())
     }
   }, [currentIndex, words.length])
 
@@ -199,8 +241,15 @@ function FlashcardsContent() {
   useEffect(() => {
     setCurrentIndex(0)
     setShowAnswer(false)
-    localStorage.setItem('flashcard-progress', '0')
   }, [filter.studyMode])
+  
+  // 컬렉션이 변경되면 저장된 진도를 복원
+  useEffect(() => {
+    const savedProgress = getSavedProgress()
+    console.log(`[Flashcards] Collection changed, restoring progress: ${savedProgress}`)
+    setCurrentIndex(savedProgress)
+    setShowAnswer(false)
+  }, [selectedCollections])
 
   // Fetch pronunciation for current word if not available
   useEffect(() => {
@@ -457,25 +506,99 @@ function FlashcardsContent() {
   }
 
   const shuffleWords = () => {
-    // VocabularyContext에서는 직접 words를 수정할 수 없으므로
+    // UnifiedVocabularyContext에서는 직접 words를 수정할 수 없으므로
     // 로컬에서 셔플된 인덱스 배열을 관리하는 방식으로 변경 필요
     // 현재는 간단히 주석 처리
-    console.log('Shuffle feature needs to be reimplemented with VocabularyContext')
+    console.log('Shuffle feature needs to be reimplemented with UnifiedVocabularyContext')
     setIsShuffled(true)
     setShowAnswer(false)
   }
 
   const markAsStudied = async () => {
+    // 학습 기록 저장
+    if (user && words[currentIndex]) {
+      try {
+        const currentWord = words[currentIndex]
+        console.log('[Flashcard] Marking as studied:', currentWord.word, currentWord.id)
+        
+        // UserWordService를 사용하여 학습 기록 저장
+        const response = await fetch('/api/study-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            wordId: currentWord.id,
+            result: 'correct',
+            studyType: 'flashcard'
+          })
+        })
+        
+        if (!response.ok) {
+          console.error('Failed to save study progress')
+        } else {
+          const data = await response.json()
+          console.log('[Flashcard] Study progress saved:', data)
+          
+          // Update local word status immediately
+          if (data.studyStatus) {
+            const updatedWords = words.map((w, idx) => 
+              idx === currentIndex 
+                ? { ...w, studyStatus: data.studyStatus }
+                : w
+            )
+            // This would need to be exposed from context
+            // For now, we'll rely on the filter to work properly
+          }
+        }
+      } catch (error) {
+        console.error('Error saving study progress:', error)
+      }
+    }
     nextWord()
   }
 
-  const markAsNotStudied = () => {
+  const markAsNotStudied = async () => {
+    // 학습 기록 저장 (모름으로 체크)
+    if (user && words[currentIndex]) {
+      try {
+        const currentWord = words[currentIndex]
+        console.log('[Flashcard] Marking as NOT studied:', currentWord.word, currentWord.id)
+        
+        // UserWordService를 사용하여 학습 기록 저장
+        const response = await fetch('/api/study-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            wordId: currentWord.id,
+            result: 'incorrect',
+            studyType: 'flashcard'
+          })
+        })
+        
+        if (!response.ok) {
+          console.error('Failed to save study progress')
+        } else {
+          const data = await response.json()
+          console.log('[Flashcard] Study progress saved (incorrect):', data)
+        }
+      } catch (error) {
+        console.error('Error saving study progress:', error)
+      }
+    }
     nextWord()
   }
 
   const resetProgress = () => {
     setCurrentIndex(0)
-    localStorage.setItem('flashcard-progress', '0')
+    // Clear progress for current collection set
+    try {
+      const key = getProgressKey()
+      localStorage.removeItem(key)
+      console.log(`[Flashcards] Reset progress for ${key}`)
+    } catch (error) {
+      console.error('[Flashcards] Error resetting progress:', error)
+    }
     setShowAnswer(false)
   }
 
@@ -547,14 +670,14 @@ function FlashcardsContent() {
                   ? '아직 학습한 단어가 없습니다' 
                   : filter.studyMode === 'not-studied'
                   ? '모든 단어를 학습하셨습니다!'
-                  : '학습할 단어가 없습니다'}
+                  : '학습할 단어가 없습니다. 대시보드에서 단어장을 선택해주세요.'}
               </h3>
               <p className="text-gray-600 mb-6">
                 {filter.studyMode === 'studied' 
                   ? '단어를 학습하면 여기에 표시됩니다.' 
                   : filter.studyMode === 'not-studied'
                   ? '축하합니다! 모든 단어를 학습하셨습니다.'
-                  : '설정에서 단어장을 선택해주세요.'}
+                  : '대시보드에서 학습할 단어장을 선택해주세요.'}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -574,7 +697,7 @@ function FlashcardsContent() {
                 </Button>
               )}
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/unified-dashboard')}
                 variant={filter.studyMode !== 'all' ? 'outline' : 'default'}
               >
                 대시보드로 돌아가기
@@ -747,10 +870,10 @@ function FlashcardsContent() {
                 </div>
                 
                 {/* 영어 설명 */}
-                {currentWord.etymology && (
+                {currentWord.englishDefinition && (
                   <div className="text-center">
                     <p className={cn("text-lg text-gray-600", getTextSizeClass(textSize))}>
-                      {currentWord.etymology}
+                      {currentWord.englishDefinition}
                     </p>
                   </div>
                 )}
@@ -902,8 +1025,8 @@ function FlashcardsContent() {
                 id: existingWord.id || '',
                 word: existingWord.word || '',
                 definition: existingWord.definition || existingWord.definitions?.[0]?.definition || '',
-                etymology: existingWord.etymology || existingWord.englishDefinition || null,
-                realEtymology: existingWord.realEtymology || null,
+                englishDefinition: existingWord.englishDefinition || existingWord.etymology || null,
+                etymology: existingWord.etymology || null,
                 partOfSpeech: existingWord.partOfSpeech || [],
                 examples: existingWord.examples || existingWord.definitions?.[0]?.examples || [],
                 pronunciation: existingWord.pronunciation || null,

@@ -44,7 +44,7 @@ export default function PDFExtractPage() {
         <div className="flex gap-4 justify-center">
           <Button
             variant="outline"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/unified-dashboard')}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             대시보드로 돌아가기

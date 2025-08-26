@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore, getAdminStorage } from '@/lib/firebase/admin'
-import OpenAI from 'openai'
 
-interface ImageUploadRequest {
-  userId: string
-  collectionId: string
-  collectionName?: string
+// Common words to filter out
+const COMMON_WORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'up', 'down', 'out', 'over', 'under',
+  'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has',
+  'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may',
+  'might', 'must', 'can', 'shall', 'i', 'you', 'he', 'she', 'it', 'we',
+  'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her',
+  'its', 'our', 'their', 'this', 'that', 'these', 'those', 'what', 'which',
+  'who', 'whom', 'whose', 'when', 'where', 'why', 'how', 'all', 'some',
+  'any', 'many', 'much', 'more', 'most', 'less', 'least', 'very', 'too',
+  'quite', 'just', 'only', 'not', 'no', 'yes', 'so', 'if', 'then', 'because',
+  'as', 'until', 'while', 'although', 'though', 'since', 'before', 'after',
+  'above', 'below', 'between', 'through', 'during', 'about', 'against'
+])
+
+function isCommonWord(word: string): boolean {
+  return COMMON_WORDS.has(word.toLowerCase())
 }
 
 export async function POST(request: NextRequest) {
@@ -36,7 +49,8 @@ export async function POST(request: NextRequest) {
 
     // Upload image to Firebase Storage
     const fileName = `photo-vocabulary/${userId}/${collectionId}/${Date.now()}-${imageFile.name}`
-    const file = storage.file(fileName)
+    const bucket = storage.bucket()
+    const file = bucket.file(fileName)
     
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer())
     
@@ -49,101 +63,62 @@ export async function POST(request: NextRequest) {
     // Make the file publicly readable
     await file.makePublic()
     
-    const imageUrl = `https://storage.googleapis.com/${storage.name}/${fileName}`
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'vocabulary-app-new.firebasestorage.app'
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`
 
     console.log(`[upload-image] Image uploaded: ${imageUrl}`)
 
-    // Use OpenAI Vision to extract vocabulary from the image
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
-      return NextResponse.json(
-        { success: false, message: 'OpenAI API key not configured' },
-        { status: 500 }
-      )
-    }
-
-    const openai = new OpenAI({ apiKey })
-
-    const prompt = `Analyze this image and extract English vocabulary words that would be useful for SAT preparation. 
-
-Please identify:
-1. Objects, people, actions, and concepts visible in the image
-2. Descriptive words that could describe what's shown
-3. Academic vocabulary related to the context
-
-For each word, provide:
-- The English word
-- Korean definition
-- Part of speech
-- A brief context about why this word is relevant to the image
-
-Format your response as a JSON array like this:
-[
-  {
-    "word": "architecture",
-    "definition": "건축, 건축학",
-    "partOfSpeech": ["n."],
-    "context": "Building structure visible in the image",
-    "difficulty": 6
-  }
-]
-
-Focus on 5-10 most valuable SAT vocabulary words. Prioritize words that are:
-- SAT-level difficulty (not too basic, not too obscure)
-- Clearly related to what's visible in the image
-- Useful for academic writing and reading`
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4-vision-preview',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: prompt
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: imageUrl
-              }
-            }
-          ]
-        }
-      ],
-      max_tokens: 1500,
-      temperature: 0.3
+    // Use Google Cloud Vision API to extract text from the image
+    const { ImageAnnotatorClient } = await import('@google-cloud/vision')
+    const vision = new ImageAnnotatorClient({
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
     })
 
-    const content = completion.choices[0]?.message?.content
-    if (!content) {
+    // Detect text in the image
+    const [result] = await vision.textDetection({
+      image: { content: imageBuffer.toString('base64') }
+    })
+
+    const detections = result.textAnnotations || []
+    const fullText = detections[0]?.description || ''
+
+    if (!fullText) {
       return NextResponse.json(
-        { success: false, message: 'Failed to extract vocabulary from image' },
-        { status: 500 }
+        { success: false, message: 'No text found in the image' },
+        { status: 400 }
       )
     }
 
-    let extractedWords: any[] = []
-    try {
-      // Clean and parse response
-      let cleanContent = content
-      if (content.includes('```json')) {
-        cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-      } else if (content.includes('```')) {
-        cleanContent = content.replace(/```\n?/g, '').trim()
-      }
-      
-      extractedWords = JSON.parse(cleanContent)
-      
-      if (!Array.isArray(extractedWords)) {
-        throw new Error('Invalid response format')
-      }
-    } catch (parseError) {
-      console.error('[upload-image] Parse error:', parseError)
+    console.log(`[upload-image] Extracted text: ${fullText.substring(0, 200)}...`)
+
+    // Extract meaningful words from the text
+    // Filter for SAT-level vocabulary (longer words, excluding common words)
+    const words = fullText
+      .split(/[\s\n\r\t,;.!?()[\]{}'"]+/)
+      .filter(word => word.length > 0)
+      .map(word => word.toLowerCase().trim())
+      .filter((word, index, self) => self.indexOf(word) === index) // Remove duplicates
+      .filter(word => {
+        // Filter for SAT-level words
+        return word.length >= 5 && // At least 5 characters
+               /^[a-z]+$/.test(word) && // Only letters
+               !isCommonWord(word) // Not a common word
+      })
+      .slice(0, 15) // Limit to 15 words
+
+    // Convert to the expected format
+    const extractedWords = words.map((word, index) => ({
+      word: word,
+      definition: '정의를 추가해주세요', // User will add definitions
+      partOfSpeech: ['n.'], // Default part of speech
+      context: `Found in image: "${fullText.substring(0, 50)}..."`,
+      difficulty: Math.min(10, Math.max(1, Math.floor(word.length / 2))) // Estimate difficulty by length
+    }))
+
+    if (extractedWords.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Failed to parse vocabulary extraction' },
-        { status: 500 }
+        { success: false, message: 'No vocabulary words found in the image' },
+        { status: 400 }
       )
     }
 
@@ -155,21 +130,24 @@ Focus on 5-10 most valuable SAT vocabulary words. Prioritize words that are:
       await collectionRef.set({
         id: collectionId,
         name: collectionName || `Photo Collection ${new Date().toLocaleDateString()}`,
-        description: 'Auto-created from photo upload',
         userId,
+        imageUrl,
+        fileName: imageFile.name,
+        wordCount: 0,
+        words: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        wordCount: 0,
-        isActive: true
+        isActive: true,
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48 hours
       })
     }
 
-    // Add words to photo_vocabulary_words collection
+    // Store extracted words in photo_vocabulary_words collection
     const batch = db.batch()
-    const addedWords: any[] = []
+    const addedWords = []
 
     for (const wordData of extractedWords) {
-      const wordId = `${collectionId}_${wordData.word.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`
+      const wordId = `${collectionId}_${wordData.word}_${Date.now()}`
       const wordRef = db.collection('photo_vocabulary_words').doc(wordId)
       
       const photoVocabularyWord = {
@@ -217,7 +195,7 @@ Focus on 5-10 most valuable SAT vocabulary words. Prioritize words that are:
       wordsExtracted: extractedWords.length,
       words: addedWords,
       collectionId,
-      message: `Successfully extracted ${extractedWords.length} vocabulary words`
+      message: `Successfully extracted ${extractedWords.length} vocabulary words using Google Cloud Vision`
     })
 
   } catch (error) {

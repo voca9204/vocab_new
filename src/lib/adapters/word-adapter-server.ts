@@ -166,6 +166,9 @@ export class WordAdapterServer {
         case 'photo_vocabulary_words':
           return this.convertFromPhotoVocabulary(data, id)
         
+        case 'personal_collection_words':
+          return this.convertFromPersonalCollection(data, id)
+        
         default:
           // 타입 추론으로 변환 시도
           if (isWordV2(data)) {
@@ -318,6 +321,53 @@ export class WordAdapterServer {
       success: true,
       word,
       sourceType: 'photo_vocabulary'
+    }
+  }
+
+  /**
+   * Personal Collection Words → UnifiedWord 변환
+   */
+  private convertFromPersonalCollection(data: any, id: string): ConversionResult {
+    const convertTimestamp = (ts: any): Date => {
+      if (ts && ts.toDate) return ts.toDate()
+      if (ts instanceof Date) return ts
+      if (typeof ts === 'string') return new Date(ts)
+      return new Date()
+    }
+
+    const word: UnifiedWord = {
+      id,
+      word: data.word || '',
+      definition: data.definition || data.korean || 'No definition available',
+      examples: data.example ? [data.example] : (data.examples || []),
+      partOfSpeech: data.partOfSpeech || [],
+      pronunciation: data.pronunciation || null,
+      etymology: data.etymology || null,
+      realEtymology: data.realEtymology || null,
+      synonyms: (() => {
+        const syns = data.synonyms || [];
+        if (syns.length > 0) {
+          console.log(`[WordAdapterServer] Personal collection word "${data.word}" has ${syns.length} synonyms:`, syns);
+        }
+        return syns;
+      })(),
+      antonyms: data.antonyms || [],
+      difficulty: data.difficulty || 5,
+      frequency: data.frequency || 5,
+      isSAT: false, // Personal collection words are not SAT words
+      source: {
+        type: 'manual',
+        collection: 'personal_collection_words',
+        originalId: id
+      },
+      createdAt: convertTimestamp(data.createdAt),
+      updatedAt: convertTimestamp(data.updatedAt)
+    }
+
+    return {
+      success: true,
+      word,
+      sourceType: 'unknown' // personal collection doesn't have a specific source type yet
     }
   }
 }

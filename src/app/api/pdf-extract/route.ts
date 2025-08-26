@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getUnifiedExtractor } from '@/lib/services/unified-file-extractor'
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,45 +13,38 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // PDF.js를 사용한 텍스트 추출
-    const pdfjsLib = await import('pdfjs-dist')
+    // 통합 추출기 사용
+    const extractor = getUnifiedExtractor()
+    const result = await extractor.extractFromFile(file, {
+      removeCommonWords: true,
+      minWordLength: 2,
+      useAI: false, // PDF-parse만 사용 (빠른 처리)
+      useVision: false,
+    })
     
-    // Worker 설정
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
-
-    const arrayBuffer = await file.arrayBuffer()
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-    
-    let fullText = ''
-    const words: string[] = []
-    
-    // 각 페이지에서 텍스트 추출
-    for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
-      const page = await pdf.getPage(i)
-      const textContent = await page.getTextContent()
-      
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ')
-      
-      fullText += pageText + '\n'
-      
-      // 단어 추출
-      const pageWords = pageText.split(/\s+/)
-        .filter(word => word.length > 3 && /^[a-zA-Z]+$/.test(word))
-      
-      words.push(...pageWords)
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to extract from PDF' },
+        { status: 500 }
+      )
     }
 
-    // 중복 제거
-    const uniqueWords = [...new Set(words)]
-
+    // 디버깅 정보 추가
+    console.log(`[PDF Extract] Extraction complete:`)
+    console.log(`- Method: ${result.method}`)
+    console.log(`- Total words: ${result.totalCount}`)
+    console.log(`- Confidence: ${result.confidence}`)
+    console.log(`- Pages: ${result.metadata?.pages}`)
+    console.log(`- Processing time: ${result.metadata?.processingTime}ms`)
+    
     return NextResponse.json({
       success: true,
-      text: fullText,
-      words: uniqueWords,
-      wordCount: uniqueWords.length,
-      pages: pdf.numPages
+      words: result.words.map(w => w.word), // 단어만 반환 (기존 호환성)
+      wordCount: result.totalCount,
+      pages: result.metadata?.pages || 0,
+      processedPages: result.metadata?.pages || 0,
+      method: result.method,
+      confidence: result.confidence
     })
 
   } catch (error) {

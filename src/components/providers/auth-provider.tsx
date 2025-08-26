@@ -38,6 +38,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
   const [isAdminUser, setIsAdminUser] = useState(false)
 
+  // 리다이렉트 결과 처리
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      try {
+        const { handleRedirectResult } = await import('@/lib/firebase/auth')
+        const result = await handleRedirectResult()
+        if (result) {
+          console.log('Google login via redirect successful')
+        }
+      } catch (error) {
+        console.error('Redirect result error:', error)
+      }
+    }
+    checkRedirectResult()
+  }, [])
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {

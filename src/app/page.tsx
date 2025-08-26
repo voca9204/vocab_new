@@ -130,7 +130,7 @@ export default function HomePage() {
                   <Button 
                     size="lg"
                     className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-6 text-lg"
-                    onClick={() => router.push('/dashboard')}
+                    onClick={() => router.push('/unified-dashboard')}
                   >
                     <Rocket className="mr-2 h-5 w-5" />
                     대시보드로 이동

@@ -3,11 +3,12 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { Button, StudyHeader } from '@/components/ui'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, Keyboard, CheckCircle, Volume2 } from 'lucide-react'
-import { vocabularyService } from '@/lib/api'
+// Removed: import { vocabularyService } from '@/lib/api' - NO LONGER USING OLD SYSTEM
 import { prepareWordsForTyping } from '@/lib/typing-utils'
 import { useTypingPractice } from '@/hooks/use-typing-practice'
 import { useTypingTimer } from '@/hooks/use-typing-timer'
@@ -25,6 +26,7 @@ import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
 export default function TypingPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { words: contextWords, selectedCollections } = useCollectionV2()
   const inputRef = useRef<HTMLInputElement>(null)
   const sessionCountRef = useRef(0)
   const [showPreview, setShowPreview] = useState(true)
@@ -96,13 +98,17 @@ export default function TypingPage() {
       const offset = (sessionCountRef.current - 1) * 20
       
       // 사용자 선택 단어장의 모든 단어들을 가져옴 (타이핑 연습에 적합한 단어 필터링 후 선택)
-      const { words: wordsData } = await vocabularyService.getAll(undefined, 3000, user.uid) // 모든 단어 가져온 후 필터링
-      
-      if (wordsData.length === 0) {
-        setError('연습할 단어를 찾을 수 없습니다. 단어장을 확인해주세요.')
+      // Use words from UnifiedVocabularyContext - NO OLD SYSTEM
+      if (!contextWords || contextWords.length === 0) {
+        const errorMessage = !selectedCollections || selectedCollections.length === 0
+          ? '단어장을 선택해주세요. 설정에서 학습할 단어장을 선택할 수 있습니다.'
+          : '선택된 단어장에서 단어를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.'
+        setError(errorMessage)
         setWords([])
         return
       }
+      
+      const wordsData = contextWords
       
       // 전체 단어를 필터링하고 정렬
       const filteredWords = wordsData.filter(w => w.word.length >= 3 && w.word.length <= 12)
@@ -135,7 +141,7 @@ export default function TypingPage() {
     } finally {
       setLoading(false)
     }
-  }, [user, setWords, resetTimer, startNewSession, setLoading, clearError, setError])
+  }, [user, contextWords, selectedCollections, setWords, resetTimer, startNewSession, setLoading, clearError, setError])
 
   useEffect(() => {
     if (user) {
@@ -251,15 +257,38 @@ export default function TypingPage() {
               <p className="text-sm text-gray-500 mt-1">💡 단어를 클릭하면 뜻과 발음을 확인할 수 있어요!</p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 max-h-[400px] overflow-y-auto">
               {words.map((word, index) => (
                 <div 
                   key={word.id} 
-                  className="p-4 bg-gray-50 rounded-lg text-center hover:bg-blue-50 hover:border-blue-200 border border-transparent transition-all cursor-pointer group"
+                  className="p-4 bg-gray-50 rounded-lg hover:bg-blue-50 hover:border-blue-200 border border-transparent transition-all cursor-pointer group"
                   onClick={() => openModal(word)}
                 >
-                  <div className="text-lg font-medium text-gray-800 group-hover:text-blue-700">{word.word}</div>
-                  <div className="text-sm text-gray-500 mt-1">{word.word.length}글자</div>
+                  <div className="text-left">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-lg font-semibold text-gray-800 group-hover:text-blue-700">
+                        {word.word}
+                      </span>
+                      <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                        {word.word.length}글자
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600 line-clamp-2">
+                      {word.definition || word.definitions?.[0]?.definition || '정의 없음'}
+                    </div>
+                    {word.partOfSpeech && word.partOfSpeech.length > 0 && (
+                      <div className="flex gap-1 mt-2">
+                        {word.partOfSpeech.slice(0, 2).map(pos => (
+                          <span 
+                            key={pos}
+                            className="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-600"
+                          >
+                            {pos}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

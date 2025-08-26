@@ -47,23 +47,33 @@ const initAdmin = () => {
           clientEmail,
           privateKey,
         }),
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'vocabulary-app-new.firebasestorage.app',
       })
       
       return app
     } else {
       // Development: Use default credentials or emulator
-      console.warn('Firebase Admin credentials not found. Initializing without credentials.')
+      console.log('🔧 [Firebase Admin] Development mode - using emulator')
       
       // For local development with emulator
       if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
+        console.log('🎯 [Firebase Admin] Emulator 모드 활성화')
         process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8181'
         process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9199'
+        
+        // For debugging
+        console.log('🔧 [Firebase Admin] Emulator 환경변수 설정:', {
+          FIRESTORE_EMULATOR_HOST: process.env.FIRESTORE_EMULATOR_HOST,
+          FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST
+        })
       }
       
       app = initializeApp({
         projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'vocabulary-app-new',
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'vocabulary-app-new.firebasestorage.app',
       })
       
+      console.log('✅ [Firebase Admin] 개발 모드 초기화 완료')
       return app
     }
   } catch (error) {
@@ -120,5 +130,5 @@ export const isAdminInitialized = (): boolean => {
 }
 
 // Export for backward compatibility
-export const adminDb = null // Will be initialized on first use
+export const adminDb = getAdminFirestore()
 export const adminAuth = null // Will be initialized on first use

@@ -1,0 +1,10 @@
+apple - 사과
+book - 책
+computer - 컴퓨터
+dog - 개
+elephant - 코끼리
+flower - 꽃
+guitar - 기타
+house - 집
+ice cream - 아이스크림
+jungle - 정글

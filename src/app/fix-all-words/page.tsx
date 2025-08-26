@@ -38,7 +38,7 @@ export default function FixAllWordsPage() {
     return (
       <div className="container mx-auto py-8 px-4 text-center">
         <p>관리자만 접근할 수 있습니다.</p>
-        <Button onClick={() => router.push('/dashboard')} className="mt-4">
+        <Button onClick={() => router.push('/unified-dashboard')} className="mt-4">
           대시보드로 돌아가기
         </Button>
       </div>
@@ -256,7 +256,7 @@ export default function FixAllWordsPage() {
                   다시 검사하기
                 </Button>
                 <Button 
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => router.push('/unified-dashboard')}
                   className="flex-1"
                 >
                   대시보드로 이동

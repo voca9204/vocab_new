@@ -180,7 +180,7 @@ export default function StudyPage() {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/unified-dashboard')}
             className="flex items-center gap-2"
           >
             <BarChart className="w-4 h-4" />

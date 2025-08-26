@@ -162,6 +162,68 @@ export class VocabularyPDFServiceV2 {
   }
 
   /**
+   * 기존 단어들의 정보를 DB에서 가져오기
+   */
+  async getExistingWordDetails(words: string[]): Promise<ExtractedVocabulary[]> {
+    try {
+      const wordDetails: ExtractedVocabulary[] = []
+      
+      // 빈 단어 필터링
+      const validWords = words.filter(word => word && word.trim() !== '')
+      
+      // 배치로 조회 (한 번에 10개씩)
+      const batchSize = 10
+      for (let i = 0; i < validWords.length; i += batchSize) {
+        const batch = validWords.slice(i, i + batchSize).map(w => w.toLowerCase())
+        const q = query(
+          collection(db, 'words'),
+          where('word', 'in', batch)
+        )
+        
+        const snapshot = await getDocs(q)
+        snapshot.forEach(doc => {
+          const data = doc.data()
+          
+          // 첫 번째 정의 가져오기
+          const firstDefinition = data.definitions?.[0] || {}
+          
+          wordDetails.push({
+            number: wordDetails.length + 1,
+            word: data.word,
+            definition: firstDefinition.definition || '정의 없음',
+            partOfSpeech: data.partOfSpeech || ['n.'],
+            examples: firstDefinition.examples || [],
+            pronunciation: data.pronunciation || null,
+            etymology: data.etymology?.origin || null,
+            difficulty: data.difficulty || 5,
+            frequency: data.frequency || 5,
+            source: {
+              type: 'database' as any,  // 기존 DB 단어임을 표시
+              filename: 'existing',
+              uploadedAt: new Date()
+            },
+            userId: '',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(),
+            isSAT: data.isSAT || false,
+            studyStatus: {
+              studied: false,
+              masteryLevel: 0,
+              reviewCount: 0
+            }
+          })
+        })
+      }
+      
+      console.log(`📚 기존 단어 정보 ${wordDetails.length}개 로드 완료`)
+      return wordDetails
+    } catch (error) {
+      console.error('기존 단어 정보 가져오기 오류:', error)
+      return []
+    }
+  }
+
+  /**
    * 사용자의 개인 단어장 가져오기 (없으면 생성)
    */
   private async getUserVocabularyCollection(
@@ -247,17 +309,19 @@ export class VocabularyPDFServiceV2 {
 
   /**
    * 선택된 단어들을 새 DB 구조에 저장
+   * 개선: 중복 단어도 단어장에 포함 (참조 방식)
    */
   async saveSelectedWords(
     words: ExtractedVocabulary[], 
     userId: string, 
     isAdminUpload: boolean = false,
     collectionType: 'SAT' | 'SUNEUNG' | 'TOEFL' | 'GENERAL' = 'GENERAL'
-  ): Promise<{saved: number, skipped: number, failed: number}> {
+  ): Promise<{saved: number, skipped: number, failed: number, linked: number}> {
     const result = {
-      saved: 0,
-      skipped: 0,
-      failed: 0
+      saved: 0,      // 새로 생성된 단어
+      linked: 0,     // 기존 단어 연결
+      skipped: 0,    // 이미 단어장에 있는 단어
+      failed: 0      // 처리 실패
     }
 
     // 사용자의 개인 단어장 ID 가져오기 (관리자는 공식 단어장 사용)
@@ -283,9 +347,9 @@ export class VocabularyPDFServiceV2 {
         let wordId: string
         
         if (!wordSnapshot.empty) {
-          // 이미 존재하는 단어
+          // 이미 존재하는 단어 - 단어장에 연결만 함
           wordId = wordSnapshot.docs[0].id
-          console.log(`기존 단어 사용: ${word.word} (${wordId})`)
+          console.log(`기존 단어 연결: ${word.word} (${wordId})`)
           
           // 사용자 단어장에 이미 있는지 확인
           const collectionDoc = await getDocs(
@@ -299,6 +363,9 @@ export class VocabularyPDFServiceV2 {
             result.skipped++
             continue
           }
+          
+          // 기존 단어를 단어장에 추가 (연결)
+          result.linked++
         } else {
           // 새 단어 추가
           const wordData = {
@@ -314,6 +381,9 @@ export class VocabularyPDFServiceV2 {
             }],
             partOfSpeech: word.partOfSpeech,
             pronunciation: word.pronunciation,
+            synonyms: word.synonyms || [],        // ✅ 추가
+            antonyms: word.antonyms || [],        // ✅ 추가
+            englishDefinition: word.englishDefinition,  // ✅ 영어 정의 추가
             etymology: word.etymology ? {
               origin: word.etymology,
               history: []
@@ -335,6 +405,7 @@ export class VocabularyPDFServiceV2 {
           const newWordDoc = await addDoc(collection(db, 'words'), wordData)
           wordId = newWordDoc.id
           console.log(`새 단어 추가: ${word.word} (${wordId})`)
+          result.saved++
         }
         
         // 단어장에 단어 ID 추가
@@ -354,8 +425,6 @@ export class VocabularyPDFServiceV2 {
           addedAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         })
-        
-        result.saved++
       } catch (error) {
         console.error(`단어 저장 실패: ${word.word}`, error)
         result.failed++
@@ -370,12 +439,54 @@ export class VocabularyPDFServiceV2 {
           updatedAt: serverTimestamp()
         })
         console.log(`✅ 단어장에 ${savedWordIds.length}개 단어 추가 완료`)
+        
+        // 사용자 설정 업데이트 - 새로 생성된 단어장을 자동으로 선택된 상태로 추가
+        try {
+          // 단어장 정보 가져오기
+          const collectionDoc = await getDocs(
+            query(
+              collection(db, 'vocabulary_collections'),
+              where('__name__', '==', collectionId)
+            )
+          )
+          
+          if (!collectionDoc.empty) {
+            const collectionData = collectionDoc.docs[0].data()
+            const collectionName = collectionData.name
+            
+            // 사용자 설정 업데이트 (공식 단어장인 경우 모든 사용자, 개인 단어장인 경우 본인만)
+            if (isAdminUpload) {
+              // 관리자가 올린 공식 단어장은 자동으로 모든 사용자에게 표시
+              console.log(`📢 공식 단어장 "${collectionName}" 생성 - 모든 사용자에게 자동 표시됨`)
+              // 참고: 공식 단어장은 사용자가 빈 배열 설정일 때 자동으로 포함됨
+            } else {
+              // 개인 단어장은 해당 사용자의 selectedVocabularies에 추가
+              const { UserSettingsService } = await import('@/lib/settings/user-settings-service')
+              const settingsService = new UserSettingsService()
+              const userSettings = await settingsService.getUserSettings(userId)
+              
+              if (userSettings) {
+                const currentSelected = userSettings.selectedVocabularies || []
+                
+                // 이미 선택되어 있지 않으면 추가
+                if (!currentSelected.includes(collectionName)) {
+                  const updatedSelected = [...currentSelected, collectionName]
+                  await settingsService.updateSelectedVocabularies(userId, updatedSelected)
+                  console.log(`✅ 사용자 설정에 "${collectionName}" 단어장 자동 추가`)
+                }
+              }
+            }
+          }
+        } catch (settingsError) {
+          console.error('사용자 설정 업데이트 오류:', settingsError)
+          // 설정 업데이트 실패해도 단어 저장은 성공으로 처리
+        }
       } catch (error) {
         console.error('단어장 업데이트 오류:', error)
       }
     }
 
-    console.log(`💾 저장 완료: 성공 ${result.saved}, 중복 ${result.skipped}, 실패 ${result.failed}`)
+    console.log(`💾 저장 완료: 새 단어 ${result.saved}, 연결 ${result.linked}, 중복 ${result.skipped}, 실패 ${result.failed}`)
     return result
   }
 

@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
+import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { Button, StudyHeader } from '@/components/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
@@ -17,9 +18,10 @@ import {
   RotateCcw,
   Volume2,
   Loader2,
-  Sparkles
+  Sparkles,
+  BookOpen
 } from 'lucide-react'
-import { vocabularyService } from '@/lib/api'
+// Removed: import { vocabularyService } from '@/lib/api' - NO LONGER USING OLD SYSTEM
 import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
 import type { VocabularyWord } from '@/types'
 import type { Word } from '@/types/vocabulary-v2'
@@ -44,6 +46,7 @@ function QuizContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const { textSize } = useSettings()
+  const { words: contextWords, wordLoading: contextLoading, selectedCollections } = useCollectionV2()
   
   // Check if we're loading from photo collection
   const source = searchParams.get('source')
@@ -65,11 +68,12 @@ function QuizContent() {
   const [translations, setTranslations] = useState<{ [key: number]: string }>({})
   const [translatingIndex, setTranslatingIndex] = useState<number | null>(null)
 
+  // Load words when context words change or on initial load
   useEffect(() => {
-    if (user) {
+    if (user && !contextLoading) {
       loadWords()
     }
-  }, [user])
+  }, [user, contextWords.length, contextLoading])
 
   const loadWords = async () => {
     if (!user) return
@@ -113,13 +117,68 @@ function QuizContent() {
         
         console.log(`Loaded ${wordsForQuiz.length} photo words for quiz`)
       } else {
-        // Load regular vocabulary words
-        console.log('Loading words for quiz using new vocabulary service')
-        const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
+        // Use words from UnifiedVocabularyContext - NO OLD SYSTEM FALLBACK
+        console.log('Using words from UnifiedVocabularyContext')
+        console.log(`Context has ${contextWords.length} words from ${selectedCollections.length} selected collections`)
         
-        // 학습하지 않은 단어들을 우선적으로 선택
-        const notStudiedWords = allWords.filter(w => (w.learningMetadata?.timesStudied || 0) === 0)
-        wordsForQuiz = notStudiedWords.length >= 20 ? notStudiedWords : allWords
+        // Debug: Check structure of first few words
+        if (contextWords.length > 0) {
+          console.log('[Quiz Debug] Sample word structures:', {
+            firstWord: {
+              word: contextWords[0].word,
+              definition: contextWords[0].definition,
+              koreanDefinitions: (contextWords[0] as any).koreanDefinitions,
+              definitions: contextWords[0].definitions
+            },
+            secondWord: contextWords.length > 1 ? {
+              word: contextWords[1].word,
+              definition: contextWords[1].definition,
+              koreanDefinitions: (contextWords[1] as any).koreanDefinitions,
+              definitions: contextWords[1].definitions
+            } : null
+          })
+        }
+        
+        if (contextWords.length === 0) {
+          console.warn('No words loaded from context - user needs to select wordbooks')
+        } else {
+          // Convert UnifiedWord to VocabularyWord format
+          wordsForQuiz = contextWords.map(word => {
+            // Extract Korean definition - UnifiedWord should have consistent definition field
+            const koreanDefinition = word.definition || 'No definition available'
+            
+            console.log(`[Quiz] Converting word "${word.word}":`, {
+              definition: word.definition,
+              definitionsArray: word.definitions?.length || 0,
+              final: koreanDefinition
+            })
+            
+            return {
+              id: word.id,
+              word: word.word,
+              definition: koreanDefinition,
+              definitions: word.definitions || [],
+              pronunciation: word.pronunciation,
+              difficulty: word.difficulty,
+              frequency: word.frequency,
+              isSAT: word.tags?.includes('SAT') || false,
+              partOfSpeech: word.partOfSpeech,
+              etymology: word.etymology,
+              examples: word.examples || [],
+              synonyms: word.synonyms || [],
+              learningMetadata: {
+                timesStudied: word.studyStatus?.studied ? 1 : 0,
+                lastStudied: word.studyStatus?.lastStudiedAt,
+                confidence: (word.studyStatus?.masteryLevel || 0) / 100,
+                source: word.source?.type || 'unified'
+              }
+            } as VocabularyWord
+          })
+          
+          // 학습하지 않은 단어들을 우선적으로 선택
+          const notStudiedWords = wordsForQuiz.filter(w => (w.learningMetadata?.timesStudied || 0) === 0)
+          wordsForQuiz = notStudiedWords.length >= 20 ? notStudiedWords : wordsForQuiz
+        }
       }
       
       // 단어 로드 확인
@@ -165,9 +224,16 @@ function QuizContent() {
       const shuffledOptionWords = allOptionWords.sort(() => Math.random() - 0.5)
       const correctIndex = shuffledOptionWords.findIndex(w => w.id === word.id)
       
-      // 각 선택지의 정의 생성
+      // 각 선택지의 정의 생성 - 이미 변환된 VocabularyWord에서 definition 필드 사용
       const options = shuffledOptionWords.map((w) => {
-        return w.definitions?.[0]?.definition || w.definitions?.[0]?.text || w.definition || '정의 없음'
+        const definition = w.definition || '정의 없음'
+        
+        console.log(`[Quiz] Word "${w.word}" option definition:`, {
+          definition: w.definition,
+          final: definition
+        })
+        
+        return definition
       })
       
       return {
@@ -348,9 +414,9 @@ function QuizContent() {
       })) as VocabularyWord[]
     } catch (error) {
       console.error('Error reloading words:', error)
-      // 실패 시 기존 방식으로 fallback
-      const { words } = await vocabularyService.getAll(undefined, 2000, user.uid)
-      return words
+      // NO FALLBACK TO OLD SYSTEM - return empty array
+      console.error('Failed to reload words, returning empty array')
+      return []
     }
   }
 
@@ -374,13 +440,14 @@ function QuizContent() {
       const newMasteryLevel = Math.max(0, Math.min(100, currentMastery + increment))
       
       try {
-        // vocabularyService의 updateStudyProgress 메서드 호출
-        await vocabularyService.updateStudyProgress(
-          currentQuestion.word.id,
-          'quiz',
-          isCorrect,
-          increment
-        )
+        // TODO: Update study progress with new collection service
+        // await collectionService.updateStudyProgress(
+        //   currentQuestion.word.id,
+        //   'quiz',
+        //   isCorrect,
+        //   increment
+        // )
+        console.log('TODO: Update study progress for word:', currentQuestion.word.id)
         console.log('Quiz progress updated:', currentQuestion.word.word, isCorrect, newMasteryLevel)
       } catch (error) {
         console.error('Failed to update quiz progress:', error)
@@ -389,13 +456,7 @@ function QuizContent() {
     
     setShowResult(true)
     
-    // 예문이 없으면 자동으로 생성
-    const hasExamples = currentQuestion.word.definitions?.some(def => 
-      def.examples && def.examples.length > 0
-    )
-    if (!hasExamples && currentQuestion.word.id) {
-      setTimeout(() => generateExampleForWord(currentQuestion.word.id!), 500)
-    }
+    // 예문 자동 생성 제거 - 사용자가 버튼을 클릭해야만 생성
   }
 
   const handleNextQuestion = () => {
@@ -734,14 +795,32 @@ function QuizContent() {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="p-4 bg-gray-50 rounded-lg">
                       {generatingExamples ? (
-                        <p className="text-sm text-blue-600 flex items-center justify-center gap-1">
-                          <Sparkles className="h-4 w-4 animate-pulse" />
-                          AI가 예문을 생성하고 있습니다...
-                        </p>
+                        <div className="text-center">
+                          <p className="text-sm text-blue-600 flex items-center justify-center gap-1">
+                            <Sparkles className="h-4 w-4 animate-pulse" />
+                            AI가 예문을 생성하고 있습니다...
+                          </p>
+                        </div>
                       ) : (
-                        <p className="text-sm text-gray-500">예문이 자동으로 생성됩니다</p>
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600 mb-3">예문을 보려면 버튼을 클릭하세요</p>
+                          <Button
+                            onClick={() => {
+                              if (currentQuestion.word.id) {
+                                generateExampleForWord(currentQuestion.word.id)
+                              }
+                            }}
+                            disabled={!currentQuestion.word.id || generatingExamples}
+                            variant="outline"
+                            size="sm"
+                            className="inline-flex items-center gap-2"
+                          >
+                            <BookOpen className="h-4 w-4" />
+                            예문 보기
+                          </Button>
+                        </div>
                       )}
                     </div>
                   )}

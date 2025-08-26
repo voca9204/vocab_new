@@ -71,14 +71,42 @@ export async function POST(request: NextRequest) {
     })
 
     const response = completion.choices[0]?.message?.content || '[]'
+    console.log(`[generate-synonyms] Raw AI response for "${word}":`, response)
     
     try {
-      const synonyms = JSON.parse(response)
-      if (Array.isArray(synonyms)) {
+      // Handle different response formats
+      let synonyms
+      
+      // Try to parse as JSON
+      try {
+        synonyms = JSON.parse(response)
+      } catch {
+        // If not valid JSON, try to extract from string format
+        // Handle cases like: "perfect, complete, accomplished"
+        if (typeof response === 'string' && response.includes(',')) {
+          synonyms = response.split(',').map(s => s.trim())
+        } else if (typeof response === 'string') {
+          // Single word response
+          synonyms = [response.trim()]
+        }
+      }
+      
+      console.log(`[generate-synonyms] Parsed synonyms for "${word}":`, synonyms)
+      
+      // Ensure synonyms is an array
+      if (!Array.isArray(synonyms)) {
+        if (typeof synonyms === 'string') {
+          synonyms = [synonyms]
+        } else {
+          synonyms = []
+        }
+      }
+      
+      if (synonyms.length > 0) {
         const limitedSynonyms = synonyms.slice(0, 5)
         // 결과를 캐시에 저장
         synonymCache.set(cacheKey, limitedSynonyms)
-        console.log(`Generated and cached synonyms for: ${word}`)
+        console.log(`[generate-synonyms] Generated and cached ${limitedSynonyms.length} synonyms for "${word}":`, limitedSynonyms)
         return NextResponse.json({ synonyms: limitedSynonyms })
       }
     } catch (parseError) {

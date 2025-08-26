@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Auth Test</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-sb3CGC1RGDaLjGwQuI7W2t_UmLp2F6c",
+            authDomain: "vocabulary-app-new.firebaseapp.com",
+            projectId: "vocabulary-app-new",
+            storageBucket: "vocabulary-app-new.firebasestorage.app",
+            messagingSenderId: "203198017310",
+            appId: "1:203198017310:web:77c88ab17e54e0b8e3630f"
+        };
+
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.testGoogleAuth = async function() {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({
+                prompt: 'select_account'
+            });
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                console.log('Success!', result.user);
+                document.getElementById('result').innerHTML = `
+                    <p style="color: green;">로그인 성공!</p>
+                    <p>Email: ${result.user.email}</p>
+                    <p>Name: ${result.user.displayName}</p>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `
+                    <p style="color: red;">에러 발생!</p>
+                    <p>Code: ${error.code}</p>
+                    <p>Message: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Firebase Google Auth Test</h1>
+    <p>이 페이지는 Firebase Google 인증을 직접 테스트합니다.</p>
+    <button onclick="testGoogleAuth()" style="padding: 10px 20px; font-size: 16px;">
+        Google로 로그인 테스트
+    </button>
+    <div id="result" style="margin-top: 20px;"></div>
+</body>
+</html>

@@ -9,27 +9,26 @@ Vocabulary V2 프로젝트의 단어 데이터 저장 및 호출 방식을 정�
 ```
 vocabulary-app-new/
 ├── 마스터 데이터 (공유)
-│   ├── words/                      # 통합 마스터 단어 DB (모든 단어 데이터)
-│   └── ai_generated_words/         # AI가 생성한 단어들
+│   ├── words/                      # 통합 마스터 단어 풀 (모든 단어, 출처 무관)
+│   └── ai_generated_words/         # AI 생성 로그 (words에도 동기화)
 │
-├── 관리 시스템
-│   └── vocabulary_collections/     # 단어장 그룹화 관리
+├── 단어장 시스템
+│   ├── vocabulary_collections/     # 공식 단어장 (관리자 전용, word ID 참조)
+│   └── personal_collections/       # 개인 단어장 (모든 사용자, word ID 참조)
 │
-└── 개인 데이터
+└── 사용자 데이터
     ├── user_words/                # 사용자 학습 진도
-    ├── user_settings/             # 사용자 설정
-    └── personal_vocabulary/       # 개인 단어장
+    └── user_settings/             # 사용자 설정
 ```
 
 ## 📚 단어 컬렉션 상세
 
-### 1. words (통합 마스터 단어 DB)
-**출처**: 모든 단어 데이터가 통합된 메인 데이터베이스  
-**개수**: 2,106개 단어  
-**구성**:
-- SAT 단어 (veterans_pdf): 1,821개 - V.ZIP 3K.pdf에서 추출
-- 수능 단어 (pdf): 282개 - 25년 수능 영단어 모음.pdf에서 추출
-- AI 생성 단어 (ai_generated): 3개 - 동적으로 증가
+### 1. words (통합 마스터 단어 풀)
+**목적**: 시스템이 보유한 모든 단어의 중앙 저장소  
+**특징**: 출처에 관계없이 모든 단어가 통합 저장  
+**개수**: 2,500+ 단어 (계속 증가 중)  
+
+**주의**: source 필드는 단순히 출처를 기록하는 메타데이터일 뿐, 단어 분류 기준이 아님
 
 **데이터 구조**:
 ```typescript
@@ -95,43 +94,95 @@ vocabulary-app-new/
 }
 ```
 
-### 3. personal_vocabulary (개인 단어장)
-**목적**: 사용자별 개인 단어장 관리  
-**특징**: 마스터 DB의 단어 ID를 참조하여 중복 방지  
+### 3. photo_vocabulary_words (사진 단어)
+**출처**: 사진에서 추출한 단어들  
+**특징**: UnifiedWord 시스템과 완전 통합  
+**UI 표시명**: 사진 단어  
+
+**데이터 구조**: (위의 photo_vocabulary_words 참조)
+
+### 4. vocabulary_collections (공식 단어장 - 관리자 전용)
+**목적**: 관리자가 제공하는 공식 단어장  
+**핵심 개념**: words 컬렉션의 단어 ID를 참조하여 단어장 구성  
+**카테고리**: SAT, TOEFL, TOEIC, 수능, GRE, IELTS, 기본  
+**권한**: 관리자만 업로드/수정/삭제 가능  
+
+**현재 공식 단어장**:
+- SAT 공식 단어장: 1,821개 단어 (V.ZIP 3K.pdf 출처)
+- 수능 공식 단어장: 282개 단어 (25년 수능 영단어 모음.pdf 출처)
+- TOEFL 공식 단어장: 0개 (대기 중)
+- TOEIC 공식 단어장: 0개 (대기 중)
+- GRE 공식 단어장: 0개 (대기 중)
+- IELTS 공식 단어장: 0개 (대기 중)
+- 기본 영단어: 0개 (대기 중)  
 
 **데이터 구조**:
 ```typescript
 {
-  userId: string,           // 소유자 ID
-  wordId: string,          // 마스터 DB의 단어 ID 참조
-  word: string,            // 빠른 조회용
-  collectionName: string,  // "나만의 단어장", "어려운 단어" 등
-  tags: string[],          // ["토플", "GRE", "비즈니스"] 등
-  notes?: string,          // 개인 메모
+  name: string,              // 콜렉션 이름 (예: "TOEFL 공식 단어장")
+  displayName: string,       // UI 표시명
+  category: 'SAT' | 'TOEFL' | 'TOEIC' | '수능' | 'GRE' | 'IELTS' | '기본',
+  description: string,       // 설명
+  words: string[],          // 포함된 단어 ID 배열
+  wordCount: number,        // 단어 수
+  difficulty: 'beginner' | 'intermediate' | 'advanced',
+  isOfficial: true,         // 항상 true (공식 단어장)
+  uploadedBy: string,       // 관리자 ID
+  version: string,          // 버전 (예: "1.0.0")
+  tags: string[],           // ["시험대비", "필수", "2024"]
   source: {
-    type: 'manual' | 'ai_discovery' | 'bookmark',
-    context?: string       // 어디서 발견했는지
+    type: 'pdf' | 'manual' | 'import',
+    publisher?: string      // "ETS", "College Board" 등
   },
-  addedAt: Date,
+  createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### 4. vocabulary_collections (단어장 그룹화)
-**목적**: 단어장들의 메타데이터 및 그룹 관리  
+### 5. personal_collections (개인 단어장 - 모든 사용자)
+**목적**: 사용자별 커스텀 단어장 관리  
+**핵심 개념**: words 컬렉션의 단어 ID를 참조하여 개인 단어장 구성  
+**권한**: 모든 사용자 업로드 가능 (관리자 포함)  
+**특징**: 소유자만 수정/삭제 가능  
 
 **데이터 구조**:
 ```typescript
 {
-  name: string,              // 컬렉션 이름
-  displayName: string,       // UI 표시명
-  description: string,       // 설명
-  words: string[],          // 포함된 단어 ID 배열
-  isPrivate: boolean,       // 비공개 여부
   userId: string,           // 소유자 ID
+  name: string,             // 사용자 지정 이름
+  description?: string,     // 설명
+  words: string[],          // 포함된 단어 ID 배열
+  wordCount: number,        // 단어 수
+  isPrivate: boolean,       // true: 비공개, false: 공개
+  isShared: boolean,        // 공유 여부
+  sharedWith?: string[],    // 공유된 사용자 ID 목록
+  tags: string[],           // 사용자 정의 태그
+  source: {
+    type: 'pdf' | 'csv' | 'txt' | 'manual' | 'photo',
+    filename?: string,
+    uploadedAt: Date
+  },
   createdAt: Date,
   updatedAt: Date
 }
+```
+
+## 🎯 단어장-단어 참조 시스템
+
+### 핵심 원칙
+1. **words 컬렉션**: 마스터 단어 풀 (모든 단어의 실제 데이터)
+2. **단어장 컬렉션**: 단어 ID 배열로 단어장 구성
+3. **참조 방식**: 단어장.words = ['word-id-1', 'word-id-2', ...]
+
+### 데이터 흐름
+```
+사용자가 단어장 선택
+    ↓
+vocabulary_collections 또는 personal_collections에서 단어 ID 배열 가져오기
+    ↓
+words 컬렉션에서 ID로 실제 단어 데이터 조회
+    ↓
+UnifiedWord 형태로 변환하여 학습 페이지에 표시
 ```
 
 ## 🔄 데이터 통합 시스템
@@ -172,6 +223,7 @@ interface UnifiedWord {
 **컬렉션 우선순위**:
 1. words (통합 마스터 DB)
 2. ai_generated_words (AI 생성 단어)
+3. photo_vocabulary_words (사진 단어)
 
 ## 📡 API 엔드포인트
 

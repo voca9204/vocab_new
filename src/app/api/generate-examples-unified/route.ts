@@ -118,6 +118,12 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
             examples: examples.slice(0, 3),
             updatedAt: new Date()
           })
+        } else if (collection === 'personal_collection_words') {
+          // Update personal collection word
+          await db.collection('personal_collection_words').doc(wordId).update({
+            examples: examples.slice(0, 3),
+            updatedAt: new Date()
+          })
         } else if (collection === 'words') {
           // Update regular word - need to update definitions array
           const wordDoc = await db.collection('words').doc(wordId).get()

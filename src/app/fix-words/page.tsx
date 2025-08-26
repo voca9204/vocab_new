@@ -108,7 +108,7 @@ export default function FixWordsPage() {
     return (
       <div className="container mx-auto py-8 px-4 text-center">
         <p>관리자만 접근할 수 있습니다.</p>
-        <Button onClick={() => router.push('/dashboard')} className="mt-4">
+        <Button onClick={() => router.push('/unified-dashboard')} className="mt-4">
           대시보드로 돌아가기
         </Button>
       </div>

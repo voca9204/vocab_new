@@ -172,6 +172,42 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
     
+    // === Personal Collections (개인 단어장) ===
+    
+    // personal_collections - 개인 단어장 메타데이터
+    match /personal_collections/{collectionId} {
+      // 읽기는 인증된 사용자 모두 가능 (앱에서 필터링)
+      allow read: if request.auth != null;
+      // 생성은 본인 데이터만
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      // 수정과 삭제는 소유자만
+      allow update, delete: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // personal_collection_words - 개인 단어장의 단어들
+    match /personal_collection_words/{wordId} {
+      // 읽기는 인증된 사용자 모두 가능 (개인 단어 공유 가능)
+      allow read: if request.auth != null;
+      // 생성은 인증된 사용자 누구나 가능 (PDF 업로드 등)
+      allow create: if request.auth != null;
+      // 수정은 소유자만 (source.userId 체크)
+      allow update: if request.auth != null && 
+        resource.data.source.userId == request.auth.uid;
+      // 삭제는 소유자만
+      allow delete: if request.auth != null && 
+        resource.data.source.userId == request.auth.uid;
+    }
+    
+    // user_quotas - 사용자 할당량 정보
+    match /user_quotas/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false; // 삭제 불가
+    }
+    
     // === 기존 컬렉션들 (호환성 유지) ===
     
     // veterans_vocabulary - V.ZIP PDF에서 추출한 단어들 (인증된 사용자만 읽기 가능)

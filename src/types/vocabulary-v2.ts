@@ -13,8 +13,8 @@ export interface Word {
   // 여러 정의와 예문을 가질 수 있음
   definitions: WordDefinition[]
   
-  etymology?: string  // 영어 정의
-  realEtymology?: string  // 실제 어원
+  englishDefinition?: string  // 영어 정의
+  etymology?: string          // 어원 (단어의 기원과 역사)
   
   synonyms?: string[]
   antonyms?: string[]

@@ -20,11 +20,11 @@ export interface UnifiedWord {
   // 발음 정보
   pronunciation?: string
   
-  // 어원 정보 (영어 정의)
-  etymology?: string
+  // 영어 정의
+  englishDefinition?: string
   
-  // 실제 어원 (한글)
-  realEtymology?: string
+  // 어원 (단어의 기원과 역사)
+  etymology?: string
   
   // 유사어/반의어
   synonyms?: string[]
@@ -106,7 +106,14 @@ export interface AdapterConfig {
 }
 
 export const defaultAdapterConfig: AdapterConfig = {
-  collectionPriority: ['words', 'ai_generated_words', 'photo_vocabulary_words'],
+  collectionPriority: [
+    'words', 
+    'ai_generated_words', 
+    'photo_vocabulary_words', 
+    'personal_collection_words',
+    'veterans_vocabulary',  // Legacy V.ZIP 3K PDF words
+    'vocabulary'  // Legacy SAT words
+  ],
   enableCache: true,
   cacheTimeout: 5 * 60 * 1000, // 5분
   enableBackgroundMigration: true,

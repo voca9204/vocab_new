@@ -1,221 +1,242 @@
 {
-  "tasks": [
-    {
-      "id": 1,
-      "title": "Set up Next.js project with TypeScript and Tailwind CSS",
-      "description": "Initialize the project with Next.js 14+, TypeScript, and Tailwind CSS, following the specified technical architecture.",
-      "details": "1. Use create-next-app to set up a new Next.js 14+ project with TypeScript\n2. Install and configure Tailwind CSS\n3. Set up the project structure as specified in the PRD\n4. Configure ESLint with Airbnb rules and custom configurations\n5. Set up Jest and React Testing Library for unit testing\n6. Initialize Git repository and set up .gitignore\n7. Create a basic README.md with project setup instructions",
-      "testStrategy": "1. Verify that the project builds without errors\n2. Run ESLint to ensure code style compliance\n3. Create a sample component to test Tailwind CSS integration\n4. Write and run a basic unit test to ensure testing setup is correct",
-      "priority": "high",
-      "dependencies": [],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 2,
-      "title": "Configure Firebase and Emulator Suite",
-      "description": "Set up Firebase project, integrate with Next.js, and configure Firebase Emulator Suite for local development.",
-      "details": "1. Create a new Firebase project\n2. Install firebase and firebase-admin npm packages\n3. Set up Firebase configuration in the Next.js project\n4. Initialize Firestore, Authentication, and Functions\n5. Configure Firebase Emulator Suite for local development\n6. Create scripts for running the app with emulators\n7. Set up environment variables for different environments (dev, prod)",
-      "testStrategy": "1. Verify Firebase initialization in the app\n2. Test connection to Firebase emulators\n3. Create a simple read/write operation to test Firestore emulator\n4. Test Firebase Authentication using the emulator",
-      "priority": "high",
-      "dependencies": [
-        1
-      ],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 3,
-      "title": "Implement User Authentication System",
-      "description": "Develop a secure user authentication system using Firebase Authentication with email/password and social login options.",
-      "details": "1. Set up Firebase Authentication in the project\n2. Implement email/password authentication\n3. Add social login options (Google, Facebook)\n4. Create user registration and login forms\n5. Implement JWT token validation and refresh mechanisms\n6. Set up protected routes using Next.js middleware\n7. Create a user context for managing authentication state\n8. Implement logout functionality",
-      "testStrategy": "1. Unit test authentication components and hooks\n2. Test user registration with valid and invalid inputs\n3. Verify login process with different methods\n4. Test protected routes accessibility\n5. Verify JWT token refresh mechanism\n6. Test logout functionality",
-      "priority": "high",
-      "dependencies": [
-        2
-      ],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 4,
-      "title": "Design and Implement Core UI Components",
-      "description": "Create a set of reusable UI components following the design system and Tailwind CSS best practices.",
-      "details": "1. Design and implement a color scheme and typography system\n2. Create basic layout components (Header, Footer, Layout)\n3. Develop form components (Input, Button, Select, Checkbox)\n4. Create card components for displaying vocabulary words\n5. Implement a responsive navigation menu\n6. Design and create modal and dialog components\n7. Develop loading and error state components\n8. Ensure all components are fully responsive and accessible",
-      "testStrategy": "1. Create Storybook stories for each component\n2. Write unit tests for component functionality\n3. Perform visual regression testing\n4. Conduct accessibility audits using tools like axe-core\n5. Test responsiveness across different screen sizes",
-      "priority": "medium",
-      "dependencies": [
-        1
-      ],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 5,
-      "title": "Develop SAT Vocabulary Database Structure",
-      "description": "Design and implement the Firestore database structure for storing SAT vocabulary words and related information.",
-      "details": "1. Design Firestore collection structure for vocabulary words\n2. Define document schema for word properties (definition, pronunciation, etymology, etc.)\n3. Implement Firestore security rules for vocabulary collection\n4. Create indexes for efficient querying\n5. Develop utility functions for CRUD operations on vocabulary data\n6. Implement data validation and sanitization\n7. Set up Firestore emulator for local development and testing",
-      "testStrategy": "1. Unit test CRUD operations on vocabulary data\n2. Verify security rules using Firebase emulator\n3. Test query performance with a large dataset\n4. Validate data integrity and schema compliance\n5. Test concurrent read/write operations",
-      "priority": "high",
-      "dependencies": [
-        2
-      ],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 6,
-      "title": "Integrate Multiple Dictionary APIs",
-      "description": "Implement a system to fetch vocabulary data from multiple dictionary APIs with fallback and rate limiting.",
-      "details": "1. Set up API clients for Free Dictionary, Merriam-Webster, and Words API\n2. Implement a fallback system for API requests\n3. Develop a rate limiting mechanism to prevent API abuse\n4. Create a unified interface for fetching word data\n5. Implement caching for API responses to reduce requests\n6. Handle API errors and implement retry logic\n7. Develop a background job for updating word data periodically",
-      "testStrategy": "1. Unit test API client functions\n2. Mock API responses and test fallback system\n3. Verify rate limiting functionality\n4. Test caching mechanism\n5. Simulate API errors and test error handling\n6. Perform integration tests with actual API calls (limited)",
-      "priority": "medium",
-      "dependencies": [
-        5
-      ],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 7,
-      "title": "Implement Word Search and Filtering Functionality",
-      "description": "Develop an advanced search system with filters for difficulty, category, and frequency of SAT vocabulary words.",
-      "details": "1. Design and implement a search interface component\n2. Develop server-side search functionality using Firestore queries\n3. Implement client-side filtering for faster response\n4. Create filter components for difficulty, category, and frequency\n5. Optimize search performance using proper indexing\n6. Implement pagination for search results\n7. Add highlighting of search terms in results\n8. Develop search analytics to improve future searches",
-      "testStrategy": "1. Unit test search and filter functions\n2. Perform integration tests with Firestore emulator\n3. Test search performance with large datasets\n4. Verify correct application of multiple filters\n5. Test pagination functionality\n6. Conduct usability testing of the search interface",
-      "priority": "medium",
-      "dependencies": [
-        5,
-        6
-      ],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 8,
-      "title": "Develop Basic Quiz System",
-      "description": "Create a foundational quiz system with multiple choice and fill-in-the-blank questions for vocabulary practice.",
-      "details": "1. Design quiz data structure and Firestore schema\n2. Implement quiz generation algorithm\n3. Create UI components for quiz questions and answers\n4. Develop logic for scoring and feedback\n5. Implement quiz progress tracking\n6. Create a quiz results summary component\n7. Develop a system for generating wrong answer options\n8. Implement basic spaced repetition for quiz scheduling",
-      "testStrategy": "1. Unit test quiz generation and scoring functions\n2. Test quiz UI components in isolation\n3. Perform integration tests for complete quiz flow\n4. Verify correct tracking of quiz progress\n5. Test spaced repetition algorithm\n6. Conduct user acceptance testing for quiz experience",
-      "priority": "high",
-      "dependencies": [
-        5,
-        7
-      ],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 9,
-      "title": "Implement User Progress Tracking",
-      "description": "Develop a system to track and display user progress, including word mastery levels and learning streaks.",
-      "details": "1. Design Firestore schema for user progress data\n2. Implement functions to update progress after quizzes and exercises\n3. Develop algorithms for calculating word mastery levels\n4. Create a streak tracking system\n5. Design and implement a progress dashboard UI\n6. Develop visualizations for progress data (charts, graphs)\n7. Implement progress-based recommendations for study\n8. Create a notification system for streak maintenance",
-      "testStrategy": "1. Unit test progress calculation functions\n2. Verify correct updates to Firestore after user actions\n3. Test streak calculation under various scenarios\n4. Perform integration tests with quiz system\n5. Validate progress dashboard data accuracy\n6. Conduct usability testing of progress features",
-      "priority": "medium",
-      "dependencies": [
-        3,
-        5,
-        8
-      ],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 10,
-      "title": "Develop News Crawling and Processing System",
-      "description": "Create a system to crawl, process, and store daily news articles from reliable sources.",
-      "details": "1. Research and select reliable news APIs or RSS feeds\n2. Implement a scheduled job for daily news fetching\n3. Develop text processing to extract relevant content\n4. Create a Firestore schema for storing processed articles\n5. Implement a system to detect and highlight SAT vocabulary in articles\n6. Develop a content filtering system to ensure age-appropriate material\n7. Create an admin interface for managing news sources and content\n8. Implement error handling and logging for the crawling process",
-      "testStrategy": "1. Unit test individual components of the crawling system\n2. Perform integration tests with selected news sources\n3. Verify correct identification of SAT words in articles\n4. Test content filtering effectiveness\n5. Validate Firestore storage of processed articles\n6. Conduct performance testing of the crawling and processing system",
-      "priority": "high",
-      "dependencies": [
-        2,
-        5
-      ],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 11,
-      "title": "Implement Contextual Learning Interface",
-      "description": "Develop a user interface for displaying news articles with highlighted SAT words and contextual learning features.",
-      "details": "1. Design and implement a news article viewer component\n2. Create a system for highlighting SAT words within articles\n3. Develop pop-up definitions and explanations for highlighted words\n4. Implement a sidebar for displaying additional word information\n5. Create interactive exercises based on article content\n6. Develop a bookmarking system for saving interesting articles\n7. Implement a recommendation system for personalized article suggestions\n8. Create a progress tracking component for words learned through articles",
-      "testStrategy": "1. Unit test individual UI components\n2. Verify correct highlighting of SAT words\n3. Test pop-up functionality and content accuracy\n4. Perform integration tests with the news processing system\n5. Conduct usability testing of the contextual learning interface\n6. Validate personalized recommendations\n7. Test responsiveness and performance across devices",
-      "priority": "high",
-      "dependencies": [
-        4,
-        9,
-        10
-      ],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 12,
-      "title": "Develop Spaced Repetition and Adaptive Difficulty Systems",
-      "description": "Implement advanced learning algorithms for spaced repetition and adaptive difficulty in quizzes and exercises.",
-      "details": "1. Research and implement a spaced repetition algorithm (e.g., SuperMemo 2)\n2. Develop a system to track individual word difficulty for each user\n3. Create an adaptive quiz generation system based on user performance\n4. Implement dynamic adjustment of review intervals\n5. Develop a user settings interface for customizing learning preferences\n6. Create analytics to measure the effectiveness of the spaced repetition system\n7. Implement machine learning models to optimize difficulty adaptation\n8. Develop A/B testing framework for algorithm improvements",
-      "testStrategy": "1. Unit test spaced repetition and difficulty adjustment functions\n2. Perform integration tests with the quiz system\n3. Conduct longitudinal testing to verify long-term effectiveness\n4. Test adaptive system with simulated user data\n5. Verify correct application of user learning preferences\n6. Analyze system performance and learning outcomes",
-      "priority": "medium",
-      "dependencies": [
-        8,
-        9
-      ],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 13,
-      "title": "Implement Gamification and Achievement System",
-      "description": "Develop a comprehensive gamification system with achievements, badges, and progress milestones.",
-      "details": "1. Design achievement and badge system\n2. Implement Firestore schema for storing user achievements\n3. Create UI components for displaying achievements and progress\n4. Develop logic for unlocking achievements and awarding badges\n5. Implement a notification system for new achievements\n6. Create an achievement showcase for user profiles\n7. Develop leaderboards for various metrics (words learned, streaks, etc.)\n8. Implement social sharing features for achievements",
-      "testStrategy": "1. Unit test achievement unlocking logic\n2. Verify correct storage and retrieval of achievement data\n3. Test notification system for new achievements\n4. Perform integration tests with learning and progress systems\n5. Conduct usability testing of achievement UI\n6. Validate leaderboard accuracy and update frequency\n7. Test social sharing functionality",
-      "priority": "low",
-      "dependencies": [
-        9,
-        12
-      ],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 14,
-      "title": "Develop Analytics Dashboard",
-      "description": "Create a comprehensive analytics dashboard for tracking user engagement, learning effectiveness, and system performance.",
-      "details": "1. Design and implement data collection for key metrics\n2. Create Firestore schema for storing analytics data\n3. Develop server-side aggregation functions for analytics\n4. Design and implement UI for analytics dashboard\n5. Create visualizations for various metrics (charts, graphs)\n6. Implement real-time updates for dashboard data\n7. Develop export functionality for analytics data\n8. Create admin tools for custom analytics queries",
-      "testStrategy": "1. Unit test data collection and aggregation functions\n2. Verify accuracy of analytics calculations\n3. Test real-time update functionality\n4. Perform load testing on analytics queries\n5. Validate data visualization components\n6. Conduct usability testing of the analytics dashboard\n7. Test data export functionality and format accuracy",
-      "priority": "low",
-      "dependencies": [
-        3,
-        9,
-        12
-      ],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 15,
-      "title": "Optimize Performance and Implement Security Measures",
-      "description": "Conduct thorough performance optimization and implement advanced security measures across the application.",
-      "details": "1. Perform code review and refactoring for performance\n2. Implement code splitting and lazy loading\n3. Optimize Firestore queries and indexes\n4. Set up caching strategies (Redis, CDN)\n5. Implement server-side rendering for critical pages\n6. Conduct security audit and penetration testing\n7. Implement Content Security Policy (CSP)\n8. Set up rate limiting for API and database queries\n9. Implement input sanitization and validation\n10. Set up error logging and monitoring (e.g., Sentry)\n11. Optimize images and assets\n12. Implement service workers for offline support",
-      "testStrategy": "1. Conduct performance profiling (Lighthouse, WebPageTest)\n2. Perform load testing to verify scalability\n3. Conduct security penetration testing\n4. Verify CSP effectiveness\n5. Test rate limiting functionality\n6. Validate error logging and monitoring\n7. Perform cross-browser and device testing\n8. Conduct accessibility audit (WCAG compliance)",
-      "priority": "high",
-      "dependencies": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14
-      ],
-      "status": "pending",
-      "subtasks": []
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Set up Next.js project with TypeScript and Tailwind CSS",
+        "description": "Initialize the project with Next.js 14+, TypeScript, and Tailwind CSS, following the specified technical architecture.",
+        "details": "1. Use create-next-app to set up a new Next.js 14+ project with TypeScript\n2. Install and configure Tailwind CSS\n3. Set up the project structure as specified in the PRD\n4. Configure ESLint with Airbnb rules and custom configurations\n5. Set up Jest and React Testing Library for unit testing\n6. Initialize Git repository and set up .gitignore\n7. Create a basic README.md with project setup instructions",
+        "testStrategy": "1. Verify that the project builds without errors\n2. Run ESLint to ensure code style compliance\n3. Create a sample component to test Tailwind CSS integration\n4. Write and run a basic unit test to ensure testing setup is correct",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Configure Firebase and Emulator Suite",
+        "description": "Set up Firebase project, integrate with Next.js, and configure Firebase Emulator Suite for local development.",
+        "details": "1. Create a new Firebase project\n2. Install firebase and firebase-admin npm packages\n3. Set up Firebase configuration in the Next.js project\n4. Initialize Firestore, Authentication, and Functions\n5. Configure Firebase Emulator Suite for local development\n6. Create scripts for running the app with emulators\n7. Set up environment variables for different environments (dev, prod)",
+        "testStrategy": "1. Verify Firebase initialization in the app\n2. Test connection to Firebase emulators\n3. Create a simple read/write operation to test Firestore emulator\n4. Test Firebase Authentication using the emulator",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement User Authentication System",
+        "description": "Develop a secure user authentication system using Firebase Authentication with email/password and social login options.",
+        "details": "1. Set up Firebase Authentication in the project\n2. Implement email/password authentication\n3. Add social login options (Google, Facebook)\n4. Create user registration and login forms\n5. Implement JWT token validation and refresh mechanisms\n6. Set up protected routes using Next.js middleware\n7. Create a user context for managing authentication state\n8. Implement logout functionality",
+        "testStrategy": "1. Unit test authentication components and hooks\n2. Test user registration with valid and invalid inputs\n3. Verify login process with different methods\n4. Test protected routes accessibility\n5. Verify JWT token refresh mechanism\n6. Test logout functionality",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Design and Implement Core UI Components",
+        "description": "Create a set of reusable UI components following the design system and Tailwind CSS best practices.",
+        "details": "1. Design and implement a color scheme and typography system\n2. Create basic layout components (Header, Footer, Layout)\n3. Develop form components (Input, Button, Select, Checkbox)\n4. Create card components for displaying vocabulary words\n5. Implement a responsive navigation menu\n6. Design and create modal and dialog components\n7. Develop loading and error state components\n8. Ensure all components are fully responsive and accessible",
+        "testStrategy": "1. Create Storybook stories for each component\n2. Write unit tests for component functionality\n3. Perform visual regression testing\n4. Conduct accessibility audits using tools like axe-core\n5. Test responsiveness across different screen sizes",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Develop SAT Vocabulary Database Structure",
+        "description": "Design and implement the Firestore database structure for storing SAT vocabulary words and related information.",
+        "details": "1. Design Firestore collection structure for vocabulary words\n2. Define document schema for word properties (definition, pronunciation, etymology, etc.)\n3. Implement Firestore security rules for vocabulary collection\n4. Create indexes for efficient querying\n5. Develop utility functions for CRUD operations on vocabulary data\n6. Implement data validation and sanitization\n7. Set up Firestore emulator for local development and testing",
+        "testStrategy": "1. Unit test CRUD operations on vocabulary data\n2. Verify security rules using Firebase emulator\n3. Test query performance with a large dataset\n4. Validate data integrity and schema compliance\n5. Test concurrent read/write operations",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Integrate Multiple Dictionary APIs",
+        "description": "Implement a system to fetch vocabulary data from multiple dictionary APIs with fallback and rate limiting.",
+        "details": "1. Set up API clients for Free Dictionary, Merriam-Webster, and Words API\n2. Implement a fallback system for API requests\n3. Develop a rate limiting mechanism to prevent API abuse\n4. Create a unified interface for fetching word data\n5. Implement caching for API responses to reduce requests\n6. Handle API errors and implement retry logic\n7. Develop a background job for updating word data periodically",
+        "testStrategy": "1. Unit test API client functions\n2. Mock API responses and test fallback system\n3. Verify rate limiting functionality\n4. Test caching mechanism\n5. Simulate API errors and test error handling\n6. Perform integration tests with actual API calls (limited)",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement Word Search and Filtering Functionality",
+        "description": "Develop an advanced search system with filters for difficulty, category, and frequency of SAT vocabulary words.",
+        "details": "1. Design and implement a search interface component\n2. Develop server-side search functionality using Firestore queries\n3. Implement client-side filtering for faster response\n4. Create filter components for difficulty, category, and frequency\n5. Optimize search performance using proper indexing\n6. Implement pagination for search results\n7. Add highlighting of search terms in results\n8. Develop search analytics to improve future searches",
+        "testStrategy": "1. Unit test search and filter functions\n2. Perform integration tests with Firestore emulator\n3. Test search performance with large datasets\n4. Verify correct application of multiple filters\n5. Test pagination functionality\n6. Conduct usability testing of the search interface",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Develop Basic Quiz System",
+        "description": "Create a foundational quiz system with multiple choice and fill-in-the-blank questions for vocabulary practice.",
+        "details": "1. Design quiz data structure and Firestore schema\n2. Implement quiz generation algorithm\n3. Create UI components for quiz questions and answers\n4. Develop logic for scoring and feedback\n5. Implement quiz progress tracking\n6. Create a quiz results summary component\n7. Develop a system for generating wrong answer options\n8. Implement basic spaced repetition for quiz scheduling",
+        "testStrategy": "1. Unit test quiz generation and scoring functions\n2. Test quiz UI components in isolation\n3. Perform integration tests for complete quiz flow\n4. Verify correct tracking of quiz progress\n5. Test spaced repetition algorithm\n6. Conduct user acceptance testing for quiz experience",
+        "priority": "high",
+        "dependencies": [
+          5,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement User Progress Tracking",
+        "description": "Develop a system to track and display user progress, including word mastery levels and learning streaks.",
+        "details": "1. Design Firestore schema for user progress data\n2. Implement functions to update progress after quizzes and exercises\n3. Develop algorithms for calculating word mastery levels\n4. Create a streak tracking system\n5. Design and implement a progress dashboard UI\n6. Develop visualizations for progress data (charts, graphs)\n7. Implement progress-based recommendations for study\n8. Create a notification system for streak maintenance",
+        "testStrategy": "1. Unit test progress calculation functions\n2. Verify correct updates to Firestore after user actions\n3. Test streak calculation under various scenarios\n4. Perform integration tests with quiz system\n5. Validate progress dashboard data accuracy\n6. Conduct usability testing of progress features",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          5,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Develop News Crawling and Processing System",
+        "description": "Create a system to crawl, process, and store daily news articles from reliable sources.",
+        "details": "1. Research and select reliable news APIs or RSS feeds\n2. Implement a scheduled job for daily news fetching\n3. Develop text processing to extract relevant content\n4. Create a Firestore schema for storing processed articles\n5. Implement a system to detect and highlight SAT vocabulary in articles\n6. Develop a content filtering system to ensure age-appropriate material\n7. Create an admin interface for managing news sources and content\n8. Implement error handling and logging for the crawling process",
+        "testStrategy": "1. Unit test individual components of the crawling system\n2. Perform integration tests with selected news sources\n3. Verify correct identification of SAT words in articles\n4. Test content filtering effectiveness\n5. Validate Firestore storage of processed articles\n6. Conduct performance testing of the crawling and processing system",
+        "priority": "high",
+        "dependencies": [
+          2,
+          5
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Implement Contextual Learning Interface",
+        "description": "Develop a user interface for displaying news articles with highlighted SAT words and contextual learning features.",
+        "details": "1. Design and implement a news article viewer component\n2. Create a system for highlighting SAT words within articles\n3. Develop pop-up definitions and explanations for highlighted words\n4. Implement a sidebar for displaying additional word information\n5. Create interactive exercises based on article content\n6. Develop a bookmarking system for saving interesting articles\n7. Implement a recommendation system for personalized article suggestions\n8. Create a progress tracking component for words learned through articles",
+        "testStrategy": "1. Unit test individual UI components\n2. Verify correct highlighting of SAT words\n3. Test pop-up functionality and content accuracy\n4. Perform integration tests with the news processing system\n5. Conduct usability testing of the contextual learning interface\n6. Validate personalized recommendations\n7. Test responsiveness and performance across devices",
+        "priority": "high",
+        "dependencies": [
+          4,
+          9,
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Develop Spaced Repetition and Adaptive Difficulty Systems",
+        "description": "Implement advanced learning algorithms for spaced repetition and adaptive difficulty in quizzes and exercises.",
+        "details": "1. Research and implement a spaced repetition algorithm (e.g., SuperMemo 2)\n2. Develop a system to track individual word difficulty for each user\n3. Create an adaptive quiz generation system based on user performance\n4. Implement dynamic adjustment of review intervals\n5. Develop a user settings interface for customizing learning preferences\n6. Create analytics to measure the effectiveness of the spaced repetition system\n7. Implement machine learning models to optimize difficulty adaptation\n8. Develop A/B testing framework for algorithm improvements",
+        "testStrategy": "1. Unit test spaced repetition and difficulty adjustment functions\n2. Perform integration tests with the quiz system\n3. Conduct longitudinal testing to verify long-term effectiveness\n4. Test adaptive system with simulated user data\n5. Verify correct application of user learning preferences\n6. Analyze system performance and learning outcomes",
+        "priority": "medium",
+        "dependencies": [
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement Gamification and Achievement System",
+        "description": "Develop a comprehensive gamification system with achievements, badges, and progress milestones.",
+        "details": "1. Design achievement and badge system\n2. Implement Firestore schema for storing user achievements\n3. Create UI components for displaying achievements and progress\n4. Develop logic for unlocking achievements and awarding badges\n5. Implement a notification system for new achievements\n6. Create an achievement showcase for user profiles\n7. Develop leaderboards for various metrics (words learned, streaks, etc.)\n8. Implement social sharing features for achievements",
+        "testStrategy": "1. Unit test achievement unlocking logic\n2. Verify correct storage and retrieval of achievement data\n3. Test notification system for new achievements\n4. Perform integration tests with learning and progress systems\n5. Conduct usability testing of achievement UI\n6. Validate leaderboard accuracy and update frequency\n7. Test social sharing functionality",
+        "priority": "low",
+        "dependencies": [
+          9,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Develop Analytics Dashboard",
+        "description": "Create a comprehensive analytics dashboard for tracking user engagement, learning effectiveness, and system performance.",
+        "details": "1. Design and implement data collection for key metrics\n2. Create Firestore schema for storing analytics data\n3. Develop server-side aggregation functions for analytics\n4. Design and implement UI for analytics dashboard\n5. Create visualizations for various metrics (charts, graphs)\n6. Implement real-time updates for dashboard data\n7. Develop export functionality for analytics data\n8. Create admin tools for custom analytics queries",
+        "testStrategy": "1. Unit test data collection and aggregation functions\n2. Verify accuracy of analytics calculations\n3. Test real-time update functionality\n4. Perform load testing on analytics queries\n5. Validate data visualization components\n6. Conduct usability testing of the analytics dashboard\n7. Test data export functionality and format accuracy",
+        "priority": "low",
+        "dependencies": [
+          3,
+          9,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Optimize Performance and Implement Security Measures",
+        "description": "Conduct thorough performance optimization and implement advanced security measures across the application.",
+        "details": "1. Perform code review and refactoring for performance\n2. Implement code splitting and lazy loading\n3. Optimize Firestore queries and indexes\n4. Set up caching strategies (Redis, CDN)\n5. Implement server-side rendering for critical pages\n6. Conduct security audit and penetration testing\n7. Implement Content Security Policy (CSP)\n8. Set up rate limiting for API and database queries\n9. Implement input sanitization and validation\n10. Set up error logging and monitoring (e.g., Sentry)\n11. Optimize images and assets\n12. Implement service workers for offline support",
+        "testStrategy": "1. Conduct performance profiling (Lighthouse, WebPageTest)\n2. Perform load testing to verify scalability\n3. Conduct security penetration testing\n4. Verify CSP effectiveness\n5. Test rate limiting functionality\n6. Validate error logging and monitoring\n7. Perform cross-browser and device testing\n8. Conduct accessibility audit (WCAG compliance)",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Enhance Vocabulary System with User Settings and Database Improvements",
+        "description": "Improve the vocabulary system by adding user settings for synonyms/antonyms display, enhancing PDF extraction to store related words, and refactoring field names for better clarity.",
+        "details": "1. User Settings Enhancement:\n   - Add new user preference options in the settings interface for displaying synonyms (default: on) and antonyms (default: off)\n   - Implement the settings storage in Firestore under the user document\n   - Create UI toggle components in the settings page with appropriate labels and descriptions\n   - Ensure settings changes are applied in real-time across the application\n\n2. PDF Extraction Improvements:\n   - Modify the PDF extraction process to identify and extract synonyms and antonyms for vocabulary words\n   - Implement NLP techniques or dictionary API integration to find related words\n   - Design and implement the database schema extensions to store synonyms and antonyms\n   - Update the extraction service to populate these new fields\n   - Ensure backward compatibility with existing PDF documents\n\n3. Database Field Refactoring:\n   - Rename 'etymology' field to 'realEtymology' and 'realEtymology' to 'etymology' in all relevant database documents\n   - Create a migration script to update existing documents with the new field structure\n   - Update all queries, references, and UI components that use these fields\n   - Implement proper error handling for the migration process\n   - Add validation to ensure data integrity during and after migration\n\n4. UI Implementation for Synonyms/Antonyms:\n   - Design and implement UI components to display synonyms and antonyms based on user settings\n   - Create collapsible sections or tabs for displaying related words\n   - Implement conditional rendering based on user preferences\n   - Ensure responsive design for various screen sizes\n\n5. Documentation:\n   - Update the VOCABULARY_IMPROVEMENTS_GUIDE.md with detailed information about the new features\n   - Document the database schema changes and migration process\n   - Create user documentation explaining the new settings options",
+        "testStrategy": "1. User Settings Testing:\n   - Unit test the settings storage and retrieval functionality\n   - Verify default values are correctly applied for new users\n   - Test settings persistence across sessions\n   - Validate real-time application of settings changes\n   - Perform cross-browser testing of the settings interface\n\n2. PDF Extraction Testing:\n   - Create test PDF documents with known synonyms and antonyms\n   - Verify correct extraction and storage of related words\n   - Test extraction with various document formats and layouts\n   - Validate performance with large documents\n   - Verify backward compatibility with existing documents\n\n3. Database Migration Testing:\n   - Create a test environment with sample data to verify migration script\n   - Validate all documents are correctly updated with new field names\n   - Test queries before and after migration to ensure consistent results\n   - Verify error handling and recovery mechanisms\n   - Perform stress testing with large data volumes\n\n4. UI Component Testing:\n   - Test conditional rendering based on user settings\n   - Verify correct display of synonyms and antonyms when available\n   - Test responsive design across different devices\n   - Perform usability testing with real users\n   - Validate accessibility compliance\n\n5. Integration Testing:\n   - End-to-end testing of the complete workflow from PDF extraction to display\n   - Verify settings changes immediately affect the vocabulary display\n   - Test performance impact of the new features\n   - Validate data consistency across the application",
+        "status": "in-progress",
+        "dependencies": [
+          9,
+          10
+        ],
+        "priority": "high",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-08T01:46:03.420Z",
+      "updated": "2025-08-08T01:46:46.511Z",
+      "description": "Tasks for master context"
     }
-  ]
+  }
 }

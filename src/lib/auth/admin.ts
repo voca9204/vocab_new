@@ -1,5 +1,5 @@
 // Admin user management
-const ADMIN_EMAILS = ['vocanet@gmail.com']
+const ADMIN_EMAILS = ['vocanet@gmail.com', 'sinclair.kevin.kr@gmail.com']
 
 export function isAdmin(email: string | null | undefined): boolean {
   if (!email) return false

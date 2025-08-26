@@ -260,16 +260,29 @@ export const vocabularyServiceV2 = {
         userSettings = await settingsService.getUserSettings(userId)
         console.log('[vocabularyServiceV2.getAll] User settings:', userSettings)
         console.log('[vocabularyServiceV2.getAll] Selected vocabularies:', userSettings?.selectedVocabularies)
+        console.log('[vocabularyServiceV2.getAll] Selected wordbooks:', userSettings?.selectedWordbooks)
+      }
+      
+      // 새로운 selectedWordbooks 필드 우선 확인, 없으면 legacy selectedVocabularies 확인
+      let selectedVocabs: string[] = []
+      
+      if (userSettings?.selectedWordbooks && userSettings.selectedWordbooks.length > 0) {
+        // 새로운 방식: selectedWordbooks에서 name 추출
+        selectedVocabs = userSettings.selectedWordbooks.map(wb => wb.name)
+        console.log('[vocabularyServiceV2.getAll] Using selectedWordbooks:', selectedVocabs)
+      } else if (userSettings?.selectedVocabularies && userSettings.selectedVocabularies.length > 0) {
+        // Legacy 방식: selectedVocabularies 직접 사용
+        selectedVocabs = userSettings.selectedVocabularies
+        console.log('[vocabularyServiceV2.getAll] Using legacy selectedVocabularies:', selectedVocabs)
       }
       
       // 사용자가 아무 단어장도 선택하지 않은 경우 빈 배열 반환
-      if (userSettings?.selectedVocabularies?.includes('__none__')) {
+      if (selectedVocabs.includes('__none__')) {
         console.log('[vocabularyServiceV2.getAll] No vocabularies selected by user')
         return { words: [], lastDoc: null }
       }
       
       // 사용자 설정이 없거나 빈 배열이면 전체 선택으로 간주
-      const selectedVocabs = userSettings?.selectedVocabularies || []
       const isAllSelected = selectedVocabs.length === 0
       
       if (isAllSelected) {
@@ -333,38 +346,110 @@ export const vocabularyServiceV2 = {
       
       const collectionWords: LegacyVocabularyWord[] = []
       
-      // 각 선택된 단어장에 대해 vocabulary_collections에서 찾기
-      for (const vocabName of selectedVocabs) {
+      // 각 선택된 단어장에 대해 처리
+      for (const vocabIdentifier of selectedVocabs) {
         try {
-          const collectionQuery = queryFirestore(
-            firestoreCollection(db, 'vocabulary_collections'),
-            whereFirestore('name', '==', vocabName)
+          // 먼저 personal_collections에서 찾기
+          const personalQuery = queryFirestore(
+            firestoreCollection(db, 'personal_collections'),
+            whereFirestore('name', '==', vocabIdentifier)
           )
           
-          const collectionSnapshot = await getDocsFirestore(collectionQuery)
+          const personalSnapshot = await getDocsFirestore(personalQuery)
           
-          if (!collectionSnapshot.empty) {
-            const collectionData = collectionSnapshot.docs[0].data()
+          if (!personalSnapshot.empty) {
+            const collectionData = personalSnapshot.docs[0].data()
             const wordIds = collectionData.words || []
             
-            console.log(`[vocabularyServiceV2.getAll] Found ${wordIds.length} word IDs in ${vocabName}`)
+            console.log(`[vocabularyServiceV2.getAll] Found ${wordIds.length} word IDs in personal collection ${vocabIdentifier}`)
             
             if (wordIds.length > 0) {
-              // 해당 단어들만 조회
-              const words = await wordService.getWordsByIds(wordIds)
-              console.log(`[vocabularyServiceV2.getAll] Retrieved ${words.length} words from ${wordIds.length} IDs`)
-              const legacyWords = words.map(word => convertToLegacyFormat(word))
-              collectionWords.push(...legacyWords)
+              // personal_collection_words 컬렉션에서 단어 가져오기
+              const personalWordsQuery = queryFirestore(
+                firestoreCollection(db, 'personal_collection_words'),
+                whereFirestore('collectionId', '==', personalSnapshot.docs[0].id)
+              )
+              
+              const personalWordsSnapshot = await getDocsFirestore(personalWordsQuery)
+              console.log(`[vocabularyServiceV2.getAll] Found ${personalWordsSnapshot.size} words in personal collection`)
+              
+              personalWordsSnapshot.forEach(doc => {
+                const wordData = doc.data()
+                const legacyWord: LegacyVocabularyWord = {
+                  id: doc.id,
+                  word: wordData.word,
+                  definitions: [{
+                    text: wordData.meaning || wordData.definition || '정의 없음',
+                    source: 'personal',
+                    partOfSpeech: wordData.partOfSpeech || 'unknown'
+                  }],
+                  examples: wordData.examples || [],
+                  partOfSpeech: wordData.partOfSpeech ? [wordData.partOfSpeech] : ['unknown'],
+                  difficulty: wordData.difficulty || 5,
+                  frequency: 5,
+                  satLevel: false,
+                  pronunciation: wordData.pronunciation,
+                  etymology: undefined,
+                  categories: ['personal'],
+                  sources: ['personal'],
+                  apiSource: 'personal',
+                  createdAt: wordData.createdAt?.toDate ? wordData.createdAt.toDate() : new Date(),
+                  updatedAt: wordData.updatedAt?.toDate ? wordData.updatedAt.toDate() : new Date(),
+                  learningMetadata: {
+                    timesStudied: 0,
+                    masteryLevel: 0,
+                    lastStudied: new Date(),
+                    userProgress: {
+                      userId: '',
+                      wordId: doc.id,
+                      correctAttempts: 0,
+                      totalAttempts: 0,
+                      streak: 0,
+                      nextReviewDate: new Date()
+                    }
+                  },
+                  studyStatus: {
+                    studied: false,
+                    masteryLevel: 0,
+                    reviewCount: 0,
+                    lastStudied: new Date()
+                  },
+                  number: undefined,
+                  realEtymology: undefined,
+                  synonyms: wordData.synonyms || [],
+                  antonyms: []
+                }
+                collectionWords.push(legacyWord)
+              })
             }
           } else {
-            console.log(`[vocabularyServiceV2.getAll] Collection '${vocabName}' not found in vocabulary_collections`)
-            // 현재 vocabulary_collections에 있는 모든 컬렉션 이름 로그
-            const allCollections = await getDocsFirestore(firestoreCollection(db, 'vocabulary_collections'))
-            const collectionNames = allCollections.docs.map(doc => doc.data().name)
-            console.log('[vocabularyServiceV2.getAll] Available collections:', collectionNames)
+            // personal_collections에 없으면 vocabulary_collections에서 찾기
+            const collectionQuery = queryFirestore(
+              firestoreCollection(db, 'vocabulary_collections'),
+              whereFirestore('name', '==', vocabIdentifier)
+            )
+            
+            const collectionSnapshot = await getDocsFirestore(collectionQuery)
+            
+            if (!collectionSnapshot.empty) {
+              const collectionData = collectionSnapshot.docs[0].data()
+              const wordIds = collectionData.words || []
+              
+              console.log(`[vocabularyServiceV2.getAll] Found ${wordIds.length} word IDs in vocabulary collection ${vocabIdentifier}`)
+              
+              if (wordIds.length > 0) {
+                // 해당 단어들만 조회
+                const words = await wordService.getWordsByIds(wordIds)
+                console.log(`[vocabularyServiceV2.getAll] Retrieved ${words.length} words from ${wordIds.length} IDs`)
+                const legacyWords = words.map(word => convertToLegacyFormat(word))
+                collectionWords.push(...legacyWords)
+              }
+            } else {
+              console.log(`[vocabularyServiceV2.getAll] Collection '${vocabIdentifier}' not found in either personal or vocabulary collections`)
+            }
           }
         } catch (error) {
-          console.warn(`[vocabularyServiceV2.getAll] Failed to load collection ${vocabName}:`, error)
+          console.warn(`[vocabularyServiceV2.getAll] Failed to load collection ${vocabIdentifier}:`, error)
         }
       }
       

@@ -15,6 +15,7 @@ import {
   increment
 } from 'firebase/firestore'
 import type { UserWord, StudyActivityType } from '@/types/vocabulary-v2'
+import { SpacedRepetitionService } from '@/lib/services/spaced-repetition'
 
 export class UserWordService {
   private readonly collectionName = 'user_words'
@@ -102,13 +103,14 @@ export class UserWordService {
   }
 
   /**
-   * 학습 결과 기록
+   * 학습 결과 기록 (Unified Spaced Repetition Algorithm 사용)
    */
   async recordStudyResult(
     userId: string,
     wordId: string,
     result: 'correct' | 'incorrect' | 'skipped',
-    activityType: StudyActivityType
+    activityType: StudyActivityType,
+    difficulty?: 'again' | 'hard' | 'medium' | 'easy'
   ): Promise<void> {
     const userWord = await this.getUserWord(userId, wordId)
     
@@ -122,23 +124,27 @@ export class UserWordService {
     
     if (result === 'correct') {
       updates['studyStatus.correctCount'] = increment(1)
-      updates['studyStatus.streakCount'] = increment(1)
       
-      // 정답률에 따른 숙련도 업데이트
-      const currentCorrect = userWord.studyStatus.correctCount || 0
-      const currentTotal = userWord.studyStatus.totalReviews || 0
-      const newMastery = this.calculateMastery(
-        currentCorrect + 1,
-        currentTotal + 1
-      )
+      // Use unified spaced repetition algorithm
+      const quality = difficulty 
+        ? SpacedRepetitionService.difficultyToQuality(difficulty)
+        : 4 // Default to 'medium' quality
+      
+      // Get or initialize spaced repetition data
+      const currentSRData = userWord.studyStatus.spacedRepetition || 
+        SpacedRepetitionService.initializeData()
+      
+      // Calculate next review
+      const newSRData = SpacedRepetitionService.calculateNextReview(currentSRData, quality)
+      
+      updates['studyStatus.spacedRepetition'] = newSRData
+      updates['studyStatus.nextReviewDate'] = Timestamp.fromDate(newSRData.nextReviewDate)
+      updates['studyStatus.streakCount'] = newSRData.repetitions
+      
+      // Calculate mastery level using SR data
+      const newMastery = SpacedRepetitionService.calculateMasteryLevel(newSRData)
       updates['studyStatus.masteryLevel'] = newMastery
       updates['studyStatus.confidence'] = this.getConfidenceLevel(newMastery)
-      
-      // 다음 복습 날짜 계산
-      const currentStreak = userWord.studyStatus.streakCount || 0
-      updates['studyStatus.nextReviewDate'] = Timestamp.fromDate(
-        this.calculateNextReviewDate(currentStreak + 1)
-      )
     }
     
     // 활동별 통계 업데이트 (Firestore 중첩 필드 업데이트 방식)
@@ -160,21 +166,29 @@ export class UserWordService {
     updates[`studyStatus.activityStats.${activityType}.lastUsed`] = Timestamp.fromDate(new Date())
     updates['studyStatus.lastActivity'] = activityType
     
-    if (result === 'correct') {
-      // 정답 처리는 이미 위에서 완료
-    } else if (result === 'incorrect') {
+    if (result === 'incorrect') {
       updates['studyStatus.incorrectCount'] = increment(1)
-      updates['studyStatus.streakCount'] = 0
       
-      // 틀렸을 때 숙련도 약간 감소
-      const newMastery = Math.max(0, userWord.studyStatus.masteryLevel - 5)
+      // Use unified spaced repetition algorithm for incorrect answers
+      const quality = difficulty 
+        ? SpacedRepetitionService.difficultyToQuality(difficulty)
+        : 1 // Default to 'again' quality for incorrect
+      
+      // Get or initialize spaced repetition data
+      const currentSRData = userWord.studyStatus.spacedRepetition || 
+        SpacedRepetitionService.initializeData()
+      
+      // Calculate next review (will reset to beginning)
+      const newSRData = SpacedRepetitionService.calculateNextReview(currentSRData, quality)
+      
+      updates['studyStatus.spacedRepetition'] = newSRData
+      updates['studyStatus.nextReviewDate'] = Timestamp.fromDate(newSRData.nextReviewDate)
+      updates['studyStatus.streakCount'] = newSRData.repetitions
+      
+      // Calculate mastery level using SR data
+      const newMastery = SpacedRepetitionService.calculateMasteryLevel(newSRData)
       updates['studyStatus.masteryLevel'] = newMastery
       updates['studyStatus.confidence'] = this.getConfidenceLevel(newMastery)
-      
-      // 곧 다시 복습하도록 설정
-      updates['studyStatus.nextReviewDate'] = Timestamp.fromDate(
-        new Date(Date.now() + 24 * 60 * 60 * 1000) // 1일 후
-      )
     }
     
     const docRef = doc(db, this.collectionName, userWord.id)
@@ -401,33 +415,12 @@ export class UserWordService {
   }
 
   /**
-   * 숙련도 계산
-   */
-  private calculateMastery(correctCount: number, totalReviews: number): number {
-    if (totalReviews === 0) return 0
-    const accuracy = correctCount / totalReviews
-    const reviewBonus = Math.min(totalReviews * 2, 20) // 최대 20점
-    return Math.min(Math.round(accuracy * 80 + reviewBonus), 100)
-  }
-
-  /**
    * 자신감 레벨 결정
    */
   private getConfidenceLevel(mastery: number): UserWord['studyStatus']['confidence'] {
     if (mastery >= 80) return 'high'
     if (mastery >= 50) return 'medium'
     return 'low'
-  }
-
-  /**
-   * 다음 복습 날짜 계산 (간단한 spaced repetition)
-   */
-  private calculateNextReviewDate(streakCount: number): Date {
-    const intervals = [1, 3, 7, 14, 30, 60, 120] // 일 단위
-    const index = Math.min(streakCount - 1, intervals.length - 1)
-    const daysUntilReview = intervals[index]
-    
-    return new Date(Date.now() + daysUntilReview * 24 * 60 * 60 * 1000)
   }
 
   /**

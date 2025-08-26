@@ -85,6 +85,23 @@ export default function DailyGoalPage() {
       
       console.log(`Loaded ${allWords.length} words for daily goal`)
       
+      // 단어가 없으면 빈 상태 표시
+      if (allWords.length === 0) {
+        setSuggestedWords([])
+        setDailyGoal(prev => ({
+          ...prev,
+          completedWords: 0,
+          todayProgress: {
+            newWords: 0,
+            reviewedWords: 0,
+            quizzesTaken: 0,
+            typingPracticed: 0
+          }
+        }))
+        setLoading(false)
+        return
+      }
+      
       // 사용자의 학습 기록 가져오기 (user_words 컬렉션에서)
       const { UserWordService } = await import('@/lib/vocabulary-v2/user-word-service')
       const userWordService = new UserWordService()
@@ -391,8 +408,25 @@ export default function DailyGoalPage() {
         </Card>
       </div>
 
+      {/* 단어가 없을 때 안내 메시지 */}
+      {suggestedWords.length === 0 && (
+        <Card className="mb-6">
+          <CardContent className="p-8 text-center">
+            <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">학습할 단어가 없습니다</h3>
+            <p className="text-gray-600 mb-4">먼저 단어장을 선택해주세요</p>
+            <Button 
+              onClick={() => router.push('/unified-dashboard')}
+              className="mx-auto"
+            >
+              단어장 선택하기
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 추천 학습 모드 */}
-      {!isGoalCompleted && (
+      {!isGoalCompleted && suggestedWords.length > 0 && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>추천 학습 활동</CardTitle>

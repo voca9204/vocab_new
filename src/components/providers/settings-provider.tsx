@@ -8,12 +8,24 @@ import type { UserSettings } from '@/types/user-settings'
 interface SettingsContextType {
   settings: UserSettings | null
   textSize: 'small' | 'medium' | 'large'
+  displayOptions: {
+    showSynonyms: boolean
+    showAntonyms: boolean
+    showEtymology: boolean
+    showExamples: boolean
+  }
   loading: boolean
 }
 
 const SettingsContext = createContext<SettingsContextType>({
   settings: null,
   textSize: 'medium',
+  displayOptions: {
+    showSynonyms: true,
+    showAntonyms: false,
+    showEtymology: true,
+    showExamples: true
+  },
   loading: true,
 })
 
@@ -58,9 +70,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, [user, loadSettings])
 
   const textSize = settings?.textSize || 'medium'
+  
+  const displayOptions = {
+    showSynonyms: settings?.displayOptions?.showSynonyms ?? true,
+    showAntonyms: settings?.displayOptions?.showAntonyms ?? false,
+    showEtymology: settings?.displayOptions?.showEtymology ?? true,
+    showExamples: settings?.displayOptions?.showExamples ?? true
+  }
 
   return (
-    <SettingsContext.Provider value={{ settings, textSize, loading }}>
+    <SettingsContext.Provider value={{ settings, textSize, displayOptions, loading }}>
       {children}
     </SettingsContext.Provider>
   )

@@ -1,14 +1,19 @@
 # SAT Vocabulary Learning Platform V2
 
-A modern, contextual SAT vocabulary learning platform built with Next.js, Firebase, and TypeScript. This application helps students learn SAT vocabulary through real-world news context and advanced learning algorithms.
+A modern, contextual SAT vocabulary learning platform built with Next.js 15, Firebase, and TypeScript. This application helps students learn SAT vocabulary through real-world news context and advanced learning algorithms.
+
+**Project Status**: 50% complete (8/16 tasks done)
 
 ## 🚀 Features
 
+- **2000+ SAT Vocabulary**: Comprehensive database from V.ZIP 3K and other sources
 - **Contextual Learning**: Learn SAT vocabulary through real news articles
-- **Adaptive Difficulty**: AI-powered difficulty adjustment based on performance  
+- **AI-Powered Features**: Word discovery, etymology generation, synonym suggestions
+- **Photo Vocabulary**: Extract and learn words from uploaded photos
+- **PDF Extraction**: Import vocabulary from PDF files with AI enhancement
 - **Spaced Repetition**: Scientifically-proven learning algorithm
 - **Progress Tracking**: Comprehensive analytics and progress visualization
-- **Secure & Scalable**: Firebase backend with robust security rules
+- **Customizable Settings**: Control display of synonyms, antonyms, etymology, examples
 - **Modern Tech Stack**: Next.js 15, TypeScript, Tailwind CSS
 
 ## 🛠️ Tech Stack
@@ -58,8 +63,14 @@ WORDS_API_KEY=your_key
 ### 3. Development
 
 \`\`\`bash
-# Start development server
+# Start development server with Firebase emulators (RECOMMENDED)
+npm run dev:emulators
+
+# Start development server only
 npm run dev
+
+# Run Firebase emulators only
+npm run emulators
 
 # Run tests
 npm test
@@ -70,6 +81,9 @@ npm run test:watch
 # Run linting
 npm run lint
 
+# Type checking
+npm run type-check
+
 # Build for production
 npm run build
 \`\`\`
@@ -79,11 +93,19 @@ npm run build
 \`\`\`
 src/
 ├── app/                    # Next.js App Router pages
+│   ├── study/             # Learning pages (flashcards, quiz, list)
+│   ├── settings/          # User settings
+│   └── admin/             # Admin tools
 ├── components/            # Reusable UI components
+│   ├── ui/                # Base UI components
+│   └── vocabulary/        # Vocabulary-specific components
+├── contexts/              # React Context providers
 ├── lib/                   # Utility functions and configurations
+│   ├── api/               # API service layers
+│   ├── firebase/          # Firebase configuration
+│   └── vocabulary/        # Vocabulary services
 ├── hooks/                 # Custom React hooks
-├── types/                 # TypeScript type definitions
-└── styles/               # Global styles and Tailwind config
+└── types/                 # TypeScript type definitions
 \`\`\`
 
 ## 🧪 Testing
@@ -121,15 +143,20 @@ npm run test:watch
 
 ## 🚀 Deployment
 
-### Firebase Emulator (Development)
-\`\`\`bash
-firebase emulators:start
-\`\`\`
-
-### Vercel (Production)
+### Vercel (Primary Hosting)
 \`\`\`bash
 npm run build
-vercel deploy
+vercel           # Deploy to preview
+vercel --prod    # Deploy to production
+\`\`\`
+
+### Firebase Services
+\`\`\`bash
+# Deploy Firestore rules
+firebase deploy --only firestore:rules
+
+# Deploy Cloud Functions
+firebase deploy --only functions
 \`\`\`
 
 ## 📊 Monitoring
@@ -150,6 +177,26 @@ vercel deploy
 
 This project is proprietary and confidential.
 
+## 📚 Documentation
+
+### 🔥 Essential Reading
+- **[Quick Start Guide](docs/GUIDES/quick-start.md)** - Get running in 5 minutes
+- **[CLAUDE.md](CLAUDE.md)** - Claude Code development instructions
+- **[Architecture Status](docs/ARCHITECTURE/current-status.md)** - Current system status and metrics
+
+### 📖 Complete Documentation
+- **[Architecture](docs/ARCHITECTURE/)** - System design, database structure, project organization
+- **[Development](docs/DEVELOPMENT/)** - Development history, migration logs, and timeline
+- **[Guides](docs/GUIDES/)** - Developer and user guides
+- **[Reference](docs/REFERENCE/)** - API documentation and technical references
+
+### 📋 Quick Links
+- [Database Schema](docs/ARCHITECTURE/database.md) - Complete database structure
+- [Development Timeline](docs/DEVELOPMENT/history.md) - Project history and milestones
+- [Project Structure](docs/ARCHITECTURE/project-structure.md) - Detailed codebase organization
+
 ---
 
 **Built with ❤️ for SAT preparation success**
+
+*Documentation last organized: 2025-08-23*

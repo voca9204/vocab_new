@@ -6,22 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SAT Vocabulary Learning Platform V2 - A modern, contextual SAT vocabulary learning platform built with Next.js 15, Firebase, and TypeScript. The application helps students learn SAT vocabulary through real-world news context and advanced learning algorithms.
 
-**Project Status**: 46.7% complete (7/15 tasks done)
-- ✅ Completed: Next.js setup, Firebase/Emulator, Auth system, UI components, SAT vocabulary DB, Dictionary APIs, News crawling
-- 🔄 Next Priority: Task 7 (Search & filtering), Task 8 (Quiz system), Task 11 (Contextual learning)
+**Project Status**: 50% complete (8/16 tasks done)
+- ✅ Completed: Next.js setup, Firebase/Emulator, Auth system, UI components, SAT vocabulary DB, Dictionary APIs, News crawling, User settings & field refactoring (Task 16)
+- 📌 Next Priority: Task 7 (Search & filtering), Task 8 (Quiz system), Task 11 (Contextual learning)
+
+**Documentation Status**: ✅ Fully restructured (January 2025)
+- 체계적인 5단계 문서 구조 확립
+- 개발 히스토리 및 아키텍처 문서 통합
+- 지속적 문서 관리 프로세스 구축
 
 ## Essential Commands
 
 ### Development
 ```bash
-# Start development server
+# Start development server (use production Firestore directly)
 npm run dev
 
-# Start with Firebase emulators
-npm run dev:emulators
-
-# Run Firebase emulators only
-npm run emulators
+# ⚠️ DO NOT USE Firebase emulators - use production Firestore directly
+# npm run dev:emulators  # DEPRECATED - DO NOT USE
+# npm run emulators      # DEPRECATED - DO NOT USE
 ```
 
 ### Testing
@@ -57,6 +60,21 @@ vercel
 npm run firebase:deploy
 ```
 
+### TaskMaster Commands
+```bash
+# View current tasks
+tm get-tasks --status all
+
+# Get next priority task
+tm next-task
+
+# Check specific task
+tm get-task 7
+
+# Update task status
+tm set-task-status 7 in-progress
+```
+
 ## Architecture Overview
 
 ### Tech Stack
@@ -65,13 +83,18 @@ npm run firebase:deploy
 - **Styling**: Tailwind CSS 4.0
 - **Backend**: Firebase (Firestore, Authentication, Functions)
 - **Testing**: Jest + React Testing Library
+- **Task Management**: TaskMaster AI
 
 ### Project Structure
 ```
 src/
 ├── app/           # Next.js App Router pages
 ├── components/    # Reusable UI components
+├── contexts/      # React Context providers
 ├── lib/           # Utility functions and Firebase config
+│   ├── adapters/  # Word adapters (Bridge Pattern)
+│   ├── cache/     # Cache management
+│   └── firebase/  # Firebase configuration
 ├── hooks/         # Custom React hooks
 └── types/         # TypeScript type definitions
 ```
@@ -79,10 +102,13 @@ src/
 ### Key Architectural Patterns
 
 1. **App Router Structure**: All pages use Next.js 15 App Router with Server Components by default
-2. **Firebase Integration**: Firebase SDK is initialized in `lib/firebase/config.ts` with emulator support
+2. **Firebase Integration**: Direct production Firestore (emulators deprecated)
 3. **Component Organization**: UI components use compound pattern with exports from `components/ui/index.ts`
-4. **State Management**: Uses React Context for global state (AuthProvider, VocabularyProvider)
-5. **API Integration**: External APIs (Dictionary, News) are wrapped in service classes in `lib/api/`
+4. **State Management**: React Query for server state + Context API for client state
+5. **API Integration**: External APIs wrapped in service classes in `lib/api/`
+6. **Bridge Adapter Pattern**: Unified words_v3 with backward compatibility
+7. **Caching Strategy**: 3-layer caching (React Query 5min → Memory → LocalStorage 24hr)
+8. **Performance**: Batch queries (30 items), indexed queries, optimized loading
 
 ### Firebase Configuration
 
@@ -92,13 +118,22 @@ src/
 - Functions: 5501
 - Storage: 9299
 
-**Collections Structure**:
-- `users/` - User profiles and preferences
-- `vocabulary/` - SAT vocabulary database (2000+ words)
-- `news/` - News articles with SAT word highlighting
-- `progress/` - User learning progress tracking
-- `veterans_vocabulary/` - V.ZIP 3K PDF에서 추출한 단어들 (1821개)
-- `vocabulary_collections/` - 단어 컬렉션 그룹화
+**Main Collections**:
+- `words_v3/` - **NEW** Unified master word database (3,141+ words, primary source)
+- `words/` - Legacy master word database (being phased out)
+- `ai_generated_words/` - AI-generated words from Discovery
+- `vocabulary_collections/` - Official collections (Admin only)
+  - Categories: SAT, TOEFL, TOEIC, 수능, GRE, IELTS, 기본
+- `personal_collections/` - Personal collections (All users)
+  - Admin: Can upload both official and personal collections
+  - Regular users: Can only upload personal collections
+- `photo_vocabulary_words/` - Words extracted from photos
+- `user_words/` - User learning progress
+- `userSettings/` - User preferences and settings
+
+**Legacy Collections** (deprecated):
+- `veterans_vocabulary/` - V.ZIP 3K PDF words (migrated to words_v3)
+- `vocabulary/` - Old SAT words (migrated to words_v3)
 
 ### Development Guidelines
 
@@ -107,237 +142,102 @@ src/
 3. **Testing**: Aim for 80% coverage. Test files go in `__tests__` folders
 4. **Code Style**: ESLint rules enforce no-console (warning), no-var, prefer-const
 5. **Imports**: Use `@/` alias for src directory imports
-6. **Database Architecture**: 🔥 **MANDATORY**: Always refer to `DATABASE_ARCHITECTURE.md` before making any database-related changes. Update this file immediately after any changes to:
-   - Collection structures
-   - Data flow patterns
-   - API endpoints
-   - Menu/Modal data access patterns
-   - Caching strategies
+6. **Database Architecture**: 🔥 **MANDATORY**: Always refer to `docs/ARCHITECTURE/database.md` before making any database-related changes
+7. **File Constraints**: Max 1500 lines per file, max 5 props per component
 
-### Common Tasks
+## Recent Architecture Improvements (August 2025)
 
-**Adding a new UI component**:
+### Phase 1 Complete ✅
+- **Batch Queries**: 96% reduction (100+ → 3-4 queries)
+- **Multi-layer Cache**: React Query → Memory → LocalStorage
+- **Environment Logging**: Production-safe logging system
+- **React Query**: Full integration with DevTools
+- **Firestore Indexes**: Optimized and deployed
+
+### Phase 2 In Progress (75%)
+- **Unified Database**: 3,141 words in `words_v3` collection
+- **Bridge Adapter**: Backward compatibility maintained
+- **Quality Scoring**: Automatic assessment (0-100)
+- **Performance**: 85% faster loading achieved
+
+### Feature Systems
+- **Photo Vocabulary**: OCR with 48hr sessions
+- **PDF Extraction**: AI-powered multi-format support
+- **Discovery Modal**: Real-time word generation
+- **User Settings**: Display preferences with React Context
+
+## 📚 Documentation Structure
+
+### Core Documentation Hierarchy
+```
+프로젝트 루트/
+├── README.md                    # 프로젝트 개요 및 시작점
+├── CLAUDE.md                    # Claude Code AI 어시스턴트 가이드
+├── QUICK_START_GUIDE.md         # 5분 빠른 시작 가이드
+└── docs/
+    ├── ARCHITECTURE/           # 🏗️ 시스템 설계 및 아키텍처
+    │   ├── current-status.md   # 현재 아키텍처 상태
+    │   ├── database.md         # 데이터베이스 스키마 및 구조
+    │   └── improvement-plan.md # 아키텍처 개선 로드맵
+    ├── DEVELOPMENT/            # 📝 개발 히스토리 및 로그
+    │   ├── history.md          # 체계적인 개발 타임라인
+    │   ├── changelog.md        # 버전별 변경사항
+    │   └── migration-log.md   # 데이터 마이그레이션 기록
+    ├── GUIDES/                 # 📖 가이드 및 튜토리얼
+    │   ├── developer-guide.md # 개발자 가이드
+    │   ├── deployment.md      # 배포 가이드
+    │   └── troubleshooting.md # 문제 해결 가이드
+    ├── REFERENCE/              # 📑 기술 참조 문서
+    │   ├── api-reference.md   # API 문서
+    │   ├── type-definitions.md # TypeScript 타입 정의
+    │   └── firebase-rules.md  # Firebase 보안 규칙
+    └── ARCHIVE/               # 📦 과거 문서 보관
+        └── 2025-Q1/          # 분기별 아카이브
+```
+
+### Primary Reference Files
+- `docs/ARCHITECTURE/current-status.md` - 📊 현재 시스템 상태 및 메트릭스
+- `docs/ARCHITECTURE/database.md` - 🔥 **필수**: 데이터베이스 구조 및 데이터 플로우
+- `docs/DEVELOPMENT/history.md` - 📝 개발 이력 및 주요 결정사항
+- `QUICK_START_GUIDE.md` - 🚀 신규 개발자를 위한 빠른 시작
+- `docs/GUIDES/troubleshooting.md` - 🔧 일반적인 문제 해결
+
+## Common Tasks
+
+### Adding a new UI component
 1. Create component in `src/components/ui/`
 2. Export from `src/components/ui/index.ts`
 3. Follow existing patterns (use `cn()` utility for className merging)
 
-**Working with Firebase**:
-1. Always use the emulator in development
+### Working with Firebase
+1. Always use production Firestore directly (emulator deprecated)
 2. Check `firestore.rules` for security rules
 3. Use type-safe Firestore converters
+4. Primary data source is `words_v3` collection
 
-**Adding new vocabulary features**:
-1. Update types in `src/types/vocabulary.ts`
-2. Add service methods in `src/lib/api/vocabulary-service.ts`
+### Adding new vocabulary features
+1. Update types in `src/types/unified-word.ts`
+2. Use WordAdapterBridge for data access
 3. Create/update hooks in `src/hooks/`
-4. 🔥 **CRITICAL**: Update `DATABASE_ARCHITECTURE.md` with:
-   - New collection structures
-   - Data flow changes
-   - API endpoint additions
-   - Menu/Modal access patterns
+4. Update `docs/ARCHITECTURE/database.md`
+5. Increment cache version in `word-adapter-unified.ts`
+6. Document changes in `docs/DEVELOPMENT/changelog.md`
 
-### Important Notes
-
-- The project uses Tailwind CSS 4.0 with PostCSS
-- Firebase project ID: `vocabulary-app-new`
-- All API keys should be in `.env.local` (not committed)
-- The project aims to support 2000+ SAT vocabulary words with contextual learning through news articles
-
-## TaskMaster Integration
-
-The project uses TaskMaster for task management. Key commands:
-```bash
-# View all tasks
-tm get-tasks --status all
-
-# Get next priority task
-tm next-task
-
-# Check specific task
-tm get-task 7
-
-# Start working on a task
-tm set-task-status 7 in-progress
-```
-
-**Current Task Status**:
-- 15 total tasks in `.taskmaster/tasks/tasks.json`
-- Completed: Tasks 1-6, 10 (infrastructure & APIs)
-- Next priorities: Task 7 (search/filter), Task 8 (quiz), Task 11 (contextual learning)
-
-## Project History & Context
-
-**V1 → V2 Migration**: This is a complete rewrite from Vite/React to Next.js 15 for better stability
-- V1 backup: `vocabulary-backup-20250612_021030` (contains 47 SAT words)
-- V2 improvements: TypeScript strict mode, Firebase Emulator, better architecture
-
-**Key Files for Reference**:
-- `claude_context.md` - Current project status and progress
-- `structure.md` - Detailed project structure guide
-- `FILE_MAP.md` - Complete file listing with descriptions
-- `DATABASE_ARCHITECTURE.md` - 🔥 **CRITICAL**: Database structure and data flow documentation
-
-## Code Quality Standards
-
-**File Constraints**:
-- Maximum 1500 lines per file
-- Maximum 5 props per component
-- Cyclomatic complexity ≤ 10
-- 80% test coverage target
-
-**Naming Conventions**:
-- Components: PascalCase (e.g., `VocabularyCard`)
-- Files: kebab-case (e.g., `vocabulary-card.tsx`)
-- Constants: UPPER_SNAKE_CASE (e.g., `API_ENDPOINTS`)
-
-## Current Implementation Status
-
-**Completed Infrastructure**:
-- ✅ Firebase Authentication with emulator
-- ✅ Firestore database structure for 2000+ SAT words
-- ✅ Multiple Dictionary API integration (Free Dictionary, Merriam-Webster, Words API)
-- ✅ News crawling and processing system
-- ✅ Core UI component library
-- ✅ PDF vocabulary extraction system (V.ZIP format)
-- ✅ Veterans vocabulary database (1821 words from V.ZIP 3K)
-
-**Pending Features**:
-- 🔄 Advanced search and filtering (Task 7)
-- 🔄 Quiz system with multiple formats (Task 8)
-- 🔄 Contextual learning interface (Task 11)
-- 🔄 User progress tracking (Task 9)
-- 🔄 Spaced repetition algorithm (Task 12)
-
-## Vocabulary Database Structure
-
-### Main Collections
-
-#### `words` Collection
-메인 단어 데이터베이스 - 모든 표준 SAT 단어들
-
-#### `ai_generated_words` Collection  
-AI로 생성된 단어 정의들 (Discovery Modal에서 생성)
-
-#### `photo_vocabulary_words` Collection
-사진에서 추출한 단어들을 영구 저장하는 컬렉션
-
-**데이터 형식**:
-```typescript
-{
-  id: string,
-  word: string,
-  definition?: string,       // 한글 정의
-  context?: string,          // 원문 컨텍스트
-  partOfSpeech?: string[],
-  
-  // AI 향상 필드 (나중에 추가됨)
-  etymology?: string,        // 영어 설명
-  realEtymology?: string,    // 실제 어원
-  examples?: string[],       // 예문
-  synonyms?: string[],       // 동의어
-  pronunciation?: string,
-  
-  // 메타데이터
-  collectionId: string,      // 속한 컬렉션 ID
-  userId: string,
-  createdAt: Date,
-  updatedAt: Date,
-  isActive: boolean,
-  
-  // 학습 상태
-  studyStatus: {
-    studied: boolean,
-    masteryLevel: number,
-    reviewCount: number,
-    // ...
-  }
-}
-```
-
-#### `photo_vocabulary_collections` Collection
-사진 단어들을 그룹화하는 컬렉션 (날짜별, 주제별 정리)
-
-### Unified Word System
-
-**UnifiedWord Interface**:
-모든 단어 컬렉션을 통합하여 일관된 형식으로 처리하는 시스템
-
-**WordAdapter**:
-- 클라이언트: `words`, `photo_vocabulary_words` 접근 가능
-- 서버: 모든 컬렉션 접근 가능 (WordAdapterServer)
-- 자동 변환 및 캐싱 지원
-
-### API Endpoints for Vocabulary
-
-#### Unified APIs (All Collections Support)
-- `/api/generate-examples-unified` - 모든 컬렉션의 단어에 예문 생성
-- `/api/generate-etymology-unified` - 모든 컬렉션의 단어에 어원 생성
-- `/api/update-synonyms` - 모든 컬렉션의 단어에 동의어 업데이트
-- `/api/fetch-pronunciation` - 발음 정보 가져오기
-
-#### Discovery API
-- `/api/vocabulary/discover` - 새 단어 검색 및 AI 정의 생성
-
-### Caching Strategy
-
-**CacheContext**:
-- 메모리 기반 캐싱 (페이지 리로드 시 초기화)
-- 동의어, Discovery 결과 캐싱
-- TTL: 동의어 10분, Discovery 5분
-
-**동의어 저장 흐름**:
-1. AI 생성 → CacheContext 저장
-2. 동시에 DB 업데이트 (`updateWordSynonyms`)
-3. 다음 로드 시 DB에서 우선 확인
-
-### Recent Improvements
-
-#### Photo Vocabulary Integration (2025-08)
-- ✅ Photo vocabulary words를 UnifiedWord 시스템에 통합
-- ✅ WordAdapter에 photo_vocabulary_words 컬렉션 지원 추가
-- ✅ 서버 사이드 WordAdapterServer 생성 (권한 문제 해결)
-- ✅ 모든 API가 photo vocabulary words 지원
-
-#### UI/UX Improvements
-- ✅ WordDetailModal 조건부 렌더링 → 항상 렌더링 (안정성 향상)
-- ✅ 유사어 클릭 시 DB 우선 검색 (Discovery Modal 최소화)
-- ✅ 검색 중 로딩 상태 표시
-- ✅ 정의 표시 문제 수정 (definitions[0].definition 지원)
+### Debugging Tips
+1. Check browser console for adapter logs (WordAdapterBridge, UnifiedWordAdapter)
+2. Verify environment variables in `.env.local`
+3. Clear cache if data inconsistencies: `/admin/clear-cache` or `localStorage.clear()`
+4. Check cache version in console: `localStorage.getItem('word_cache_version')`
+5. Monitor Firestore usage in Firebase Console
 
 ## Deployment Configuration
 
-### Hosting Architecture
-- **Primary Hosting**: Vercel (Next.js optimized)
-- **Backend Services**: Firebase (Firestore, Authentication, Functions)
-- **Previous Setup**: Firebase Hosting (deprecated after moving to Next.js)
-
-### Vercel Configuration
-
-**Project Information**:
-- Project ID: `prj_9y70edy1upkm7eWLW5NKC8nUqkJ6`
-- Organization ID: `team_bKsPYU9jfI2JvCtdptfYbS2I`
+### Vercel (Primary)
 - Production URL: https://voca-*.vercel.app
+- Environment variables must be set in Vercel dashboard
+- Automatic deployments from main branch
 
-**Configuration File** (`vercel.json`):
-```json
-{
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "functions": {
-    "src/app/api/health/route.ts": {
-      "maxDuration": 10
-    },
-    "src/app/api/test-env/route.ts": {
-      "maxDuration": 10
-    }
-  }
-}
-```
-
-**Required Environment Variables**:
+### Required Environment Variables
 ```bash
 # Firebase Admin SDK
 FIREBASE_ADMIN_PROJECT_ID=vocabulary-app-new
@@ -356,63 +256,29 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=203198017310
 NEXT_PUBLIC_FIREBASE_APP_ID=1:203198017310:web:...
 ```
 
-### Firebase Configuration
+## Quick Start for New Session
 
-**Firebase Services Used**:
-- Firestore Database
-- Authentication
-- Cloud Functions (for server-side operations)
-- Storage (for PDF uploads)
+1. **Check current task status**:
+   ```bash
+   tm next-task
+   ```
 
-**Configuration File** (`firebase.json`):
-```json
-{
-  "projects": {
-    "default": "vocabulary-app-new"
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "functions": {
-    "source": "functions"
-  },
-  "emulators": {
-    "auth": { "port": 9199 },
-    "firestore": { "port": 8181 },
-    "functions": { "port": 5501 },
-    "storage": { "port": 9299 }
-  }
-}
-```
+2. **Review recent changes**:
+   - Check `docs/DEVELOPMENT/history.md` for development timeline
+   - Check `docs/ARCHITECTURE/current-status.md` for system status
+   - Review any TODO comments in code
 
-### Deployment History
+3. **Start development**:
+   ```bash
+   npm run dev
+   ```
 
-1. **Initial Setup**: Firebase Hosting for static site
-2. **Migration to Next.js**: Switched to Vercel for better Next.js support
-3. **Key Fixes**:
-   - OpenAI API initialization moved to runtime (commit: 496519d)
-   - Added debugging endpoints for Vercel environment (commit: 7138f19)
-   - Firebase Admin SDK integration for server-side operations
+4. **Common entry points**:
+   - Settings page: `/src/app/settings/page.tsx`
+   - Word services: `/src/lib/vocabulary/`
+   - Type definitions: `/src/types/`
+   - UI components: `/src/components/vocabulary/`
 
-### Deployment Commands
-
-```bash
-# Deploy to Vercel
-vercel                    # Deploy to preview
-vercel --prod            # Deploy to production
-
-# Local development with Firebase emulators
-npm run dev:emulators    # Start both Next.js and Firebase emulators
-
-# Firebase-only deployment (if needed)
-firebase deploy --only firestore:rules    # Deploy Firestore rules
-firebase deploy --only functions          # Deploy Cloud Functions
-```
-
-### Important Notes
-
-- Vercel handles Next.js hosting and API routes
-- Firebase provides backend services (database, auth, storage)
-- Environment variables must be configured in Vercel dashboard
-- Firebase Admin SDK private key needs proper formatting in Vercel (use quotes and \n for line breaks)
+5. **Admin tools**:
+   - Migration page: `/admin/migrate` - For database field migrations
+   - Admin emails: Update in `/src/lib/auth/admin.ts`

@@ -37,7 +37,7 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -47,14 +47,15 @@ const Modal: React.FC<ModalProps> = ({
       {/* Modal Content */}
       <div 
         className={cn(
-          "relative z-10 w-full max-w-md max-h-[90vh] bg-white rounded-lg shadow-xl",
-          "overflow-hidden",
+          "relative z-10 w-full bg-white rounded-lg shadow-xl",
+          "flex flex-col max-h-[95vh]", // Use flexbox for better height handling
+          "max-w-md", // Default max width
           className
         )}
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex-shrink-0 flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">{title}</h2>
             <button
               onClick={onClose}
@@ -65,8 +66,8 @@ const Modal: React.FC<ModalProps> = ({
           </div>
         )}
         
-        {/* Body */}
-        <div className="p-4 overflow-y-auto">
+        {/* Body - Now properly scrollable */}
+        <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </div>
