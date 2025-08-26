@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Sidebar } from './sidebar'
+import MobileNav from './mobile-nav'
 import { cn } from '@/lib/utils'
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -37,16 +38,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className={cn(
-        "flex-1 transition-all duration-300 ease-in-out",
-        isCollapsed ? "lg:ml-16" : "lg:ml-64"
-      )}>
-        <div className="container mx-auto px-4 py-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <>
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className={cn(
+          "flex-1 transition-all duration-300 ease-in-out pb-16 md:pb-0",
+          isCollapsed ? "lg:ml-16" : "lg:ml-64"
+        )}>
+          <div className="container mx-auto px-4 py-4 md:py-8">
+            {children}
+          </div>
+        </main>
+      </div>
+      <MobileNav />
+    </>
   )
 }

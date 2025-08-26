@@ -170,6 +170,7 @@ export default function DashboardPage() {
   const { user, appUser, loading } = useAuth()
   const router = useRouter()
   const { allWords: vocabularyWords, loading: vocabularyLoading } = useVocabulary()
+  const [isMobile, setIsMobile] = useState(false)
   const [stats, setStats] = useState({
     totalWords: 0,
     studiedWords: 0,
@@ -191,6 +192,16 @@ export default function DashboardPage() {
     speakWord
   } = useWordDetailModal()
   const [allWords, setAllWords] = useState<UnifiedWord[]>([])
+
+  // 모바일 감지
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // loadStats 함수 정의
   const loadStats = useCallback(async () => {
@@ -295,90 +306,90 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <div className="container mx-auto py-4 md:py-8 px-4 max-w-7xl">
         {/* 헤더 섹션 */}
-        <div className="mb-8">
-          <div className="flex items-start justify-between mb-6">
+        <div className="mb-6 md:mb-8">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-0 mb-4 md:mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">
                 안녕하세요, {appUser?.displayName || user.email?.split('@')[0]}님! 👋
               </h1>
-              <p className="text-lg text-gray-600">오늘도 효율적인 단어 학습을 시작해보세요</p>
+              <p className="text-sm md:text-lg text-gray-600">오늘도 효율적인 단어 학습을 시작해보세요</p>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => router.push('/help')}
-              className="flex items-center gap-2"
+              className="self-end md:self-auto flex items-center gap-2"
             >
               <HelpCircle className="h-4 w-4" />
-              도움말
+              <span className="hidden md:inline">도움말</span>
             </Button>
           </div>
 
           {/* 학습 통계 섹션 */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
             <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">오늘 학습</p>
-                    <p className="text-2xl font-bold text-blue-600">{stats.todayWords}</p>
+                    <p className="text-xl md:text-2xl font-bold text-blue-600">{stats.todayWords}</p>
                     <p className="text-xs text-gray-400">/ 30 목표</p>
                   </div>
-                  <Target className="h-8 w-8 text-blue-200" />
+                  <Target className="h-6 w-6 md:h-8 md:w-8 text-blue-200" />
                 </div>
               </CardContent>
             </Card>
             
             <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="p-4">
+              <CardContent className="p-3 md:p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">총 학습</p>
-                    <p className="text-2xl font-bold text-green-600">{stats.studiedWords}</p>
+                    <p className="text-xl md:text-2xl font-bold text-green-600">{stats.studiedWords}</p>
                     <p className="text-xs text-gray-400">단어</p>
                   </div>
-                  <BookOpen className="h-8 w-8 text-green-200" />
+                  <BookOpen className="h-6 w-6 md:h-8 md:w-8 text-green-200" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="p-4">
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow col-span-2 md:col-span-1">
+              <CardContent className="p-3 md:p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">전체 단어</p>
-                    <p className="text-2xl font-bold text-purple-600">{stats.totalWords}</p>
+                    <p className="text-xl md:text-2xl font-bold text-purple-600">{stats.totalWords}</p>
                     <p className="text-xs text-gray-400">개</p>
                   </div>
-                  <BarChart3 className="h-8 w-8 text-purple-200" />
+                  <BarChart3 className="h-6 w-6 md:h-8 md:w-8 text-purple-200" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="p-4">
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow hidden md:block">
+              <CardContent className="p-3 md:p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">평균 숙련도</p>
-                    <p className="text-2xl font-bold text-orange-600">{stats.masteryAverage}%</p>
+                    <p className="text-xl md:text-2xl font-bold text-orange-600">{stats.masteryAverage}%</p>
                     <p className="text-xs text-gray-400">마스터</p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-orange-200" />
+                  <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-orange-200" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="p-4">
+            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow hidden md:block">
+              <CardContent className="p-3 md:p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">연속 학습</p>
-                    <p className="text-2xl font-bold text-red-600">{stats.streak}</p>
+                    <p className="text-xl md:text-2xl font-bold text-red-600">{stats.streak}</p>
                     <p className="text-xs text-gray-400">일째</p>
                   </div>
-                  <Zap className="h-8 w-8 text-red-200" />
+                  <Zap className="h-6 w-6 md:h-8 md:w-8 text-red-200" />
                 </div>
               </CardContent>
             </Card>
@@ -386,12 +397,12 @@ export default function DashboardPage() {
         </div>
 
         {/* 주요 기능 카드 */}
-        <div className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Rocket className="h-5 w-5" />
+        <div className="mb-8 md:mb-10">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
+            <Rocket className="h-4 w-4 md:h-5 md:w-5" />
             핵심 기능
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {featureCards.map((feature) => {
               const Icon = feature.icon
               return (
@@ -426,12 +437,12 @@ export default function DashboardPage() {
         </div>
 
         {/* 시험 카테고리 섹션 */}
-        <div className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" />
+        <div className="mb-8 md:mb-10">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 md:h-5 md:w-5" />
             시험 준비
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {examCategories.map((exam) => {
               const Icon = exam.icon
               return (
@@ -440,15 +451,15 @@ export default function DashboardPage() {
                   className={`border ${exam.borderColor} ${exam.bgColor} hover:shadow-lg transition-all cursor-pointer group`}
                   onClick={() => exam.available && router.push(`/study?exam=${exam.id}`)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <Icon className={`h-8 w-8 ${exam.textColor}`} />
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center justify-between mb-2 md:mb-3">
+                      <Icon className={`h-6 w-6 md:h-8 md:w-8 ${exam.textColor}`} />
                       {exam.available && (
                         <ChevronRight className={`h-4 w-4 ${exam.textColor} opacity-50 group-hover:opacity-100 transition-opacity`} />
                       )}
                     </div>
-                    <h3 className={`font-bold text-lg ${exam.textColor} mb-1`}>{exam.title}</h3>
-                    <p className="text-xs text-gray-600 mb-2">{exam.description}</p>
+                    <h3 className={`font-bold text-base md:text-lg ${exam.textColor} mb-1`}>{exam.title}</h3>
+                    <p className="text-xs text-gray-600 mb-2 hidden md:block">{exam.description}</p>
                     <div className="flex items-center justify-between text-xs">
                       <span className={`font-medium ${exam.textColor}`}>{exam.wordCount} 단어</span>
                       <span className="text-gray-500">{exam.difficulty}</span>
@@ -488,9 +499,9 @@ export default function DashboardPage() {
 
         {/* 오늘의 추천 단어 */}
         {recentWords.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-600" />
+          <div className="mb-8 md:mb-10">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
               오늘의 추천 단어
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -500,8 +511,8 @@ export default function DashboardPage() {
                   className="group cursor-pointer hover:shadow-lg transition-all border-0 bg-white"
                   onClick={() => openModal(unifiedToVocabularyWord(word))}
                 >
-                  <CardContent className="p-4">
-                    <p className="font-bold text-base mb-2 group-hover:text-blue-600 transition-colors">
+                  <CardContent className="p-3 md:p-4">
+                    <p className="font-bold text-sm md:text-base mb-1 md:mb-2 group-hover:text-blue-600 transition-colors">
                       {word.word}
                     </p>
                     <p className="text-xs text-gray-500 line-clamp-2">
@@ -514,15 +525,15 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 빠른 시작 버튼 */}
-        <div className="fixed bottom-8 right-8 z-50">
+        {/* 빠른 시작 버튼 - 모바일에서는 원형 */}
+        <div className="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-50">
           <Button
             size="lg"
             onClick={() => router.push('/study')}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all rounded-full md:rounded-md h-14 w-14 md:h-auto md:w-auto p-0 md:px-6 md:py-3"
           >
-            <Rocket className="mr-2 h-5 w-5" />
-            학습 시작하기
+            <Rocket className="h-6 w-6 md:mr-2 md:h-5 md:w-5" />
+            <span className="hidden md:inline">학습 시작하기</span>
           </Button>
         </div>
       </div>
