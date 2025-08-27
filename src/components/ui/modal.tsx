@@ -37,7 +37,7 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-4">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -47,21 +47,23 @@ const Modal: React.FC<ModalProps> = ({
       {/* Modal Content */}
       <div 
         className={cn(
-          "relative z-10 w-full bg-white rounded-lg shadow-xl",
-          "flex flex-col max-h-[95vh]", // Use flexbox for better height handling
+          "relative z-10 w-full bg-white shadow-xl",
+          "flex flex-col",
+          "rounded-t-xl sm:rounded-lg", // Rounded top on mobile, all corners on desktop
+          "max-h-[98vh] sm:max-h-[95vh]", // More height on mobile
           "max-w-md", // Default max width
           className
         )}
       >
         {/* Header */}
         {title && (
-          <div className="flex-shrink-0 flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold">{title}</h2>
+          <div className="flex-shrink-0 flex items-center justify-between p-3 sm:p-4 border-b bg-gray-50">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-xl"
+              className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
             >
-              ×
+              <span className="text-lg font-bold">×</span>
             </button>
           </div>
         )}

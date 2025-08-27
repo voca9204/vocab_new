@@ -65,6 +65,28 @@ export function Sidebar() {
     }
   }, [isCollapsed])
 
+  // ESC 키로 모바일 메뉴 닫기
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false)
+      }
+    }
+
+    if (isMobileOpen) {
+      document.addEventListener('keydown', handleEscKey)
+      // 모바일 메뉴 열릴 때 body 스크롬 비활성화
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey)
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileOpen])
+
   const handleLogout = async () => {
     await signOut()
     router.push('/')
@@ -164,6 +186,7 @@ export function Sidebar() {
   }
 
   const toggleMobileSidebar = () => {
+    console.log('[Sidebar] Toggle mobile sidebar:', !isMobileOpen)
     setIsMobileOpen(!isMobileOpen)
   }
 
@@ -172,7 +195,11 @@ export function Sidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={toggleMobileSidebar}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-gray-200 shadow-sm lg:hidden"
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-gray-200 shadow-sm md:hidden focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        aria-label={isMobileOpen ? "메뉴 닫기" : "메뉴 열기"}
+        aria-expanded={isMobileOpen}
+        aria-controls="mobile-sidebar-menu"
+        type="button"
       >
         {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -180,7 +207,7 @@ export function Sidebar() {
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={toggleMobileSidebar}
         />
       )}
@@ -195,13 +222,20 @@ export function Sidebar() {
         </button>
       )}
 
-      {/* Sidebar - Hidden on mobile */}
+      {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 hidden md:block",
-          isCollapsed ? "w-16" : "w-64",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed left-0 top-0 h-screen border-r border-gray-200 transition-all duration-300 shadow-lg",
+          // Mobile: show/hide based on isMobileOpen, always full width
+          isMobileOpen ? "z-50 w-64 block bg-white" : "hidden",
+          // Desktop: always visible, width based on collapsed state
+          "md:block md:z-40 md:bg-white",
+          isCollapsed ? "md:w-16" : "md:w-64"
         )}
+        id="mobile-sidebar-menu"
+        role="navigation"
+        aria-label="주 네비게이션 메뉴"
+        data-mobile-open={isMobileOpen}
       >
         <div className="flex flex-col h-full">
           {/* Header */}

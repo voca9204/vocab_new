@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, BookOpen, Camera, User, Menu } from 'lucide-react'
+import { Home, BookOpen, Camera, User, FolderOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
   {
     id: 'collections',
     label: '단어장',
-    icon: Menu,
+    icon: FolderOpen,
     href: '/collections'
   },
   {
@@ -55,7 +55,7 @@ export default function MobileNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 md:hidden">
-      <nav className="grid grid-cols-5 h-16">
+      <nav className="grid grid-cols-5 h-16" role="navigation" aria-label="바로가기 네비게이션">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname.startsWith(item.href) || 
@@ -66,11 +66,13 @@ export default function MobileNav() {
               key={item.id}
               onClick={() => router.push(item.href)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 relative transition-colors",
+                "flex flex-col items-center justify-center gap-1 relative transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none rounded-md",
                 isActive 
                   ? "text-blue-600" 
                   : "text-gray-500 hover:text-gray-700"
               )}
+              aria-label={`${item.label} 페이지로 이동`}
+              aria-current={isActive ? 'page' : undefined}
             >
               <Icon className={cn(
                 "h-5 w-5",

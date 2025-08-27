@@ -328,7 +328,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 학습 통계 섹션 */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4 mb-4 md:mb-8">
             <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
               <CardContent className="p-3 md:p-4">
                 <div className="flex items-center justify-between">
@@ -402,7 +402,7 @@ export default function DashboardPage() {
             <Rocket className="h-4 w-4 md:h-5 md:w-5" />
             핵심 기능
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {featureCards.map((feature) => {
               const Icon = feature.icon
               return (
@@ -442,7 +442,7 @@ export default function DashboardPage() {
             <GraduationCap className="h-4 w-4 md:h-5 md:w-5" />
             시험 준비
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
             {examCategories.map((exam) => {
               const Icon = exam.icon
               return (
@@ -504,7 +504,7 @@ export default function DashboardPage() {
               <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
               오늘의 추천 단어
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
               {recentWords.map((word) => (
                 <Card 
                   key={word.id}

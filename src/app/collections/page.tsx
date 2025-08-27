@@ -110,15 +110,15 @@ export default function CollectionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         {/* 헤더 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">단어장 탐색</h1>
-          <p className="mt-2 text-gray-600">공식 단어장과 공개된 개인 단어장을 찾아보세요.</p>
+        <div className="mb-4 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">단어장 탐색</h1>
+          <p className="mt-1 md:mt-2 text-sm md:text-base text-gray-600">공식 단어장과 공개된 개인 단어장을 찾아보세요.</p>
         </div>
 
         {/* 검색 및 필터 */}
-        <div className="bg-white rounded-lg shadow mb-6 p-6">
+        <div className="bg-white rounded-lg shadow mb-4 md:mb-6 p-4 md:p-6">
           <div className="space-y-4">
             {/* 검색 바 */}
             <div className="relative">
@@ -133,9 +133,9 @@ export default function CollectionsPage() {
             </div>
 
             {/* 필터 옵션 */}
-            <div className="flex flex-wrap gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              <div className="flex-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">카테고리</label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -152,8 +152,8 @@ export default function CollectionsPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">난이도</label>
+              <div className="flex-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">난이도</label>
                 <select
                   value={selectedDifficulty}
                   onChange={(e) => setSelectedDifficulty(e.target.value)}
@@ -170,10 +170,10 @@ export default function CollectionsPage() {
         </div>
 
         {/* 공식 단어장 섹션 */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">공식 단어장</h2>
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">공식 단어장</h2>
           {filteredOfficialCollections.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {filteredOfficialCollections.map((collection) => (
                 <OfficialCollectionCard
                   key={collection.id}
@@ -193,18 +193,18 @@ export default function CollectionsPage() {
               ))}
             </div>
           ) : (
-            <Card className="p-8 text-center">
-              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">조건에 맞는 공식 단어장이 없습니다.</p>
+            <Card className="p-6 md:p-8 text-center">
+              <BookOpen className="h-10 w-10 md:h-12 md:w-12 text-gray-400 mx-auto mb-2 md:mb-3" />
+              <p className="text-sm md:text-base text-gray-500">조건에 맞는 공식 단어장이 없습니다.</p>
             </Card>
           )}
         </div>
 
         {/* 공개 단어장 섹션 */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">공개된 개인 단어장</h2>
+          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">공개된 개인 단어장</h2>
           {filteredPublicCollections.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {filteredPublicCollections.map((collection) => (
                 <PublicCollectionCard
                   key={collection.id}
@@ -224,9 +224,9 @@ export default function CollectionsPage() {
               ))}
             </div>
           ) : (
-            <Card className="p-8 text-center">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">공개된 개인 단어장이 없습니다.</p>
+            <Card className="p-6 md:p-8 text-center">
+              <Users className="h-10 w-10 md:h-12 md:w-12 text-gray-400 mx-auto mb-2 md:mb-3" />
+              <p className="text-sm md:text-base text-gray-500">공개된 개인 단어장이 없습니다.</p>
             </Card>
           )}
         </div>
@@ -260,8 +260,8 @@ function OfficialCollectionCard({
   }
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onSelect}>
-      <div className="flex justify-between items-start mb-4">
+    <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onSelect}>
+      <div className="flex justify-between items-start mb-3 md:mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span className={`px-2 py-1 text-xs rounded-full ${categoryColors[collection.category] || 'bg-gray-100 text-gray-800'}`}>
@@ -271,9 +271,9 @@ function OfficialCollectionCard({
               {difficultyLabels[collection.difficulty] || collection.difficulty}
             </span>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">{collection.displayName || collection.name}</h3>
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 line-clamp-2">{collection.displayName || collection.name}</h3>
           {collection.description && (
-            <p className="mt-1 text-sm text-gray-600 line-clamp-2">{collection.description}</p>
+            <p className="mt-1 text-xs md:text-sm text-gray-600 line-clamp-2">{collection.description}</p>
           )}
         </div>
         <div className="ml-2">
@@ -281,7 +281,7 @@ function OfficialCollectionCard({
         </div>
       </div>
 
-      <div className="space-y-2 text-sm text-gray-600">
+      <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm text-gray-600">
         <div className="flex justify-between">
           <span>단어 수</span>
           <span className="font-medium">{collection.wordCount}개</span>
@@ -300,8 +300,8 @@ function OfficialCollectionCard({
         )}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <Button size="sm" className="w-full">
+      <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-100">
+        <Button size="sm" className="w-full text-xs md:text-sm">
           <TrendingUp className="h-4 w-4 mr-2" />
           학습 시작
         </Button>
@@ -319,15 +319,15 @@ function PublicCollectionCard({
   onSelect: () => void
 }) {
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onSelect}>
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{collection.name}</h3>
+    <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onSelect}>
+      <div className="mb-3 md:mb-4">
+        <h3 className="text-base md:text-lg font-semibold text-gray-900 line-clamp-2">{collection.name}</h3>
         {collection.description && (
-          <p className="mt-1 text-sm text-gray-600 line-clamp-2">{collection.description}</p>
+          <p className="mt-1 text-xs md:text-sm text-gray-600 line-clamp-2">{collection.description}</p>
         )}
       </div>
 
-      <div className="space-y-2 text-sm text-gray-600">
+      <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm text-gray-600">
         <div className="flex justify-between">
           <span>단어 수</span>
           <span className="font-medium">{collection.wordCount}개</span>
@@ -355,8 +355,8 @@ function PublicCollectionCard({
         </div>
       )}
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <Button size="sm" variant="outline" className="w-full">
+      <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-100">
+        <Button size="sm" variant="outline" className="w-full text-xs md:text-sm">
           <BookOpen className="h-4 w-4 mr-2" />
           둘러보기
         </Button>
