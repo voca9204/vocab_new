@@ -68,18 +68,43 @@ export function CollectionSelectionModal({
     [selectedCollections]
   )
 
-  // 현재 탭의 단어장 필터링
+  // 현재 탭의 단어장 필터링 및 정렬
   const filteredCollections = useMemo(() => {
     console.log(`[CollectionSelectionModal] 🔍 DEBUGGING - Available collections (${availableCollections.length}):`)
     availableCollections.forEach((c, index) => {
       console.log(`   ${index + 1}. ${c.name} (${c.type}, ${c.wordCount} words)`)
     })
     
-    const filtered = availableCollections.filter(c => c.type === activeTab)
+    // 먼저 탭으로 필터링
+    let filtered = availableCollections.filter(c => c.type === activeTab)
+    
+    // 검색어가 있으면 추가 필터링
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(c => 
+        c.name.toLowerCase().includes(query) ||
+        c.description?.toLowerCase().includes(query) ||
+        c.category?.toLowerCase().includes(query)
+      )
+    }
+    
+    // 정렬 적용
+    if (activeTab === 'official') {
+      // 공식 단어장의 경우 단어 수가 많은 순서로 정렬
+      filtered = filtered.sort((a, b) => {
+        const countA = a.wordCount || 0
+        const countB = b.wordCount || 0
+        return countB - countA // 내림차순 (많은 것부터)
+      })
+    } else {
+      // 다른 탭은 이름순으로 정렬
+      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name))
+    }
+    
     console.log(`[CollectionSelectionModal] Tab ${activeTab}: ${filtered.length} collections`, filtered.map(c => `${c.name} (${c.wordCount} words)`))
     
     return filtered
-  }, [availableCollections, activeTab])
+  }, [availableCollections, activeTab, searchQuery])
 
   // 통계 계산
   const stats = useMemo(() => {
@@ -339,14 +364,26 @@ export function CollectionSelectionModal({
                             {collection.name}
                           </h3>
                           
-                          {collection.category && (
-                            <div className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 mb-2">
-                              {collection.category}
+                          <div className="flex items-center gap-2 mb-2">
+                            {collection.category && (
+                              <div className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                                {collection.category}
+                              </div>
+                            )}
+                            {/* 단어 수를 더 눈에 띄게 표시 */}
+                            <div className={cn(
+                              "inline-block px-2 py-0.5 text-xs rounded-full font-semibold",
+                              activeTab === 'official' && collection.wordCount && collection.wordCount > 1000
+                                ? "bg-blue-100 text-blue-700"
+                                : activeTab === 'official' && collection.wordCount && collection.wordCount > 500
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700"
+                            )}>
+                              {collection.wordCount || 0}개 단어
                             </div>
-                          )}
+                          </div>
                           
                           <div className="text-xs text-gray-500 space-y-1">
-                            <div>단어 수: {collection.wordCount}개</div>
                             {collection.metadata?.difficulty && (
                               <div>난이도: {
                                 collection.metadata.difficulty === 'beginner' ? '초급' : 

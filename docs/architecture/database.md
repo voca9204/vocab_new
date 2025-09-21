@@ -14,11 +14,14 @@ vocabulary-app-new/
 ├── 🔥 Primary Data
 │   └── words_v3/                     # ✨ NEW: Unified master word pool
 │
-├── 📚 Legacy Collections (Deprecated)
-│   ├── words/                        # Legacy master words  
-│   ├── ai_generated_words/           # AI-generated words (being merged)
-│   ├── veterans_vocabulary/          # V.ZIP 3K PDF words (migrated)
-│   └── vocabulary/                   # Old SAT words (migrated)
+├── 📚 Legacy Collections (MIGRATION COMPLETE - August 2025)
+│   ├── words/                        # ⚠️ ARCHIVED - Data migrated to words_v3
+│   ├── veterans_vocabulary/          # ✅ MIGRATED - Empty (data moved to words_v3)
+│   └── vocabulary/                   # ✅ MIGRATED - Empty (data moved to words_v3)
+│
+├── 🔧 Special Purpose Collections (Separate Access)
+│   ├── ai_generated_words/           # Discovery modal - temporary storage
+│   └── photo_vocabulary_words/       # OCR extraction - 48hr sessions
 │
 ├── 🗂️ Collection System
 │   ├── vocabulary_collections/       # Official collections (Admin only)

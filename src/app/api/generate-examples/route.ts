@@ -92,7 +92,11 @@ export async function POST(request: NextRequest) {
         console.log(`[generate-examples] Definition for ${word.word}: ${defText}`)
         
         // OpenAI API 호출
-        const prompt = `Generate 3 clear and educational example sentences for the SAT vocabulary word "${word.word}" (${word.partOfSpeech.join(', ')}). 
+        // Handle both string and array partOfSpeech
+        const partOfSpeechText = Array.isArray(word.partOfSpeech) 
+          ? word.partOfSpeech.join(', ') 
+          : word.partOfSpeech
+        const prompt = `Generate 3 clear and educational example sentences for the SAT vocabulary word "${word.word}" (${partOfSpeechText}). 
 Definition: ${defText}
 ${word.etymology ? `Etymology: ${word.etymology}` : ''}
 

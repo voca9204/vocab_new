@@ -14,7 +14,8 @@ import {
   limit as firestoreLimit,
   QueryDocumentSnapshot,
   DocumentData,
-  Timestamp
+  Timestamp,
+  updateDoc
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import type { 
@@ -360,6 +361,10 @@ export class WordAdapter {
 
       // 컬렉션별 변환
       switch (collection) {
+        case 'words_v3':
+          // words_v3 is already in UnifiedWord format, just validate and return
+          return this.convertFromWordsV3(data, id)
+        
         case 'words':
           return this.convertFromWordV2(data, id)
         
@@ -399,6 +404,79 @@ export class WordAdapter {
     }
   }
 
+
+  /**
+   * Words V3 → UnifiedWord 변환 (이미 UnifiedWord 형식)
+   */
+  private convertFromWordsV3(data: any, id: string): ConversionResult {
+    try {
+      // Ensure partOfSpeech is always an array
+      let partOfSpeech: string[]
+      if (Array.isArray(data.partOfSpeech)) {
+        partOfSpeech = data.partOfSpeech
+      } else if (typeof data.partOfSpeech === 'string') {
+        // Convert string to array (e.g., "noun" -> ["noun"])
+        partOfSpeech = [data.partOfSpeech]
+      } else {
+        // Default to noun if not specified
+        partOfSpeech = ['n.']
+      }
+      
+      // Convert difficulty from string to number if needed
+      let difficulty: number = 5 // default
+      if (typeof data.difficulty === 'number') {
+        difficulty = data.difficulty
+      } else if (typeof data.level === 'string') {
+        // Map level strings to numbers
+        const levelMap: { [key: string]: number } = {
+          'beginner': 3,
+          'intermediate': 5,
+          'advanced': 7,
+          'expert': 9
+        }
+        difficulty = levelMap[data.level.toLowerCase()] || 5
+      }
+      
+      // Ensure frequency is a number
+      const frequency = typeof data.frequency === 'number' ? data.frequency : 5
+      
+      // words_v3는 이미 UnifiedWord 형식이므로 직접 반환
+      const word: UnifiedWord = {
+        id,
+        word: data.word || '',
+        definition: data.meaning || data.definition || data.korean || '', // Use meaning, definition, or korean
+        examples: Array.isArray(data.examples) ? data.examples : [],
+        partOfSpeech,
+        pronunciation: data.pronunciation,
+        englishDefinition: data.meaning || data.englishDefinition,
+        etymology: data.etymology,
+        synonyms: Array.isArray(data.synonyms) ? data.synonyms : [],
+        antonyms: Array.isArray(data.antonyms) ? data.antonyms : [],
+        difficulty,
+        frequency,
+        isSAT: true, // SAT Vocabulary II collection
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(),
+        source: {
+          type: 'words_v3',
+          collection: 'words_v3',
+          originalId: id
+        }
+      }
+      
+      return {
+        success: true,
+        word,
+        sourceType: 'words_v3' as SourceWordType
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to convert words_v3 data: ${error}`,
+        sourceType: 'unknown'
+      }
+    }
+  }
 
   /**
    * Word (V2) → UnifiedWord 변환
@@ -704,6 +782,44 @@ export class WordAdapter {
   }
 
   /**
+   * Update word synonyms
+   */
+  async updateWordSynonyms(wordId: string, synonyms: string[]): Promise<void> {
+    try {
+      // Try to find which collection the word belongs to
+      for (const collectionName of this.config.collectionPriority) {
+        try {
+          const docRef = doc(db, collectionName, wordId)
+          const docSnap = await getDoc(docRef)
+          
+          if (docSnap.exists()) {
+            // Update the document with new synonyms
+            await updateDoc(docRef, { 
+              synonyms,
+              updatedAt: Timestamp.now()
+            })
+            
+            // Clear caches for this word
+            this.memoryCache.delete(`word_${wordId}`)
+            await cacheManager.remove(`word_id_${wordId}`)
+            
+            console.log(`[WordAdapter] Updated synonyms for ${wordId} in ${collectionName}`)
+            return
+          }
+        } catch (error) {
+          // Continue to next collection if this one fails
+          continue
+        }
+      }
+      
+      console.warn(`[WordAdapter] Word ${wordId} not found in any collection`)
+    } catch (error) {
+      console.error('[WordAdapter] Error updating synonyms:', error)
+      throw error
+    }
+  }
+
+  /**
    * 통계 정보
    */
   getStats() {
@@ -729,7 +845,7 @@ export class WordAdapter {
         }
         
         const collectionData = collectionDoc.data()
-        const wordIds = collectionData.words || []
+        const wordIds = collectionData.wordIds || []
         
         console.log(`[WordAdapter] Official collection has ${wordIds.length} word IDs`)
         
@@ -748,7 +864,7 @@ export class WordAdapter {
         }
         
         const collectionData = collectionDoc.data()
-        const wordIds = collectionData.words || []
+        const wordIds = collectionData.wordIds || []
         
         console.log(`[WordAdapter] Personal collection "${collectionData.name}" has ${wordIds.length} word IDs`)
         

@@ -157,6 +157,9 @@ export class WordAdapterServer {
 
       // 컬렉션별 변환
       switch (collection) {
+        case 'words_v3':
+          return this.convertFromWordsV3(data, id)
+        
         case 'words':
           return this.convertFromWordV2(data, id)
         
@@ -368,6 +371,82 @@ export class WordAdapterServer {
       success: true,
       word,
       sourceType: 'unknown' // personal collection doesn't have a specific source type yet
+    }
+  }
+
+  /**
+   * Words V3 → UnifiedWord 변환 (이미 UnifiedWord 형식)
+   */
+  private convertFromWordsV3(data: any, id: string): ConversionResult {
+    try {
+      // 타임스탬프 변환
+      const convertTimestamp = (ts: any): Date => {
+        if (ts && ts.toDate) return ts.toDate()
+        if (ts instanceof Date) return ts
+        if (typeof ts === 'string') return new Date(ts)
+        return new Date()
+      }
+
+      // Ensure partOfSpeech is always an array
+      let partOfSpeech: string[]
+      if (Array.isArray(data.partOfSpeech)) {
+        partOfSpeech = data.partOfSpeech
+      } else if (typeof data.partOfSpeech === 'string') {
+        partOfSpeech = [data.partOfSpeech]
+      } else {
+        partOfSpeech = ['n.']
+      }
+      
+      // Convert difficulty from string to number if needed
+      let difficulty: number = 5
+      if (typeof data.difficulty === 'number') {
+        difficulty = data.difficulty
+      } else if (typeof data.level === 'string') {
+        const levelMap: { [key: string]: number } = {
+          'beginner': 3,
+          'intermediate': 5,
+          'advanced': 7,
+          'expert': 9
+        }
+        difficulty = levelMap[data.level.toLowerCase()] || 5
+      }
+      
+      const frequency = typeof data.frequency === 'number' ? data.frequency : 5
+      
+      const word: UnifiedWord = {
+        id,
+        word: data.word || '',
+        definition: data.meaning || data.definition || data.korean || '',
+        examples: Array.isArray(data.examples) ? data.examples : [],
+        partOfSpeech,
+        pronunciation: data.pronunciation,
+        englishDefinition: data.meaning || data.englishDefinition,
+        etymology: data.etymology,
+        synonyms: Array.isArray(data.synonyms) ? data.synonyms : [],
+        antonyms: Array.isArray(data.antonyms) ? data.antonyms : [],
+        difficulty,
+        frequency,
+        isSAT: true,
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt),
+        source: {
+          type: 'words_v3',
+          collection: 'words_v3',
+          originalId: id
+        }
+      }
+      
+      return {
+        success: true,
+        word,
+        sourceType: 'words_v3' as SourceWordType
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to convert words_v3 data: ${error}`,
+        sourceType: 'unknown'
+      }
     }
   }
 }

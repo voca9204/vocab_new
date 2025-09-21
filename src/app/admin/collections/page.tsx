@@ -77,7 +77,13 @@ export default function AdminCollectionsPage() {
         })
         const data = await response.json()
         if (data.success) {
-          setOfficialCollections(data.collections)
+          // 단어 수가 많은 순서로 정렬
+          const sortedCollections = data.collections.sort((a: OfficialCollection, b: OfficialCollection) => {
+            const countA = a.wordCount || 0
+            const countB = b.wordCount || 0
+            return countB - countA // 내림차순
+          })
+          setOfficialCollections(sortedCollections)
         }
       }
     } catch (error) {

@@ -37,7 +37,7 @@ export interface UnifiedWord {
   
   // 소스 정보
   source: {
-    type: 'veterans_pdf' | 'vocabulary_api' | 'words_v2' | 'manual' | 'ai_generated'
+    type: 'veterans_pdf' | 'vocabulary_api' | 'words_v2' | 'words_v3' | 'manual' | 'ai_generated'
     collection: string  // 원본 컬렉션명
     originalId: string  // 원본 문서 ID
   }
@@ -58,7 +58,7 @@ export interface UnifiedWord {
 /**
  * 소스별 원본 타입들
  */
-export type SourceWordType = Word | PhotoVocabularyWord
+export type SourceWordType = Word | PhotoVocabularyWord | 'words_v3' | 'words_v2' | 'ai_generated' | 'photo_vocabulary' | 'personal_collection' | 'veterans_vocabulary' | 'legacy_vocabulary' | 'unknown'
 
 // 타입 임포트
 import type { Word } from './vocabulary-v2'
@@ -107,15 +107,18 @@ export interface AdapterConfig {
 
 export const defaultAdapterConfig: AdapterConfig = {
   collectionPriority: [
-    'words', 
-    'ai_generated_words', 
-    'photo_vocabulary_words', 
-    'personal_collection_words',
-    'veterans_vocabulary',  // Legacy V.ZIP 3K PDF words
-    'vocabulary'  // Legacy SAT words
+    'words_v3'  // Primary unified word database - SINGLE SOURCE OF TRUTH
+    // Removed legacy collections after complete migration:
+    // - 'words' (migrated to words_v3)
+    // - 'veterans_vocabulary' (migrated to words_v3)  
+    // - 'vocabulary' (migrated to words_v3)
+    // 
+    // Removed temporary collections (handled separately):
+    // - 'ai_generated_words' (Discovery modal - separate access)
+    // - 'photo_vocabulary_words' (OCR extraction - separate access)
   ],
   enableCache: true,
   cacheTimeout: 5 * 60 * 1000, // 5분
-  enableBackgroundMigration: true,
+  enableBackgroundMigration: false, // Migration complete
   migrationBatchSize: 10
 }

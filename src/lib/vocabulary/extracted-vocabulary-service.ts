@@ -270,7 +270,7 @@ export class ExtractedVocabularyService {
       id: docRef.id,
       name,
       description,
-      words: wordIds,
+      wordIds: wordIds,
       userId,
       createdAt: new Date(),
       updatedAt: new Date()

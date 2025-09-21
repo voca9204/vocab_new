@@ -148,21 +148,21 @@ export default function UnifiedDashboardPage() {
   if (selectedCollections.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="container mx-auto py-8 px-4 max-w-7xl">
-          {/* 헤더 */}
-          <div className="mb-8">
-            <div className="flex items-start justify-between">
+        <div className="container mx-auto py-4 sm:py-8 px-4 max-w-7xl">
+          {/* 모바일 최적화 헤더 */}
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                   {getGreeting()}, {user?.email?.split('@')[0]}님! 👋
                 </h1>
-                <p className="text-lg text-gray-600">
+                <p className="text-sm sm:text-base lg:text-lg text-gray-600">
                   효율적인 학습을 시작해보세요
                 </p>
               </div>
               
               <div className="flex items-center gap-3">
-                <Badge variant="outline" className="px-3 py-1">
+                <Badge variant="outline" className="px-2 sm:px-3 py-1 text-xs sm:text-sm">
                   {currentTime.toLocaleDateString('ko-KR', { 
                     month: 'short', 
                     day: 'numeric',
@@ -173,9 +173,9 @@ export default function UnifiedDashboardPage() {
             </div>
           </div>
 
-          {/* 단어장 선택 안내 */}
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <Card className="p-12 text-center bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 max-w-2xl">
+          {/* 모바일 최적화 단어장 선택 안내 */}
+          <div className="flex items-center justify-center min-h-[40vh] sm:min-h-[50vh]">
+            <Card className="p-6 sm:p-8 lg:p-12 text-center bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 w-full max-w-2xl">
               <LoadingMessage
                 message="학습할 단어장을 선택해주세요"
                 submessage="다양한 단어장 중에서 학습하고 싶은 것을 선택하여 맞춤형 학습을 시작하세요."
@@ -185,18 +185,18 @@ export default function UnifiedDashboardPage() {
               />
               <Button 
                 onClick={() => setIsSelectionModalOpen(true)}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-8 py-3 text-lg mt-6"
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base lg:text-lg mt-4 sm:mt-6 w-full sm:w-auto"
                 size="lg"
               >
                 단어장 선택하기
               </Button>
               
               {/* 또는 단어장 관리로 이동 */}
-              <div className="mt-4">
+              <div className="mt-3 sm:mt-4">
                 <Button 
                   variant="outline"
                   onClick={() => router.push('/wordbooks')}
-                  className="text-gray-600"
+                  className="text-gray-600 text-sm sm:text-base w-full sm:w-auto"
                 >
                   단어장 관리로 이동
                 </Button>
@@ -269,39 +269,45 @@ export default function UnifiedDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* 페이지 헤더 */}
-        <div className="mb-8">
-          <div className="flex items-start justify-between mb-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8 max-w-7xl">
+        {/* 모바일 최적화 페이지 헤더 */}
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <span>📚</span>
-                단어장 학습 허브
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl lg:text-2xl">📚</span>
+                <span>단어장 학습 허브</span>
               </h1>
-              <p className="text-lg text-gray-600">
-                {getGreeting()}, {user.email?.split('@')[0]}님! 
-                <span className="ml-2">오늘도 효율적인 학습을 시작해보세요</span>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600">
+                {getGreeting()}, <span className="font-medium">{user.email?.split('@')[0]}</span>님!
+                <span className="hidden sm:inline ml-2">오늘도 효율적인 학습을 시작해보세요</span>
               </p>
             </div>
             
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="px-3 py-1">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Badge variant="outline" className="px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm">
                 {currentTime.toLocaleDateString('ko-KR', { 
                   month: 'short', 
                   day: 'numeric',
                   weekday: 'short'
                 })}
               </Badge>
-              <Button variant="outline" size="sm" onClick={() => router.push('/help')}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => router.push('/help')}
+                className="hidden sm:flex"
+              >
                 도움말
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 메인 콘텐츠 */}
-          <div className="lg:col-span-2 space-y-8">
+        {/* 모바일 최적화 레이아웃 */}
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          {/* 메인 콘텐츠 - 모바일에서는 전체 너비 */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
             {/* 선택된 단어장 섹션 */}
             <SelectedCollectionsSection
               selectedCollections={selectedCollections}
@@ -317,8 +323,8 @@ export default function UnifiedDashboardPage() {
             />
           </div>
 
-          {/* 사이드바 - 학습 통계 */}
-          <div className="space-y-6">
+          {/* 사이드바 - 학습 통계 (모바일에서는 아래에 표시) */}
+          <div className="space-y-4 sm:space-y-6">
             <StudyStatsSection
               selectedCollections={selectedCollections}
               onStartStudy={handleStartStudy}
@@ -326,15 +332,15 @@ export default function UnifiedDashboardPage() {
           </div>
         </div>
 
-        {/* 플로팅 액션 버튼 */}
+        {/* 모바일 최적화 플로팅 액션 버튼 */}
         {selectedCollections.length > 0 && (
-          <div className="fixed bottom-8 right-8 z-50">
+          <div className="fixed bottom-20 sm:bottom-8 right-4 sm:right-8 z-40">
             <Button
               size="lg"
               onClick={() => handleStartStudy('flashcards')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all rounded-full w-14 h-14 p-0"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all rounded-full w-12 h-12 sm:w-14 sm:h-14 p-0"
             >
-              <span className="text-2xl">⚡</span>
+              <span className="text-xl sm:text-2xl">⚡</span>
             </Button>
           </div>
         )}

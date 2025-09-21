@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       }
       
       const collectionData = collectionSnapshot.docs[0].data()
-      const wordIds = collectionData.words || []
+      const wordIds = collectionData.wordIds || []
       
       if (wordIds.length === 0) {
         return NextResponse.json({

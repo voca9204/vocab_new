@@ -112,10 +112,10 @@ export function StudyStatsSection({
   return (
     <div className={cn("space-y-6", className)}>
       {/* 전체 학습 진도 */}
-      <Card className="p-6 border-0 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <span>📊</span>
+      <Card className="p-4 sm:p-6 border-0 shadow-lg">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <span className="text-base sm:text-lg">📊</span>
             전체 학습 진도
           </h3>
           <Badge variant="outline" className="text-xs">
@@ -123,16 +123,16 @@ export function StudyStatsSection({
           </Badge>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="text-center">
             <CircularProgressBar
               value={stats.overallProgress}
-              size={120}
+              size={100}
               variant="default"
-              className="mx-auto"
+              className="mx-auto sm:size-120"
             >
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
                   {stats.overallProgress}%
                 </div>
                 <div className="text-xs text-gray-500">
@@ -142,14 +142,14 @@ export function StudyStatsSection({
             </CircularProgressBar>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-xl font-bold text-blue-600">{stats.studiedWords.toLocaleString()}</div>
-              <div className="text-gray-600">학습한 단어</div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+            <div className="text-center p-2 sm:p-3 bg-blue-50 rounded-lg">
+              <div className="text-lg sm:text-xl font-bold text-blue-600">{stats.studiedWords.toLocaleString()}</div>
+              <div className="text-gray-600 text-xs sm:text-sm">학습한 단어</div>
             </div>
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-xl font-bold text-green-600">{stats.masteredWords.toLocaleString()}</div>
-              <div className="text-gray-600">완료한 단어</div>
+            <div className="text-center p-2 sm:p-3 bg-green-50 rounded-lg">
+              <div className="text-lg sm:text-xl font-bold text-green-600">{stats.masteredWords.toLocaleString()}</div>
+              <div className="text-gray-600 text-xs sm:text-sm">완료한 단어</div>
             </div>
           </div>
 
@@ -184,9 +184,9 @@ export function StudyStatsSection({
       </Card>
 
       {/* 이번 주 학습 현황 */}
-      <Card className="p-6 border-0 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-          <span>📈</span>
+      <Card className="p-4 sm:p-6 border-0 shadow-lg">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+          <span className="text-base sm:text-lg">📈</span>
           이번 주 학습 현황
         </h3>
         
@@ -220,27 +220,27 @@ export function StudyStatsSection({
               bgColor: 'bg-purple-50'
             }
           ].map(({ icon, label, period, value, change, color, bgColor }) => (
-            <div key={label} className={cn("flex items-center justify-between p-4 rounded-lg", bgColor)}>
-              <div className="flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", 
+            <div key={label} className={cn("flex items-center justify-between p-3 sm:p-4 rounded-lg", bgColor)}>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center", 
                   color === 'blue' ? 'bg-blue-100' :
                   color === 'green' ? 'bg-green-100' : 'bg-purple-100'
                 )}>
-                  <span className="text-lg">{icon}</span>
+                  <span className="text-sm sm:text-lg">{icon}</span>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">{label}</div>
+                  <div className="font-medium text-gray-900 text-sm sm:text-base">{label}</div>
                   <div className="text-xs text-gray-600">{period}</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className={cn("text-xl font-bold", 
+                <div className={cn("text-base sm:text-xl font-bold", 
                   color === 'blue' ? 'text-blue-600' :
                   color === 'green' ? 'text-green-600' : 'text-purple-600'
                 )}>
                   {value}
                 </div>
-                <div className={cn("text-xs", 
+                <div className={cn("text-[10px] sm:text-xs", 
                   color === 'blue' ? 'text-blue-500' :
                   color === 'green' ? 'text-green-500' : 'text-purple-500'
                 )}>
@@ -252,8 +252,8 @@ export function StudyStatsSection({
         </div>
 
         {/* 일일 목표 */}
-        <div className="mt-6 pt-4 border-t border-gray-100">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
+        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-100">
+          <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-2">
             <span>일일 목표</span>
             <span>{stats.dailyGoal.current} / {stats.dailyGoal.target}단어</span>
           </div>
@@ -288,25 +288,25 @@ export function StudyStatsSection({
       </Card>
 
       {/* 추천 학습 */}
-      <Card className="p-6 border-0 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-          <span>💡</span>
+      <Card className="p-4 sm:p-6 border-0 shadow-lg">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+          <span className="text-base sm:text-lg">💡</span>
           추천 학습
         </h3>
         
         <div className="space-y-4">
           {/* 오늘의 복습 */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl">🎯</span>
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <span className="text-xl sm:text-2xl">🎯</span>
               <div>
-                <div className="font-medium text-gray-900">오늘의 복습</div>
-                <div className="text-sm text-gray-600">어제 학습한 단어 복습</div>
+                <div className="font-medium text-gray-900 text-sm sm:text-base">오늘의 복습</div>
+                <div className="text-xs sm:text-sm text-gray-600">어제 학습한 단어 복습</div>
               </div>
             </div>
             <Button 
               size="sm" 
-              className="w-full" 
+              className="w-full min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm" 
               variant="outline"
               onClick={() => onStartStudy('review')}
               disabled={selectedCollections.length === 0}
@@ -317,19 +317,19 @@ export function StudyStatsSection({
 
           {/* 새로운 단어 학습 */}
           {stats.remainingTime > 0 && (
-            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">📖</span>
+            <div className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <span className="text-xl sm:text-2xl">📖</span>
                 <div>
-                  <div className="font-medium text-gray-900">새로운 단어</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="font-medium text-gray-900 text-sm sm:text-base">새로운 단어</div>
+                  <div className="text-xs sm:text-sm text-gray-600">
                     약 {Math.ceil(stats.remainingTime / 60)}시간 남음
                   </div>
                 </div>
               </div>
               <Button 
                 size="sm" 
-                className="w-full"
+                className="w-full min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm"
                 onClick={() => onStartStudy('flashcards')}
                 disabled={selectedCollections.length === 0}
               >
@@ -339,19 +339,19 @@ export function StudyStatsSection({
           )}
 
           {/* 약한 단어 집중 학습 */}
-          <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-100">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl">🎖️</span>
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-100">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <span className="text-xl sm:text-2xl">🎖️</span>
               <div>
-                <div className="font-medium text-gray-900">약한 단어 집중</div>
-                <div className="text-sm text-gray-600">
+                <div className="font-medium text-gray-900 text-sm sm:text-base">약한 단어 집중</div>
+                <div className="text-xs sm:text-sm text-gray-600">
                   정답률이 낮은 단어 위주 학습
                 </div>
               </div>
             </div>
             <Button 
               size="sm" 
-              className="w-full" 
+              className="w-full min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm" 
               variant="outline"
               onClick={() => onStartStudy('weak-words')}
               disabled={selectedCollections.length === 0}
@@ -362,19 +362,19 @@ export function StudyStatsSection({
 
           {/* 랜덤 학습 */}
           {selectedCollections.length > 1 && (
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">🎲</span>
+            <div className="p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <span className="text-xl sm:text-2xl">🎲</span>
                 <div>
-                  <div className="font-medium text-gray-900">랜덤 학습</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="font-medium text-gray-900 text-sm sm:text-base">랜덤 학습</div>
+                  <div className="text-xs sm:text-sm text-gray-600">
                     모든 단어장에서 랜덤 선택
                   </div>
                 </div>
               </div>
               <Button 
                 size="sm" 
-                className="w-full" 
+                className="w-full min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm" 
                 variant="outline"
                 onClick={() => onStartStudy('random')}
               >
@@ -386,8 +386,8 @@ export function StudyStatsSection({
 
         {/* 학습 통계 상세 */}
         {stats.totalWords > 0 && (
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <div className="text-sm font-medium text-gray-900 mb-3">단어장별 진도</div>
+          <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-100">
+            <div className="text-xs sm:text-sm font-medium text-gray-900 mb-2 sm:mb-3">단어장별 진도</div>
             <StackedProgressBar
               items={selectedCollections.map(c => ({
                 label: c.name,

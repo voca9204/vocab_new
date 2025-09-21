@@ -359,7 +359,7 @@ export const vocabularyServiceV2 = {
           
           if (!personalSnapshot.empty) {
             const collectionData = personalSnapshot.docs[0].data()
-            const wordIds = collectionData.words || []
+            const wordIds = collectionData.wordIds || []
             
             console.log(`[vocabularyServiceV2.getAll] Found ${wordIds.length} word IDs in personal collection ${vocabIdentifier}`)
             
@@ -433,7 +433,7 @@ export const vocabularyServiceV2 = {
             
             if (!collectionSnapshot.empty) {
               const collectionData = collectionSnapshot.docs[0].data()
-              const wordIds = collectionData.words || []
+              const wordIds = collectionData.wordIds || []
               
               console.log(`[vocabularyServiceV2.getAll] Found ${wordIds.length} word IDs in vocabulary collection ${vocabIdentifier}`)
               

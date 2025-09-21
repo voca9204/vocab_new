@@ -16,7 +16,7 @@ export interface OfficialCollection {
   displayName: string              // UI 표시명
   category: OfficialCategory
   description: string
-  words: string[]                  // 포함된 단어 ID 배열
+  wordIds: string[]                // 포함된 단어 ID 배열
   wordCount: number
   difficulty: DifficultyLevel
   isOfficial: true                 // 항상 true
@@ -45,7 +45,7 @@ export interface PersonalCollection {
   userEmail?: string               // 소유자 이메일
   name: string                     // 사용자 지정 이름
   description?: string
-  words: string[]                  // 포함된 단어 ID 배열
+  wordIds: string[]                // 포함된 단어 ID 배열
   wordCount: number
   isPrivate: boolean               // true: 비공개, false: 공개
   isShared: boolean                // 공유 여부

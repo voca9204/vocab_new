@@ -48,7 +48,11 @@ export async function POST(request: NextRequest) {
     const openai = new OpenAI({ apiKey })
 
     // Generate examples
-    const prompt = `Generate 3 clear and educational example sentences for the SAT vocabulary word "${word}" (${partOfSpeech.join(', ')}). 
+    // Handle both string and array partOfSpeech
+    const partOfSpeechText = Array.isArray(partOfSpeech) 
+      ? partOfSpeech.join(', ') 
+      : partOfSpeech
+    const prompt = `Generate 3 clear and educational example sentences for the SAT vocabulary word "${word}" (${partOfSpeechText}). 
 Definition: ${definition}
 
 Requirements:

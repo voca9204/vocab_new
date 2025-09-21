@@ -361,7 +361,7 @@ export default function HomePage() {
             <Button 
               size="lg"
               className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-6 text-lg"
-              onClick={() => router.push(user ? '/dashboard' : '/login')}
+              onClick={() => router.push(user ? '/unified-dashboard' : '/login')}
             >
               {user ? '대시보드로 이동' : '무료로 시작하기'}
               <ArrowRight className="ml-2 h-5 w-5" />

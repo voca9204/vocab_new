@@ -118,16 +118,23 @@ const WordCard = React.memo(function WordCard({ word, onClick }: WordCardProps) 
         {word.definition || word.englishDefinition || 'No definition available'}
       </p>
       
-      {word.partOfSpeech && word.partOfSpeech.length > 0 && (
+      {word.partOfSpeech && (
         <div className="flex gap-1 flex-wrap">
-          {word.partOfSpeech.map((pos, idx) => (
-            <span
-              key={idx}
-              className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
-            >
-              {pos}
-            </span>
-          ))}
+          {(() => {
+            const parts = Array.isArray(word.partOfSpeech) 
+              ? word.partOfSpeech 
+              : typeof word.partOfSpeech === 'string' 
+                ? [word.partOfSpeech] 
+                : [];
+            return parts.map((pos, idx) => (
+              <span
+                key={idx}
+                className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+              >
+                {pos}
+              </span>
+            ));
+          })()}
         </div>
       )}
       

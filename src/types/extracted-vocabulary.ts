@@ -37,7 +37,7 @@ export interface VocabularyCollection {
   id?: string
   name: string
   description?: string
-  words: string[] // word IDs
+  wordIds: string[] // word IDs
   userId: string
   createdAt: Date
   updatedAt: Date

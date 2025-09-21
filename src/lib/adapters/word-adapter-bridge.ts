@@ -175,6 +175,21 @@ export class WordAdapterBridge {
   }
   
   /**
+   * Update word synonyms
+   */
+  async updateWordSynonyms(wordId: string, synonyms: string[]): Promise<void> {
+    // Try the old adapter first since it has the updateWordSynonyms method
+    try {
+      await this.oldAdapter.updateWordSynonyms(wordId, synonyms)
+      console.log(`[WordAdapterBridge] Updated synonyms for ${wordId} via old adapter`)
+      return
+    } catch (error) {
+      console.warn(`[WordAdapterBridge] Failed to update synonyms via old adapter:`, error)
+      throw error
+    }
+  }
+  
+  /**
    * Get statistics about adapter usage
    */
   getStats() {

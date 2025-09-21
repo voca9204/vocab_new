@@ -185,15 +185,18 @@ This project is proprietary and confidential.
 - **[Architecture Status](docs/ARCHITECTURE/current-status.md)** - Current system status and metrics
 
 ### 📖 Complete Documentation
-- **[Architecture](docs/ARCHITECTURE/)** - System design, database structure, project organization
+- **[Architecture](docs/architecture/)** - System design, database structure, improvement plans
 - **[Development](docs/DEVELOPMENT/)** - Development history, migration logs, and timeline
 - **[Guides](docs/GUIDES/)** - Developer and user guides
-- **[Reference](docs/REFERENCE/)** - API documentation and technical references
 
 ### 📋 Quick Links
-- [Database Schema](docs/ARCHITECTURE/database.md) - Complete database structure
+- [Database Schema](docs/architecture/database.md) - Complete database structure
+- [Current Status](docs/architecture/current-status.md) - System metrics and status
+- [Improvement Plan](docs/architecture/improvement-plan.md) - Collection architecture improvements
 - [Development Timeline](docs/DEVELOPMENT/history.md) - Project history and milestones
-- [Project Structure](docs/ARCHITECTURE/project-structure.md) - Detailed codebase organization
+
+### 📦 Archive
+- [Legacy Documents](docs/ARCHIVE/2025-Q1/) - Archived architecture documents from Q1 2025
 
 ---
 

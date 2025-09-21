@@ -1,0 +1,26 @@
+{
+  "backupTimestamp": "2025-08-29T03:48:46.648Z",
+  "projectId": "vocabulary-app-new",
+  "backupPurpose": "Pre-migration safety backup",
+  "collections": [
+    {
+      "collection": "words",
+      "count": 2548,
+      "filePath": "backups/migration_backup_1756439323822/words.json",
+      "timestamp": "2025-08-29T03:48:45.245Z"
+    },
+    {
+      "collection": "words_v3",
+      "count": 4139,
+      "filePath": "backups/migration_backup_1756439323822/words_v3.json",
+      "timestamp": "2025-08-29T03:48:46.590Z"
+    },
+    {
+      "collection": "vocabulary_collections",
+      "count": 9,
+      "filePath": "backups/migration_backup_1756439323822/vocabulary_collections.json",
+      "timestamp": "2025-08-29T03:48:46.648Z"
+    }
+  ],
+  "totalDocuments": 6696
+}

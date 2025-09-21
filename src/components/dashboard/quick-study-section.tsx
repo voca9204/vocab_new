@@ -134,7 +134,7 @@ export function QuickStudySection({
         key={mode.id}
         className={cn(
           "group cursor-pointer transition-all duration-200",
-          size === 'large' ? "h-32" : "h-24"
+          size === 'large' ? "h-28 sm:h-32" : "h-20 sm:h-24"
         )}
         onClick={() => !disabled && onStartStudy(mode.id)}
       >
@@ -143,7 +143,7 @@ export function QuickStudySection({
           disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-[1.02]"
         )}>
           <div className={cn(
-            "h-full p-6 bg-gradient-to-br text-white relative overflow-hidden",
+            "h-full p-3 sm:p-6 bg-gradient-to-br text-white relative overflow-hidden",
             mode.bgColor,
             disabled && "grayscale"
           )}>
@@ -163,23 +163,22 @@ export function QuickStudySection({
             
             {/* 컨텐츠 */}
             <div className="relative z-10 h-full flex flex-col">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
                 <span className={cn(
-                  "text-2xl",
-                  size === 'small' && "text-xl"
+                  size === 'large' ? "text-xl sm:text-2xl" : "text-lg sm:text-xl"
                 )}>
                   {mode.icon}
                 </span>
                 <div>
                   <h3 className={cn(
                     "font-bold",
-                    size === 'large' ? "text-lg" : "text-base"
+                    size === 'large' ? "text-sm sm:text-lg" : "text-sm sm:text-base"
                   )}>
                     {mode.name}
                   </h3>
                   <p className={cn(
-                    "text-white/80 text-xs",
-                    size === 'large' ? "block" : "hidden"
+                    "text-white/80",
+                    size === 'large' ? "text-xs hidden sm:block" : "hidden"
                   )}>
                     {mode.shortDesc}
                   </p>
@@ -188,15 +187,15 @@ export function QuickStudySection({
               
               {size === 'large' && (
                 <>
-                  <p className="text-sm text-white/90 mb-3 flex-1 line-clamp-2">
+                  <p className="text-xs sm:text-sm text-white/90 mb-2 sm:mb-3 flex-1 line-clamp-2 hidden sm:block">
                     {mode.description}
                   </p>
                   
-                  <div className="flex items-center justify-between text-xs text-white/80">
-                    <span>⏱️ {mode.estimatedTime}</span>
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs text-white/80">
+                    <span className="hidden sm:inline">⏱️ {mode.estimatedTime}</span>
                     {!disabled && (
-                      <span className="group-hover:text-white transition-colors">
-                        시작하기 →
+                      <span className="group-hover:text-white transition-colors text-xs sm:text-sm">
+                        시작 →
                       </span>
                     )}
                   </div>
@@ -210,16 +209,16 @@ export function QuickStudySection({
   }
 
   return (
-    <Card className={cn("p-6 border-0 shadow-lg", className)}>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-1 flex items-center gap-2">
-          <span>⚡</span>
+    <Card className={cn("p-4 sm:p-6 border-0 shadow-lg", className)}>
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 flex items-center gap-2">
+          <span className="text-lg sm:text-xl">⚡</span>
           빠른 학습 시작
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs sm:text-sm text-gray-600">
           선호하는 학습 방식을 선택하여 즉시 시작하세요
           {selectedCollections.length > 0 && (
-            <span className="ml-2 text-blue-600 font-medium">
+            <span className="ml-2 text-blue-600 font-medium block sm:inline">
               ({totalWords.toLocaleString()}개 단어 준비됨)
             </span>
           )}
@@ -228,34 +227,34 @@ export function QuickStudySection({
 
       {selectedCollections.length === 0 ? (
         /* 단어장 미선택 상태 */
-        <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
-          <div className="text-6xl mb-4 opacity-50">⚡</div>
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
+        <div className="text-center py-8 sm:py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+          <div className="text-4xl sm:text-6xl mb-3 sm:mb-4 opacity-50">⚡</div>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-600 mb-2">
             학습할 단어장을 먼저 선택해주세요
           </h3>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-xs sm:text-sm">
             단어장을 선택하면 다양한 학습 모드를 사용할 수 있습니다
           </p>
         </div>
       ) : (
         <div className="space-y-6">
           {/* 메인 학습 모드들 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {STUDY_MODES.map(mode => renderModeCard(mode))}
           </div>
 
           {/* 고급 학습 옵션 */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                <span>🎯</span>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 flex items-center gap-2">
+                <span className="text-base sm:text-lg">🎯</span>
                 고급 학습 옵션
               </h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-blue-600 hover:text-blue-700"
+                className="text-blue-600 hover:text-blue-700 min-h-[36px] sm:min-h-[32px] px-3 sm:px-4"
               >
                 {showAdvanced ? '숨기기' : '더보기'}
                 <span className={cn(
@@ -268,19 +267,19 @@ export function QuickStudySection({
             </div>
 
             {showAdvanced && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {ADVANCED_MODES.map(mode => renderModeCard(mode, 'small'))}
               </div>
             )}
           </div>
 
           {/* 학습 팁 */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💡</span>
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <span className="text-xl sm:text-2xl">💡</span>
               <div className="flex-1">
-                <h4 className="font-medium text-gray-900 mb-2">학습 팁</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-medium text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">학습 팁</h4>
+                <ul className="text-xs sm:text-sm text-gray-600 space-y-1">
                   <li>• <strong>플래시카드</strong>는 새로운 단어 암기에 가장 효과적입니다</li>
                   <li>• <strong>퀴즈</strong>로 학습 효과를 확인하고 실력을 측정하세요</li>
                   <li>• <strong>복습</strong>은 망각 곡선을 고려한 최적의 시점에 진행됩니다</li>
@@ -292,12 +291,12 @@ export function QuickStudySection({
 
           {/* 추천 학습 계획 */}
           {hasProgress && (
-            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">📋</span>
+            <div className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <span className="text-xl sm:text-2xl">📋</span>
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 mb-2">오늘의 추천 학습 계획</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <h4 className="font-medium text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">오늘의 추천 학습 계획</h4>
+                  <div className="space-y-2 text-xs sm:text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <span className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center text-xs">1</span>
                       <span>복습 (10분) - 어제 학습한 단어들</span>

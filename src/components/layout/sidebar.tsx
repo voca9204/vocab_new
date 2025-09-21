@@ -192,25 +192,10 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={toggleMobileSidebar}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-gray-200 shadow-sm md:hidden focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        aria-label={isMobileOpen ? "메뉴 닫기" : "메뉴 열기"}
-        aria-expanded={isMobileOpen}
-        aria-controls="mobile-sidebar-menu"
-        type="button"
-      >
-        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      {/* Mobile Menu Button - Hidden since we use bottom navigation */}
+      {/* Removed hamburger menu button for mobile */}
 
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={toggleMobileSidebar}
-        />
-      )}
+      {/* Mobile Overlay - No longer needed */}
 
       {/* Toggle Button for Collapsed State */}
       {isCollapsed && (
@@ -222,20 +207,18 @@ export function Sidebar() {
         </button>
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Hidden on mobile, visible on desktop */}
       <aside
         className={cn(
           "fixed left-0 top-0 h-screen border-r border-gray-200 transition-all duration-300 shadow-lg",
-          // Mobile: show/hide based on isMobileOpen, always full width
-          isMobileOpen ? "z-50 w-64 block bg-white" : "hidden",
+          // Mobile: always hidden since we use bottom navigation
+          "hidden",
           // Desktop: always visible, width based on collapsed state
           "md:block md:z-40 md:bg-white",
           isCollapsed ? "md:w-16" : "md:w-64"
         )}
-        id="mobile-sidebar-menu"
         role="navigation"
         aria-label="주 네비게이션 메뉴"
-        data-mobile-open={isMobileOpen}
       >
         <div className="flex flex-col h-full">
           {/* Header */}

@@ -106,20 +106,20 @@ export function SelectedCollectionsSection({
   }
 
   return (
-    <Card className={cn("p-6 border-0 shadow-lg hover:shadow-xl transition-shadow", className)}>
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
+    <Card className={cn("p-4 sm:p-6 border-0 shadow-lg hover:shadow-xl transition-shadow", className)}>
+      {/* 모바일 최적화 헤더 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-1 flex items-center gap-2">
-            <Target className="w-5 h-5" />
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 flex items-center gap-2">
+            <Target className="w-4 sm:w-5 h-4 sm:h-5" />
             선택된 단어장
           </h2>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span>{selectedCollections.length}개 단어장</span>
-            <span>•</span>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
+            <span className="font-medium">{selectedCollections.length}개 단어장</span>
+            <span className="hidden sm:inline">•</span>
             <span>{stats.totalWords.toLocaleString()}개 단어</span>
-            <span>•</span>
-            <span>{stats.overallProgress}% 진도</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{stats.overallProgress}% 진도</span>
           </div>
         </div>
         
@@ -129,14 +129,16 @@ export function SelectedCollectionsSection({
             size="sm"
             onClick={handleUnselectAll}
             disabled={selectedCollections.length === 0}
+            className="text-xs sm:text-sm"
           >
             모두 해제
           </Button>
           <Button 
             onClick={onOpenSelectionModal}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            className="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-xs sm:text-sm px-3 sm:px-4"
+            size="sm"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3 sm:w-4 h-3 sm:h-4" />
             단어장 추가
           </Button>
         </div>
@@ -192,54 +194,56 @@ export function SelectedCollectionsSection({
             })}
           </div>
 
-          {/* 도구 모음 */}
-          <div className="flex items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-4 flex-1">
+          {/* 모바일 최적화 도구 모음 */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
               {/* 검색 */}
-              <div className="relative flex-1 max-w-md">
+              <div className="relative flex-1">
                 <Input
                   placeholder="단어장 검색..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm sm:text-base"
                 />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <Search className="w-4 h-4 text-gray-400" />
+                <div className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2">
+                  <Search className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-gray-400" />
                 </div>
               </div>
 
-              {/* 정렬 */}
-              <Select value={sortMode} onValueChange={(value: SortMode) => setSortMode(value)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">최근순</SelectItem>
-                  <SelectItem value="name">이름순</SelectItem>
-                  <SelectItem value="wordCount">단어수순</SelectItem>
-                  <SelectItem value="progress">진도순</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="flex gap-2">
+                {/* 정렬 */}
+                <Select value={sortMode} onValueChange={(value: SortMode) => setSortMode(value)}>
+                  <SelectTrigger className="flex-1 sm:w-32 h-9 sm:h-10 text-xs sm:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">최근순</SelectItem>
+                    <SelectItem value="name">이름순</SelectItem>
+                    <SelectItem value="wordCount">단어수순</SelectItem>
+                    <SelectItem value="progress">진도순</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            {/* 보기 모드 */}
-            <div className="flex border rounded-md">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                className="rounded-r-none"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                className="rounded-l-none"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="w-4 h-4" />
-              </Button>
+                {/* 보기 모드 */}
+                <div className="flex border rounded-md">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="rounded-r-none h-9 sm:h-10 px-2 sm:px-3"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="rounded-l-none h-9 sm:h-10 px-2 sm:px-3"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -254,6 +258,7 @@ export function SelectedCollectionsSection({
                   variant="ghost"
                   size="sm"
                   onClick={() => setSearchQuery('')}
+                  className="min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm"
                 >
                   전체 보기
                 </Button>
@@ -261,10 +266,10 @@ export function SelectedCollectionsSection({
             </div>
           )}
 
-          {/* 단어장 목록 */}
+          {/* 모바일 최적화 단어장 목록 */}
           <div className={cn(
             viewMode === 'grid' 
-              ? 'grid grid-cols-1 md:grid-cols-2 gap-4'
+              ? 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'
               : 'space-y-2'
           )}>
             {filteredAndSortedCollections.map(collection => {
@@ -302,7 +307,7 @@ export function SelectedCollectionsSection({
                 variant="ghost"
                 size="sm"
                 onClick={() => setSearchQuery('')}
-                className="mt-2"
+                className="mt-2 min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm"
               >
                 검색 초기화
               </Button>
@@ -321,12 +326,14 @@ export function SelectedCollectionsSection({
                     variant="outline"
                     size="sm"
                     onClick={() => onStartStudy('flashcards')}
+                    className="min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm"
                   >
                     플래시카드로 시작
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => onStartStudy('list')}
+                    className="min-h-[36px] sm:min-h-[32px] text-xs sm:text-sm"
                   >
                     단어목록으로 시작
                   </Button>

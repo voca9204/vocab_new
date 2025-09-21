@@ -77,15 +77,22 @@ export default function CollectionsPage() {
     }
   }
 
-  const filteredOfficialCollections = officialCollections.filter(collection => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
-    return (
-      collection.name.toLowerCase().includes(query) ||
-      collection.description?.toLowerCase().includes(query) ||
-      collection.tags?.some(tag => tag.toLowerCase().includes(query))
-    )
-  })
+  const filteredOfficialCollections = officialCollections
+    .filter(collection => {
+      if (!searchQuery) return true
+      const query = searchQuery.toLowerCase()
+      return (
+        collection.name.toLowerCase().includes(query) ||
+        collection.description?.toLowerCase().includes(query) ||
+        collection.tags?.some(tag => tag.toLowerCase().includes(query))
+      )
+    })
+    .sort((a, b) => {
+      // 단어 수가 많은 순서로 정렬 (내림차순)
+      const countA = a.wordCount || 0
+      const countB = b.wordCount || 0
+      return countB - countA
+    })
 
   const filteredPublicCollections = publicCollections.filter(collection => {
     if (!searchQuery) return true

@@ -277,14 +277,21 @@ const WordDetailModalBase = React.forwardRef<HTMLDivElement, WordDetailModalProp
                 <div className="overflow-x-auto">
                   <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
                     <h2 className="text-xl sm:text-2xl font-bold break-words">{word.word}</h2>
-                    {word.partOfSpeech.map(pos => (
-                      <span 
-                        key={pos}
-                        className={`text-sm px-2 py-0.5 rounded ${getPartOfSpeechColor(pos)}`}
-                      >
-                        {pos}
-                      </span>
-                    ))}
+                    {(() => {
+                      const parts = Array.isArray(word.partOfSpeech) 
+                        ? word.partOfSpeech 
+                        : typeof word.partOfSpeech === 'string' 
+                          ? [word.partOfSpeech] 
+                          : [];
+                      return parts.map(pos => (
+                        <span 
+                          key={pos}
+                          className={`text-sm px-2 py-0.5 rounded ${getPartOfSpeechColor(pos)}`}
+                        >
+                          {pos}
+                        </span>
+                      ));
+                    })()}
                     {fetchingPronunciation ? (
                       <span className="text-xs sm:text-sm text-gray-500 italic">발음 정보 가져오는 중...</span>
                     ) : word.pronunciation ? (
