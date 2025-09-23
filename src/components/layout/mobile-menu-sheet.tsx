@@ -1,6 +1,6 @@
 'use client'
 
-import { X, ChevronRight, User, Settings, LogOut, HelpCircle, BookOpen, Trophy, BarChart3, GraduationCap, List, CreditCard, Brain, PenTool, RefreshCw, Calendar } from 'lucide-react'
+import { X, ChevronRight, User, Settings, LogOut, HelpCircle, Bell, Moon, Globe, Palette, Shield, Database } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { signOut } from 'firebase/auth'
@@ -37,73 +37,67 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
   }
 
   const menuItems: MenuItem[] = [
-    // Study Methods Section
+    // User Settings Section
     {
-      id: 'study-list',
-      label: '단어 목록',
-      icon: List,
-      href: '/study/list'
+      id: 'profile',
+      label: '프로필 설정',
+      icon: User,
+      href: '/profile'
     },
     {
-      id: 'study-flashcards',
-      label: '플래시카드',
-      icon: CreditCard,
-      href: '/study/flashcards'
-    },
-    {
-      id: 'study-quiz',
-      label: '퀴즈',
-      icon: Brain,
-      href: '/study/quiz'
-    },
-    {
-      id: 'study-typing',
-      label: '타이핑 연습',
-      icon: PenTool,
-      href: '/study/typing'
-    },
-    {
-      id: 'study-review',
-      label: '복습',
-      icon: RefreshCw,
-      href: '/study/review'
-    },
-    {
-      id: 'study-daily',
-      label: '데일리 학습',
-      icon: Calendar,
-      href: '/study/daily'
+      id: 'notifications',
+      label: '알림 설정',
+      icon: Bell,
+      href: '/settings/notifications'
     },
     {
       id: 'divider1',
       label: '',
       divider: true
     },
-    // Features Section
+    // App Settings Section
     {
-      id: 'study-stats',
-      label: '학습 통계',
-      icon: BarChart3,
-      href: '/study/stats'
+      id: 'theme',
+      label: '테마 설정',
+      icon: Palette,
+      href: '/settings/theme'
     },
     {
-      id: 'achievements',
-      label: '성취도',
-      icon: Trophy,
-      href: '/achievements'
+      id: 'dark-mode',
+      label: '다크 모드',
+      icon: Moon,
+      href: '/settings/appearance'
+    },
+    {
+      id: 'language',
+      label: '언어 설정',
+      icon: Globe,
+      href: '/settings/language'
     },
     {
       id: 'divider2',
       label: '',
       divider: true
     },
-    // User Section
+    // Data & Privacy Section
     {
-      id: 'settings',
-      label: '설정',
-      icon: Settings,
-      href: '/settings'
+      id: 'data',
+      label: '데이터 관리',
+      icon: Database,
+      href: '/settings/data'
     },
+    {
+      id: 'privacy',
+      label: '개인정보 보호',
+      icon: Shield,
+      href: '/settings/privacy'
+    },
+    {
+      id: 'divider3',
+      label: '',
+      divider: true
+    },
+    // Support Section
     {
       id: 'help',
       label: '도움말',
@@ -111,7 +105,7 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
       href: '/help'
     },
     {
-      id: 'divider3',
+      id: 'divider4',
       label: '',
       divider: true
     },
@@ -149,7 +143,7 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-semibold leading-6 text-gray-900">
-                  메뉴
+                  설정
                 </h2>
                 {user && (
                   <p className="mt-1 text-sm text-gray-500">{user.email}</p>
@@ -160,7 +154,7 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
                 className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 onClick={onClose}
               >
-                <span className="sr-only">메뉴 닫기</span>
+                <span className="sr-only">설정 메뉴 닫기</span>
                 <X className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>

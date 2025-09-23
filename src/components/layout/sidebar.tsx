@@ -45,6 +45,17 @@ export function Sidebar() {
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(true) // 기본값을 true로 변경 (열린 상태)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Mobile에서는 렌더링하지 않음 (하단 네비게이션 사용)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // 사이드바 상태를 부모 컴포넌트에 전달하기 위한 이벤트
   useEffect(() => {
@@ -154,10 +165,13 @@ export function Sidebar() {
 
   const isOpen = isExpanded // hover 제거, 클릭만으로 제어
 
+  // 모바일에서는 하단 네비게이션을 사용하므로 사이드바 숨김
+  if (isMobile) return null
+
   return (
     <>
-      {/* 모바일 메뉴 버튼 */}
-      <button
+      {/* 모바일 메뉴 버튼 - 모바일에서는 렌더링하지 않음 */}
+      {/* <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md md:hidden"
         aria-label="메뉴 열기"

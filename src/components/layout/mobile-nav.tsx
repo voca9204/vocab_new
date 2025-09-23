@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, BookOpen, Camera, Menu, FolderOpen } from 'lucide-react'
+import { Home, BookOpen, User, BarChart3, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import MobileMenuSheet from './mobile-menu-sheet'
 
@@ -30,25 +30,25 @@ export default function MobileNav() {
       id: 'study',
       label: '학습',
       icon: BookOpen,
-      href: '/unified-dashboard'  // Link to new unified dashboard
+      href: '/unified-dashboard'
     },
     {
-      id: 'photo',
-      label: '사진',
-      icon: Camera,
-      href: '/study/photo-vocab'
+      id: 'stats',
+      label: '통계',
+      icon: BarChart3,
+      href: '/study/stats'
     },
     {
-      id: 'collections',
-      label: '단어장',
-      icon: FolderOpen,
-      href: '/'  // Collections are now integrated into home page
+      id: 'profile',
+      label: '프로필',
+      icon: User,
+      href: '/profile'
     },
     {
-      id: 'more',
-      label: '더보기',
-      icon: Menu,
-      action: () => setShowMenu(true)  // Opens full menu sheet with all study methods
+      id: 'settings',
+      label: '설정',
+      icon: Settings,
+      action: () => setShowMenu(true)  // Opens settings and more options
     }
   ]
 
@@ -64,8 +64,9 @@ export default function MobileNav() {
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = item.href && (
-              pathname.startsWith(item.href) || 
-              (item.href === '/unified-dashboard' && pathname === '/')
+              pathname === item.href ||
+              (item.href === '/unified-dashboard' && pathname.startsWith('/study/')) ||
+              (item.href === '/study/stats' && pathname.startsWith('/achievement'))
             )
             
             return (
@@ -84,7 +85,7 @@ export default function MobileNav() {
                     ? "text-blue-600" 
                     : "text-gray-500 hover:text-gray-700"
                 )}
-                aria-label={`${item.label} ${item.href ? '페이지로 이동' : '메뉴 열기'}`}
+                aria-label={`${item.label} ${item.href ? '페이지로 이동' : '설정 메뉴 열기'}`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 <Icon className={cn(
