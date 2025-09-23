@@ -24,13 +24,13 @@ export default function MobileNav() {
       id: 'home',
       label: '홈',
       icon: Home,
-      href: '/unified-dashboard'  // Fixed: Changed from /dashboard to /unified-dashboard
+      href: '/'
     },
     {
       id: 'study',
       label: '학습',
       icon: BookOpen,
-      href: '/study'
+      href: '/unified-dashboard'  // Link to new unified dashboard
     },
     {
       id: 'photo',
@@ -42,18 +42,18 @@ export default function MobileNav() {
       id: 'collections',
       label: '단어장',
       icon: FolderOpen,
-      href: '/collections'
+      href: '/'  // Collections are now integrated into home page
     },
     {
       id: 'more',
       label: '더보기',
       icon: Menu,
-      action: () => setShowMenu(true)  // Opens full menu sheet
+      action: () => setShowMenu(true)  // Opens full menu sheet with all study methods
     }
   ]
 
   // 로그인 페이지나 일부 특수 페이지에서는 네비게이션 숨김
-  const hideNav = pathname === '/login' || pathname === '/' || pathname.startsWith('/admin')
+  const hideNav = pathname === '/login' || pathname.startsWith('/admin')
 
   if (hideNav) return null
 

@@ -27,7 +27,13 @@ import { VirtualWordList } from '@/components/vocabulary/virtual-word-list'
 export default function VocabularyListPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { words: contextWords, wordLoading: contextLoading, selectedCollections, updateWordSynonyms } = useCollectionV2()
+  const {
+    allWords: contextWords,
+    wordLoading: contextLoading,
+    selectedCollections,
+    updateWordSynonyms,
+    loadWords: loadAllWordsContext
+  } = useCollectionV2()
   const [filteredWords, setFilteredWords] = useState<UnifiedWord[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -102,6 +108,13 @@ export default function VocabularyListPage() {
     }
   }
 
+  // 단어 목록 페이지는 검색을 위해 전체 단어를 로드해야 함
+  useEffect(() => {
+    if (user && selectedCollections.length > 0) {
+      loadAllWordsContext(10000) // 전체 로드
+    }
+  }, [user, selectedCollections, loadAllWordsContext])
+
   // Use context words instead of loading separately
   useEffect(() => {
     setLoading(contextLoading)
@@ -118,9 +131,18 @@ export default function VocabularyListPage() {
   const filterWords = useCallback(() => {
     let filtered = contextWords
 
+    // 중복된 ID 제거 (같은 ID가 여러 개 있을 경우 첫 번째 것만 사용)
+    const uniqueWords = new Map<string, typeof contextWords[0]>()
+    filtered.forEach(word => {
+      if (word.id && !uniqueWords.has(word.id)) {
+        uniqueWords.set(word.id, word)
+      }
+    })
+    filtered = Array.from(uniqueWords.values())
+
     // 검색어 필터링 (UnifiedWord 구조에 맞게 수정)
     if (searchTerm) {
-      filtered = filtered.filter(word => 
+      filtered = filtered.filter(word =>
         word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (word.definition && word.definition.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (word.englishDefinition && word.englishDefinition.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -179,9 +201,9 @@ export default function VocabularyListPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 헤더 */}
-      <StudyHeader 
+      <StudyHeader
         title="단어 목록"
-        subtitle={`${selectedCollections.map(wb => wb.name).join(', ')} - ${filteredWords.length}개 단어${filteredWords.length > 50 ? ' (가상 스크롤링 활성화)' : ''}`}
+        subtitle={`${selectedCollections.map(wb => wb.name).join(', ')} - ${filteredWords.length}개 단어`}
         backPath="/unified-dashboard"
       />
 
@@ -229,32 +251,23 @@ export default function VocabularyListPage() {
         </div>
       </div>
 
-      {/* 단어 목록 - Virtual Scrolling 적용 */}
+      {/* 단어 목록 - 그리드 레이아웃 */}
       {loading ? (
         <div className="text-center py-8">로딩 중...</div>
-      ) : filteredWords.length > 50 ? (
-        // 50개 이상일 때 Virtual Scrolling 사용
-        <div className="h-[calc(100vh-300px)]">
-          <VirtualWordList
-            words={filteredWords}
-            onWordClick={openModal}
-            className="bg-gray-50 rounded-lg p-2"
-          />
-        </div>
       ) : (
-        // 50개 미만일 때는 기존 그리드 레이아웃 사용
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredWords.map((word) => (
-            <Card 
-              key={word.id}
+        // 모든 경우에 그리드 레이아웃 사용 (가상화는 300개 이상일 때만 고려)
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredWords.map((word, index) => (
+            <Card
+              key={`${word.id}-${index}`}
               className="p-4 cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => openModal(word)}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-lg">{word.word}</h3>
-                  {word.partOfSpeech.map(pos => (
-                    <span 
+                  {Array.isArray(word.partOfSpeech) && word.partOfSpeech.map(pos => (
+                    <span
                       key={pos}
                       className={`text-xs px-2 py-1 rounded ${getPartOfSpeechColor(pos)}`}
                     >

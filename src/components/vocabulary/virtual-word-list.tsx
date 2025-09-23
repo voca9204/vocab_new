@@ -11,19 +11,44 @@ interface VirtualWordListProps {
   className?: string
   itemHeight?: number
   overscan?: number
+  columns?: 1 | 2 | 3 // 컬럼 수 설정
 }
 
 function VirtualWordListBase({
   words,
   onWordClick,
   className,
-  itemHeight = 120, // Estimated height for word cards
-  overscan = 5 // Number of items to render outside of view
+  itemHeight = 140, // Estimated height for word cards (increased for better spacing)
+  overscan = 5, // Number of items to render outside of view
+  columns = 1 // Default to 1 column for mobile
 }: VirtualWordListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
-  
+
+  // 반응형 컬럼 수 결정
+  const [responsiveColumns, setResponsiveColumns] = React.useState(1)
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth
+      if (width < 768) {
+        setResponsiveColumns(1) // 모바일: 1개
+      } else if (width < 1280) {
+        setResponsiveColumns(2) // 태블릿/작은 데스크톱: 2개
+      } else {
+        setResponsiveColumns(3) // 큰 데스크톱: 3개
+      }
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const actualColumns = columns || responsiveColumns
+  const rowCount = Math.ceil(words.length / actualColumns)
+
   const virtualizer = useVirtualizer({
-    count: words.length,
+    count: rowCount,
     getScrollElement: () => parentRef.current,
     estimateSize: () => itemHeight,
     overscan,
@@ -54,27 +79,41 @@ function VirtualWordListBase({
           position: 'relative',
         }}
       >
-        {items.map((virtualItem) => {
-          const word = words[virtualItem.index]
-          
+        {items.map((virtualRow) => {
+          const startIndex = virtualRow.index * actualColumns
+          const endIndex = Math.min(startIndex + actualColumns, words.length)
+          const rowWords = words.slice(startIndex, endIndex)
+
           return (
             <div
-              key={virtualItem.key}
-              data-index={virtualItem.index}
+              key={virtualRow.key}
+              data-index={virtualRow.index}
               ref={virtualizer.measureElement}
               style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
+                transform: `translateY(${virtualRow.start}px)`,
               }}
             >
-              <div className="p-2">
-                <WordCard
-                  word={word}
-                  onClick={() => onWordClick?.(word)}
-                />
+              <div className={cn(
+                "grid gap-4 p-2",
+                actualColumns === 1 && "grid-cols-1",
+                actualColumns === 2 && "grid-cols-2",
+                actualColumns === 3 && "grid-cols-3"
+              )}>
+                {rowWords.map((word, idx) => (
+                  <WordCard
+                    key={`${virtualRow.index}-${idx}`}
+                    word={word}
+                    onClick={() => onWordClick?.(word)}
+                  />
+                ))}
+                {/* 빈 셀 채우기 (마지막 행에서 필요한 경우) */}
+                {rowWords.length < actualColumns && Array.from({ length: actualColumns - rowWords.length }).map((_, idx) => (
+                  <div key={`empty-${idx}`} />
+                ))}
               </div>
             </div>
           )
@@ -100,7 +139,7 @@ interface WordCardProps {
 const WordCard = React.memo(function WordCard({ word, onClick }: WordCardProps) {
   return (
     <div
-      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 cursor-pointer border border-gray-200"
+      className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 p-4 cursor-pointer border border-gray-200 hover:border-blue-300 h-full flex flex-col"
       onClick={onClick}
     >
       <div className="flex justify-between items-start mb-2">
@@ -114,7 +153,7 @@ const WordCard = React.memo(function WordCard({ word, onClick }: WordCardProps) 
         )}
       </div>
       
-      <p className="text-gray-700 mb-2 line-clamp-2">
+      <p className="text-gray-700 mb-2 line-clamp-2 flex-grow">
         {word.definition || word.englishDefinition || 'No definition available'}
       </p>
       

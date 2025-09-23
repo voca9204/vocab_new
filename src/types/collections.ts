@@ -1,7 +1,7 @@
 // Collection Management Types
 
 // 공식 단어장 카테고리
-export type OfficialCategory = 'SAT' | 'TOEFL' | 'TOEIC' | '수능' | 'GRE' | 'IELTS' | '기본'
+export type OfficialCategory = 'SAT' | 'TOEFL' | 'TOEIC' | '수능' | 'GRE' | 'IELTS' | '기본' | '학원'
 
 // 난이도 레벨
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced'

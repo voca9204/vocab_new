@@ -28,6 +28,7 @@ import {
   Info,
   BookOpen
 } from 'lucide-react'
+import { FlashcardSkeleton } from '@/components/ui/flashcard-skeleton'
 import { cn } from '@/lib/utils'
 import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
 import type { PhotoVocabularyWord } from '@/types/photo-vocabulary-collection'
@@ -38,21 +39,47 @@ function FlashcardsContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const { textSize } = useSettings()
-  const { words: vocabularyWords, wordLoading: wordsLoading, filter, setFilter, updateWordSynonyms, selectedCollections } = useCollectionV2()
+  const {
+    words: vocabularyWords,
+    wordLoading: wordsLoading,
+    filter,
+    setFilter,
+    updateWordSynonyms,
+    selectedCollections,
+    selectSingleCollection,
+    collections
+  } = useCollectionV2()
   const { getSynonyms, setSynonyms: setCacheSynonyms } = useCache()
-  
-  // Debug logging
-  useEffect(() => {
-    console.log('[Flashcards] Component mounted/updated')
-    console.log('[Flashcards] selectedCollections:', selectedCollections.length, selectedCollections.map(c => c.name))
-    console.log('[Flashcards] vocabularyWords:', vocabularyWords.length)
-    console.log('[Flashcards] wordsLoading:', wordsLoading)
-  }, [selectedCollections, vocabularyWords, wordsLoading])
-  
-  // Check if we're loading from photo collection
+
+  // Check if we're loading from photo collection OR regular collection
   const source = searchParams.get('source')
   const collectionId = searchParams.get('collectionId')
   const isPhotoCollection = source === 'photo-collection' && collectionId
+
+  // URL에서 collectionId가 있으면 자동으로 선택
+  useEffect(() => {
+    if (collectionId && !isPhotoCollection) {
+      // 일반 컬렉션인 경우
+      const needsSelection = selectedCollections.length === 0 ||
+                            !selectedCollections.some(c => c.id === collectionId)
+
+      if (needsSelection) {
+        console.log('[Flashcards] Auto-selecting collection from URL:', collectionId)
+        selectSingleCollection(collectionId).catch(err => {
+          console.error('[Flashcards] Failed to select collection:', err)
+        })
+      }
+    }
+  }, [collectionId, isPhotoCollection, selectedCollections, selectSingleCollection])
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[Flashcards] Component mounted/updated')
+    console.log('[Flashcards] URL collectionId:', collectionId)
+    console.log('[Flashcards] selectedCollections:', selectedCollections.length, selectedCollections.map(c => c.name))
+    console.log('[Flashcards] vocabularyWords:', vocabularyWords.length)
+    console.log('[Flashcards] wordsLoading:', wordsLoading)
+  }, [collectionId, selectedCollections, vocabularyWords, wordsLoading])
   
   // State for photo collection words
   const [photoWords, setPhotoWords] = useState<PhotoVocabularyWord[]>([])
@@ -189,7 +216,7 @@ function FlashcardsContent() {
   } = useWordDiscovery()
 
   // NO FALLBACK - removed direct loading logic
-  // Users must select wordbooks from the dashboard
+  // Users must select wordbooks from the homepage
   
   // Load photo collection words if needed
   useEffect(() => {
@@ -616,18 +643,12 @@ function FlashcardsContent() {
   const loading = isPhotoCollection ? loadingPhotoWords : wordsLoading
   
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-gray-600">단어를 불러오는 중...</p>
-        </div>
-      </div>
-    )
+    return <FlashcardSkeleton />
   }
 
   if (words.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto py-8 px-4">
         {/* Header - Simplified Mobile */}
         <div className="mb-6">
           {/* Navigation Bar */}
@@ -635,7 +656,7 @@ function FlashcardsContent() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push('/study')}
+              onClick={() => router.push('/unified-dashboard')}
               className="p-2"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -666,18 +687,22 @@ function FlashcardsContent() {
                 <BookOpen className="h-8 w-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {filter.studyMode === 'studied' 
-                  ? '아직 학습한 단어가 없습니다' 
+                {filter.studyMode === 'studied'
+                  ? '아직 학습한 단어가 없습니다'
                   : filter.studyMode === 'not-studied'
                   ? '모든 단어를 학습하셨습니다!'
-                  : '학습할 단어가 없습니다. 대시보드에서 단어장을 선택해주세요.'}
+                  : wordsLoading
+                  ? '단어를 불러오는 중...'
+                  : '학습할 단어가 없습니다.'}
               </h3>
               <p className="text-gray-600 mb-6">
-                {filter.studyMode === 'studied' 
-                  ? '단어를 학습하면 여기에 표시됩니다.' 
+                {filter.studyMode === 'studied'
+                  ? '단어를 학습하면 여기에 표시됩니다.'
                   : filter.studyMode === 'not-studied'
                   ? '축하합니다! 모든 단어를 학습하셨습니다.'
-                  : '대시보드에서 학습할 단어장을 선택해주세요.'}
+                  : wordsLoading
+                  ? '잠시만 기다려주세요.'
+                  : '홈페이지에서 학습할 단어장을 선택해주세요.'}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -697,10 +722,10 @@ function FlashcardsContent() {
                 </Button>
               )}
               <Button
-                onClick={() => router.push('/unified-dashboard')}
+                onClick={() => router.push('/')}
                 variant={filter.studyMode !== 'all' ? 'outline' : 'default'}
               >
-                대시보드로 돌아가기
+                홈으로 돌아가기
               </Button>
             </div>
           </CardContent>
@@ -714,11 +739,11 @@ function FlashcardsContent() {
   // currentWord가 없으면 에러 방지
   if (!currentWord) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto py-8 px-4">
         <div className="text-center">
           <p className="text-gray-600">로딩 중이거나 표시할 단어가 없습니다.</p>
-          <Button onClick={() => router.push('/study')} className="mt-4">
-            학습 메뉴로 돌아가기
+          <Button onClick={() => router.push('/unified-dashboard')} className="mt-4">
+            대시보드로 돌아가기
           </Button>
         </div>
       </div>
@@ -749,11 +774,11 @@ function FlashcardsContent() {
       {/* Header - Simplified Mobile */}
       <div className="mb-6">
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/study')}
+            onClick={() => router.push('/unified-dashboard')}
             className="p-2"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -761,7 +786,17 @@ function FlashcardsContent() {
           <h1 className="text-lg sm:text-xl font-bold whitespace-nowrap">플래시카드 학습</h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>
-        
+
+        {/* Collection Source Display */}
+        {selectedCollections.length > 0 && (
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <BookOpen className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-600">
+              출처: {selectedCollections.map(c => c.name).join(', ')}
+            </span>
+          </div>
+        )}
+
         {/* Controls Bar */}
         <div className="flex items-center gap-2">
           <select
@@ -807,6 +842,7 @@ function FlashcardsContent() {
           />
         </div>
       </div>
+
 
       {/* Flashcard */}
       <Card 

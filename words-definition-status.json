@@ -1,0 +1,215 @@
+{
+  "total": 9143,
+  "withDefinition": 3459,
+  "withoutDefinition": 5684,
+  "byCategory": {
+    "GRE": {
+      "total": 1230,
+      "missing": 1230
+    },
+    "학원": {
+      "total": 1821,
+      "missing": 0
+    },
+    "TOEFL": {
+      "total": 999,
+      "missing": 957
+    },
+    "SAT": {
+      "total": 893,
+      "missing": 893
+    },
+    "Unknown": {
+      "total": 1320,
+      "missing": 0
+    },
+    "TOEIC": {
+      "total": 1215,
+      "missing": 1215
+    },
+    "수능": {
+      "total": 667,
+      "missing": 667
+    },
+    "SAT,Academic,Essential": {
+      "total": 998,
+      "missing": 722
+    }
+  },
+  "byDifficulty": {
+    "1": {
+      "total": 4,
+      "missing": 0
+    },
+    "2": {
+      "total": 116,
+      "missing": 0
+    },
+    "3": {
+      "total": 517,
+      "missing": 0
+    },
+    "4": {
+      "total": 665,
+      "missing": 0
+    },
+    "5": {
+      "total": 964,
+      "missing": 0
+    },
+    "6": {
+      "total": 882,
+      "missing": 0
+    },
+    "7": {
+      "total": 163,
+      "missing": 0
+    },
+    "8": {
+      "total": 96,
+      "missing": 0
+    },
+    "9": {
+      "total": 1,
+      "missing": 0
+    },
+    "beginner": {
+      "total": 1141,
+      "missing": 1099
+    },
+    "intermediate": {
+      "total": 2295,
+      "missing": 2295
+    },
+    "advanced": {
+      "total": 1568,
+      "missing": 1568
+    },
+    "Unknown": {
+      "total": 731,
+      "missing": 722
+    }
+  },
+  "missingWords": [
+    {
+      "id": "00e19WSUiRABMh9MJTJy",
+      "word": "remark",
+      "category": "GRE",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "01eaot56553kZTQYkDYt",
+      "word": "dystopia",
+      "category": "GRE",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "01q0g3g2equMfpxSJcbZ",
+      "word": "contact",
+      "category": "TOEFL",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "028GxQqdHoQvX7BwALOF",
+      "word": "notable",
+      "category": "SAT",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "02aJnrc1FZv6D097U4HV",
+      "word": "inclination",
+      "category": "SAT",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "02vDPHs986rjfnJeEmkY",
+      "word": "result",
+      "category": "TOEFL",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "036oIrac92eqwPOyxSi5",
+      "word": "epitaph",
+      "category": "GRE",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "04Uxy3nI1dFbT02nsh04",
+      "word": "amphibologia",
+      "category": "GRE",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "055j5EKshZPrZhrpHEQQ",
+      "word": "quotidian",
+      "category": "SAT",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "05Iuzx5xsxpHBJoUuDJV",
+      "word": "short",
+      "category": "TOEIC",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "066KLRvbvNC6AsuHjEZv",
+      "word": "peril",
+      "category": "SAT",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "06OKz4WhbAVdLYwdoitw",
+      "word": "malware",
+      "category": "TOEFL",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "07PAYTyjKqTh3XFJqBwI",
+      "word": "androgynous",
+      "category": "GRE",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "08JoCIDuEf2joSmlgbev",
+      "word": "anacrusis",
+      "category": "GRE",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "08z6H7KDRrH1ycovnOmb",
+      "word": "abomasus",
+      "category": "GRE",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "0ADwiWH7YzNHo2EwxAPj",
+      "word": "edict",
+      "category": "SAT",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "0Ao9qZasBCcDXlvhsTUA",
+      "word": "church",
+      "category": "수능",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "0Bu2I0LFYD47WaHw8vQh",
+      "word": "great",
+      "category": "수능",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "0CtA7aJLb2gL2XGfMYqT",
+      "word": "subordinate",
+      "category": "TOEIC",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "0FNAKnaPepywSEMumH3Q",
+      "word": "empiricism",
+      "category": "GRE",
+      "difficulty": "intermediate"
+    }
+  ]
+}

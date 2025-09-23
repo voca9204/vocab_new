@@ -1,432 +1,664 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { Button } from '@/components/ui'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  BookOpen, 
-  Upload, 
-  Brain, 
-  Target,
-  Camera,
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  ArrowRight,
+  BookOpen,
   Clock,
-  ChevronRight,
-  Star,
-  Sparkles,
-  Users,
+  Target,
   Trophy,
   Zap,
-  ArrowRight,
   CheckCircle,
-  GraduationCap,
-  Globe,
-  PenTool,
-  Rocket,
-  Shield,
-  TrendingUp,
-  BarChart,
-  MessageSquare,
-  Award
+  Star,
+  AlertCircle,
+  Loader2
 } from 'lucide-react'
+import { CollectionCardSkeleton, DifficultyCardSkeleton } from '@/components/ui/collection-card-skeleton'
+import {
+  OfficialCategory,
+  DifficultyLevel,
+  categoryColors,
+  categoryIcons,
+  getCollectionPath
+} from '@/types/collections-simplified'
+import type { Collection } from '@/contexts/collection-context-v2'
+import { RecentLearningWidget } from '@/components/home/recent-learning-widget'
+import { StudyMethodModal } from '@/components/vocabulary/study-method-modal'
+
+// 카테고리별 설명
+const categoryDescriptions: Record<OfficialCategory, string> = {
+  'SAT': '미국 대학 입학시험 필수 어휘',
+  'TOEFL': '해외 유학 준비 필수 어휘',
+  'TOEIC': '비즈니스 영어 및 취업 준비',
+  '수능': '한국 대학 입시 영어 어휘',
+  'GRE': '대학원 진학 고급 어휘',
+  'IELTS': '영국/호주 유학 필수 어휘',
+  '기본': '일상 회화 기초 어휘',
+  '학원': '학원별 맞춤형 단어장'
+}
+
+// 난이도별 정보
+const difficultyInfo: Record<DifficultyLevel, { label: string; icon: string }> = {
+  'beginner': { label: '초급', icon: '🌱' },
+  'intermediate': { label: '중급', icon: '🌿' },
+  'advanced': { label: '고급', icon: '🌳' }
+}
 
 export default function HomePage() {
-  const { user, loading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
+  const {
+    collections,
+    collectionLoading,
+    loadCollections,
+    selectSingleCollection
+  } = useCollectionV2()
 
-  const mainFeatures = [
-    {
-      icon: Camera,
-      title: '📸 사진으로 단어 추출',
-      description: '교재나 문서를 찍으면 AI가 즉시 단어를 추출하여 학습 준비',
-      detail: 'Google Vision & OpenAI 기술 적용',
-      href: '/study/photo-vocab',
-      gradient: 'from-pink-500 to-rose-600'
-    },
-    {
-      icon: Brain,
-      title: '🧠 AI 맞춤 학습',
-      description: '망각 곡선 기반 복습 주기와 개인 맞춤형 난이도 조절',
-      detail: '학습 패턴 분석 & 최적화',
-      href: '/study',
-      gradient: 'from-purple-500 to-indigo-600'
-    },
-    {
-      icon: Trophy,
-      title: '🎯 시험별 특화 학습',
-      description: 'SAT, TOEIC, TOEFL, 수능 등 시험별 맞춤 단어장',
-      detail: '2000+ 핵심 단어 수록',
-      href: '/study',
-      gradient: 'from-amber-500 to-orange-600'
+  // 디버깅: 전체 collections 출력
+  console.log('[HomePage] All collections:', collections.map(c => ({
+    name: c.name,
+    type: c.type,
+    category: c.category,
+    difficulty: c.difficulty
+  })))
+
+  const [selectedCategory, setSelectedCategory] = useState<OfficialCategory | null>(null)
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [studyModalOpen, setStudyModalOpen] = useState(false)
+  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null)
+
+  // 컬렉션 로드
+  useEffect(() => {
+    if (!collectionLoading && collections.length === 0) {
+      loadCollections()
     }
-  ]
+  }, [collectionLoading, collections.length, loadCollections])
 
-  const examTypes = [
-    { name: 'SAT', icon: GraduationCap, count: '2000+', level: '고급' },
-    { name: 'TOEIC', icon: Globe, count: '1500+', level: '중급' },
-    { name: 'TOEFL', icon: PenTool, count: '1800+', level: '고급' },
-    { name: '수능', icon: Award, count: '1200+', level: '중급' }
-  ]
+  // 로그인 체크
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [authLoading, user, router])
 
-  const benefits = [
-    { icon: Zap, title: '빠른 학습', description: 'AI 최적화로 3배 빠른 암기' },
-    { icon: Target, title: '목표 달성', description: '체계적인 학습 관리' },
-    { icon: TrendingUp, title: '실력 향상', description: '데이터 기반 성장 추적' },
-    { icon: Shield, title: '검증된 방법', description: '과학적 학습 알고리즘' }
-  ]
+  // 카테고리별로 컬렉션 그룹화
+  const groupedCollections = useMemo(() => {
+    const groups: Record<OfficialCategory, {
+      [key in DifficultyLevel]?: Collection
+    }> = {
+      'SAT': {},
+      'TOEFL': {},
+      'TOEIC': {},
+      '수능': {},
+      'GRE': {},
+      'IELTS': {},
+      '기본': {},
+      '학원': {}
+    }
 
-  const testimonials = [
-    { name: '김OO', exam: 'SAT', score: '1520', text: '사진 찍어서 바로 학습할 수 있어 정말 편해요!' },
-    { name: '이OO', exam: 'TOEIC', score: '950', text: 'AI 복습 주기 덕분에 효율적으로 암기했어요' },
-    { name: '박OO', exam: '수능', score: '1등급', text: '맞춤형 난이도 조절이 큰 도움이 됐습니다' }
-  ]
+    // 공식 컬렉션만 필터링
+    const officialCollections = collections.filter(c => c.type === 'official')
 
+    // 디버깅: 수능과 GRE, 학원 컬렉션 출력
+    const suneungCollections = officialCollections.filter(c => c.category === '수능')
+    const greCollections = officialCollections.filter(c => c.category === 'GRE')
+    const academyCollections = officialCollections.filter(c => c.category === '학원')
+
+    console.log('[HomePage] 수능 컬렉션:', suneungCollections.map(c => ({
+      name: c.name,
+      category: c.category,
+      difficulty: c.difficulty,
+      metadata: c.metadata,
+      wordCount: c.wordCount
+    })))
+
+    console.log('[HomePage] GRE 컬렉션:', greCollections.map(c => ({
+      name: c.name,
+      category: c.category,
+      difficulty: c.difficulty,
+      metadata: c.metadata,
+      wordCount: c.wordCount
+    })))
+
+    console.log('[HomePage] 학원 컬렉션:', academyCollections.map(c => ({
+      name: c.name,
+      category: c.category,
+      difficulty: c.difficulty,
+      metadata: c.metadata,
+      wordCount: c.wordCount
+    })))
+
+    officialCollections.forEach(collection => {
+      const category = (collection.category || collection.metadata?.category || '기본') as OfficialCategory
+      const difficulty = (collection.difficulty || collection.metadata?.difficulty || 'intermediate') as DifficultyLevel
+
+      if (groups[category]) {
+        groups[category][difficulty] = collection
+      }
+    })
+
+    // 디버깅: 그룹화된 결과 출력
+    console.log('[HomePage] 수능 그룹:', groups['수능'])
+    console.log('[HomePage] GRE 그룹:', groups['GRE'])
+    console.log('[HomePage] 학원 그룹:', groups['학원'])
+
+    return groups
+  }, [collections])
+
+  // 카테고리에 최소 하나의 컬렉션이 있는지 확인
+  const getCategoryHasContent = (category: OfficialCategory) => {
+    const categoryData = groupedCollections[category]
+    if (!categoryData) return false
+    return Object.values(categoryData).some(col => col && col.wordCount > 0)
+  }
+
+  // 카테고리의 총 단어 수 계산
+  const getCategoryTotalWords = (category: OfficialCategory) => {
+    const categoryData = groupedCollections[category]
+    if (!categoryData) return 0
+    return Object.values(categoryData).reduce((sum, col) => sum + (col?.wordCount || 0), 0)
+  }
+
+  // 학습 기록 저장 함수 (학습 방법 포함)
+  const saveToHistory = (collection: Collection, studyMethod: string = 'flashcards') => {
+    try {
+      const savedHistory = localStorage.getItem('learning_history')
+      const history = savedHistory ? JSON.parse(savedHistory) : []
+
+      const newEntry = {
+        collectionId: collection.id,
+        collectionName: collection.name || collection.displayName || 'Unknown',
+        category: collection.category || collection.metadata?.category || '기본',
+        difficulty: collection.metadata?.difficulty || 'intermediate',
+        lastStudyMethod: studyMethod, // 학습 방법 추가
+        lastStudiedAt: new Date().toISOString(),
+        progress: collection.progress?.studied || 0,
+        wordsStudied: collection.progress?.studied || 0,
+        totalWords: collection.wordCount || 0,
+        sessionCount: 1
+      }
+
+      console.log('📝 Creating history entry with studyMethod:', studyMethod)
+
+      // 기존 항목이 있으면 업데이트
+      const existingIndex = history.findIndex((h: any) => h.collectionId === collection.id)
+      if (existingIndex >= 0) {
+        console.log('📝 Updating existing entry, previous method:', history[existingIndex].lastStudyMethod, '→ new method:', studyMethod)
+        history[existingIndex] = {
+          ...newEntry,
+          sessionCount: history[existingIndex].sessionCount + 1,
+          lastStudyMethod: studyMethod // 명시적으로 업데이트
+        }
+      } else {
+        console.log('📝 Creating new history entry')
+        history.unshift(newEntry)
+      }
+
+      // 최대 5개 저장
+      const updatedHistory = history.slice(0, 5)
+      localStorage.setItem('learning_history', JSON.stringify(updatedHistory))
+
+      // Custom event를 발생시켜 RecentLearningWidget가 즉시 업데이트되도록 함
+      window.dispatchEvent(new Event('learningHistoryUpdated'))
+
+      console.log('✅ History saved with method:', studyMethod, updatedHistory[0])
+    } catch (error) {
+      console.error('Failed to save history:', error)
+    }
+  }
+
+  // 학습 시작 - 단어장 선택 시 모달 열기
+  const handleCollectionClick = (collection: Collection) => {
+    if (!collection || collection.wordCount === 0) {
+      return
+    }
+    setSelectedCollection(collection)
+    setStudyModalOpen(true)
+  }
+
+  // 실제 학습 시작 (모달에서 학습 방법 선택 후 또는 RecentLearningWidget에서 직접 호출)
+  const handleStartLearning = async (
+    collectionOrMethod: Collection | 'list' | 'flashcards' | 'quiz' | 'typing',
+    studyMethod?: 'list' | 'flashcards' | 'quiz' | 'typing'
+  ) => {
+    console.log('🎯 handleStartLearning called with:', {
+      collectionOrMethod: typeof collectionOrMethod === 'object' ? collectionOrMethod.name : collectionOrMethod,
+      studyMethod,
+      typeOfFirst: typeof collectionOrMethod
+    })
+
+    // 파라미터 정리: Collection 객체가 오면 첫 번째 파라미터가 collection
+    let collection: Collection | null
+    let method: 'list' | 'flashcards' | 'quiz' | 'typing'
+
+    if (typeof collectionOrMethod === 'object') {
+      // RecentLearningWidget에서 호출한 경우
+      collection = collectionOrMethod
+      method = studyMethod || 'flashcards'
+      console.log('📚 RecentLearningWidget에서 호출, method:', method)
+    } else {
+      // 모달에서 호출한 경우
+      collection = selectedCollection
+      method = collectionOrMethod
+      console.log('🔲 모달에서 호출, method:', method)
+    }
+
+    if (!collection || collection.wordCount === 0) {
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      // 학습 기록 저장 (학습 방법 포함)
+      console.log('💾 Saving to history with method:', method)
+      saveToHistory(collection, method)
+
+      // 단일 컬렉션 선택 (이전 선택 모두 지우고 새로 선택)
+      await selectSingleCollection(collection.id)
+
+      // 학습 페이지로 이동 (선택한 학습 방법으로)
+      const path = `/study/${method}?collectionId=${collection.id}`
+      console.log('🚀 Navigating to:', path)
+      if (user) {
+        router.push(path)
+      } else {
+        // 로그인 안 한 경우 로그인 페이지로 (다음 경로 저장)
+        router.push(`/login?next=${encodeURIComponent(path)}`)
+      }
+    } catch (error) {
+      console.error('Failed to start learning:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Define constants
+  const categories: OfficialCategory[] = ['SAT', 'TOEFL', 'TOEIC', '수능', 'GRE', 'IELTS', '기본', '학원']
+  const difficulties: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced']
+
+  const loading = authLoading || collectionLoading
+
+  // 로딩 중일 때
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
           <p className="mt-4 text-gray-600">로딩 중...</p>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section with Gradient Background */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-white opacity-10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-400 opacity-10 rounded-full blur-3xl"></div>
+  // 로그인하지 않은 경우 로딩 표시 (리다이렉트 중)
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
+          <p className="mt-4 text-gray-600">로그인 페이지로 이동 중...</p>
         </div>
-        
-        <div className="relative container mx-auto px-4 py-24 lg:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-8">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-medium">AI 기반 스마트 학습 플랫폼</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* 심플한 헤더 */}
+      <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-900">Vocabulary Master</h1>
             </div>
-            
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              사진 찍고, AI로 학습하는
-              <span className="block mt-2 bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-                혁신적인 단어 학습
-              </span>
-            </h1>
-            
-            <p className="text-xl lg:text-2xl mb-10 text-white/90 max-w-3xl mx-auto">
-              교재를 📸 찍으면 AI가 단어를 추출하고, 
-              <br className="hidden sm:block" />
-              망각 곡선 기반으로 최적의 복습 시기를 제안합니다
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex items-center gap-4">
               {user ? (
                 <>
-                  <Button 
-                    size="lg"
-                    className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-6 text-lg"
-                    onClick={() => router.push('/unified-dashboard')}
+                  <span className="text-sm text-gray-600">안녕하세요, {user.displayName || user.email}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push('/settings')}
                   >
-                    <Rocket className="mr-2 h-5 w-5" />
-                    대시보드로 이동
-                  </Button>
-                  <Button 
-                    size="lg"
-                    className="bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold px-8 py-6 text-lg transition-all"
-                    onClick={() => router.push('/study/photo-vocab')}
-                  >
-                    <Camera className="mr-2 h-5 w-5" />
-                    사진 단어 학습
+                    설정
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button 
-                    size="lg"
-                    className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-6 text-lg shadow-xl"
-                    onClick={() => router.push('/login')}
-                  >
-                    무료로 시작하기
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button 
-                    size="lg"
-                    variant="outline"
-                    className="border-white text-white hover:bg-white/20 font-semibold px-8 py-6 text-lg"
-                    onClick={() => router.push('/login')}
-                  >
-                    로그인
-                  </Button>
-                </>
+                <Button
+                  size="sm"
+                  onClick={() => router.push('/login')}
+                >
+                  로그인
+                </Button>
               )}
             </div>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Exam Types Bar */}
-      <section className="bg-white border-b">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-wrap justify-center gap-8">
-            {examTypes.map((exam, idx) => {
-              const Icon = exam.icon
-              return (
-                <div key={idx} className="flex items-center gap-3 group cursor-pointer">
-                  <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-blue-100 transition-colors">
-                    <Icon className="h-6 w-6 text-gray-700 group-hover:text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900">{exam.name}</p>
-                    <p className="text-xs text-gray-500">{exam.count} 단어 · {exam.level}</p>
-                  </div>
-                </div>
-              )
-            })}
+      {/* 메인 컨텐츠 */}
+      <main className="container mx-auto px-4 py-12">
+        {/* 최근 학습 위젯 - 재방문 사용자용 */}
+        <RecentLearningWidget
+          collections={collections}
+          onSelectCollection={handleStartLearning}
+          loading={isLoading}
+        />
+
+        {/* 간단한 타이틀 */}
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            학습할 단어장을 선택하세요
+          </h2>
+          <p className="text-lg text-gray-600">
+            레벨을 선택하면 바로 학습을 시작할 수 있습니다
+          </p>
+          <div className="flex items-center justify-center gap-6 mt-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-yellow-500" />
+              <span>3초 만에 시작</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-green-500" />
+              <span>{collections.filter(c => c.wordCount > 0).length}개 단어장</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-purple-500" />
+              <span>AI 최적화 학습</span>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Main Features with Cards */}
-      <section className="py-20 px-4 bg-gradient-to-b from-gray-50 to-white">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              왜 우리 플랫폼인가요?
-            </h2>
-            <p className="text-xl text-gray-600">
-              기존 학습법과는 차원이 다른 효율성을 경험하세요
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {mainFeatures.map((feature, idx) => {
-              const Icon = feature.icon
+        {/* 카테고리 선택이 없을 때: 카테고리 카드 표시 */}
+        {!selectedCategory && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {collectionLoading ? (
+              // 로딩 중일 때 스켈레톤 표시
+              Array.from({ length: 8 }).map((_, i) => (
+                <CollectionCardSkeleton key={i} />
+              ))
+            ) : (
+              categories.map((category) => {
+              const hasContent = getCategoryHasContent(category)
+              const totalWords = getCategoryTotalWords(category)
+
               return (
-                <div
-                  key={idx}
-                  className="group relative"
-                  onMouseEnter={() => setHoveredFeature(idx)}
-                  onMouseLeave={() => setHoveredFeature(null)}
+                <Card
+                  key={category}
+                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 ${
+                    hoveredCard === category ? 'border-blue-400' : 'border-transparent'
+                  } ${!hasContent ? 'opacity-60' : ''}`}
+                  onMouseEnter={() => setHoveredCard(category)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  onClick={() => hasContent && setSelectedCategory(category)}
                 >
-                  <Card className="h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer"
-                    onClick={() => router.push(user ? feature.href : '/login')}
-                  >
-                    <div className={`h-2 bg-gradient-to-r ${feature.gradient}`}></div>
-                    <CardContent className="p-8">
-                      <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.gradient} text-white mb-6`}>
-                        <Icon className="h-8 w-8" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-3 text-gray-900">
-                        {feature.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        {feature.description}
+                  <CardContent className="p-6">
+                    <div className="text-center">
+                      <div className="text-5xl mb-4">{categoryIcons[category]}</div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{category}</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        {categoryDescriptions[category]}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-blue-600">
-                          {feature.detail}
-                        </span>
-                        <ArrowRight className={`h-5 w-5 text-gray-400 transition-transform ${
-                          hoveredFeature === idx ? 'translate-x-1' : ''
+                      {hasContent ? (
+                        <>
+                          <p className="text-sm text-gray-500 mb-4">
+                            총 {totalWords.toLocaleString()}개 단어
+                          </p>
+                          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-medium ${categoryColors[category]}`}>
+                            <CheckCircle className="h-4 w-4" />
+                            <span>레벨 선택하기</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-200 text-gray-500 text-sm font-medium">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>준비 중</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })
+            )}
+          </div>
+        )}
+
+        {/* 카테고리 선택 후: 난이도 선택 */}
+        {selectedCategory && (
+          <div>
+            {/* 뒤로가기 버튼 */}
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="mb-8 text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-colors"
+            >
+              <ArrowRight className="h-4 w-4 rotate-180" />
+              <span>다른 시험 선택</span>
+            </button>
+
+            {/* 선택된 카테고리 표시 */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-3 mb-4">
+                <span className="text-5xl">{categoryIcons[selectedCategory]}</span>
+                <h3 className="text-3xl font-bold text-gray-900">{selectedCategory}</h3>
+              </div>
+              <p className="text-gray-600">{categoryDescriptions[selectedCategory]}</p>
+            </div>
+
+            {/* 난이도 카드 (학원 카테고리는 학원별 표시) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {collectionLoading ? (
+                // 로딩 중일 때 스켈레톤 표시
+                Array.from({ length: 3 }).map((_, i) => (
+                  <DifficultyCardSkeleton key={i} />
+                ))
+              ) : selectedCategory === '학원' ? (
+                // 학원 카테고리: 학원별 카드 표시
+                <>
+                  {['A학원', 'B학원', 'C학원'].map((academyName, index) => {
+                    const difficulty = (['advanced', 'intermediate', 'beginner'] as const)[index]
+                    const collection = groupedCollections[selectedCategory][difficulty]
+                    const cardId = `${selectedCategory}-${academyName}`
+                    const hasWords = collection && collection.wordCount > 0
+
+                    return (
+                      <Card
+                        key={academyName}
+                        className={`cursor-pointer transition-all duration-300 relative overflow-hidden ${
+                          hasWords ? 'hover:shadow-2xl hover:-translate-y-2' : 'opacity-60'
+                        } ${hoveredCard === cardId ? 'ring-4 ring-yellow-400 ring-opacity-50' : ''}`}
+                        onMouseEnter={() => setHoveredCard(cardId)}
+                        onMouseLeave={() => setHoveredCard(null)}
+                        onClick={() => hasWords && handleCollectionClick(collection)}
+                      >
+                        {/* 학원별 배경 그라데이션 */}
+                        <div className={`absolute top-0 left-0 right-0 h-2 ${
+                          index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
+                          index === 1 ? 'bg-gradient-to-r from-yellow-300 to-amber-400' :
+                          'bg-gradient-to-r from-yellow-200 to-yellow-400'
                         }`} />
-                      </div>
+
+                        <CardContent className="p-8 text-center">
+                          <div className="text-6xl mb-4">🏫</div>
+                          <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                            {academyName}
+                          </h4>
+                          {hasWords ? (
+                            <>
+                              <p className="text-lg text-gray-600 mb-6">
+                                {collection.wordCount.toLocaleString()}개 단어
+                              </p>
+                              <div className="space-y-2 mb-6">
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Clock className="h-4 w-4" />
+                                  <span>학원 맞춤형 커리큘럼</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Star className="h-4 w-4" />
+                                  <span>전문 강사 선별 단어</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Target className="h-4 w-4" />
+                                  <span>목표 점수 달성 보장</span>
+                                </div>
+                              </div>
+                              <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white">
+                                <Zap className="h-4 w-4 mr-2" />
+                                학습 시작하기
+                              </Button>
+                            </>
+                          ) : (
+                            <div className="py-8">
+                              <p className="text-gray-500 mb-4">준비 중</p>
+                              <p className="text-sm text-gray-400">곧 업데이트 예정입니다</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </>
+              ) : (
+                // 일반 카테고리: 난이도별 카드 표시
+                difficulties.map((difficulty) => {
+                  const info = difficultyInfo[difficulty]
+                  const collection = groupedCollections[selectedCategory][difficulty]
+                  const cardId = `${selectedCategory}-${difficulty}`
+                  const hasWords = collection && collection.wordCount > 0
+
+                return (
+                  <Card
+                    key={difficulty}
+                    className={`cursor-pointer transition-all duration-300 relative overflow-hidden ${
+                      hasWords ? 'hover:shadow-2xl hover:-translate-y-2' : 'opacity-60'
+                    } ${hoveredCard === cardId ? 'ring-4 ring-blue-400 ring-opacity-50' : ''}`}
+                    onMouseEnter={() => setHoveredCard(cardId)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                    onClick={() => hasWords && handleStartLearning(collection)}
+                  >
+                    {/* 난이도별 배경 그라데이션 */}
+                    <div className={`absolute top-0 left-0 right-0 h-2 ${
+                      difficulty === 'beginner' ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
+                      difficulty === 'intermediate' ? 'bg-gradient-to-r from-blue-400 to-cyan-500' :
+                      'bg-gradient-to-r from-purple-400 to-pink-500'
+                    }`} />
+
+                    <CardContent className="p-8 text-center">
+                      <div className="text-6xl mb-4">{info.icon}</div>
+                      <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                        {info.label}
+                      </h4>
+                      {hasWords ? (
+                        <>
+                          <p className="text-lg text-gray-600 mb-6">
+                            {collection.wordCount.toLocaleString()}개 단어
+                          </p>
+
+                          {/* 특징 리스트 */}
+                          <div className="space-y-2 mb-6">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Clock className="h-4 w-4" />
+                              <span>일일 30분 학습</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Star className="h-4 w-4" />
+                              <span>AI 맞춤 복습</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Target className="h-4 w-4" />
+                              <span>
+                                {difficulty === 'beginner' ? '기초 다지기' :
+                                 difficulty === 'intermediate' ? '실력 향상' :
+                                 '고득점 달성'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Button
+                            className="w-full"
+                            size="lg"
+                            disabled={isLoading}
+                            onClick={() => {
+                              if (!isLoading) {
+                                router.push(`/study/${selectedCategory}/${difficulty}`)
+                              }
+                            }}
+                          >
+                            {isLoading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                로딩 중...
+                              </>
+                            ) : (
+                              <>
+                                학습 시작하기
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-lg text-gray-400 mb-6">
+                            단어 준비 중
+                          </p>
+                          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gray-100 text-gray-400">
+                            <AlertCircle className="h-5 w-5" />
+                            <span>곧 업데이트 예정</span>
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
-                </div>
-              )
-            })}
+                )
+              })
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* Benefits Grid */}
-      <section className="py-20 px-4 bg-white">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+        {/* 빠른 통계 (하단) */}
+        <div className="mt-20 py-12 border-t">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                학습 효율을 극대화하는
-                <span className="text-blue-600"> 스마트 기능</span>
-              </h2>
-              <div className="space-y-6">
-                {benefits.map((benefit, idx) => {
-                  const Icon = benefit.icon
-                  return (
-                    <div key={idx} className="flex gap-4">
-                      <div className="flex-shrink-0">
-                        <div className="p-3 bg-blue-100 rounded-lg">
-                          <Icon className="h-6 w-6 text-blue-600" />
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-lg text-gray-900 mb-1">
-                          {benefit.title}
-                        </h4>
-                        <p className="text-gray-600">
-                          {benefit.description}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="text-3xl font-bold text-gray-900">
+                {collections.reduce((sum, c) => sum + (c.wordCount || 0), 0).toLocaleString()}+
               </div>
+              <div className="text-sm text-gray-600">총 단어</div>
             </div>
-            
-            <div className="relative">
-              <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-8">
-                <div className="bg-white rounded-xl shadow-xl p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg text-white">
-                      <BarChart className="h-5 w-5" />
-                    </div>
-                    <span className="font-semibold text-gray-900">학습 통계</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">오늘 학습</span>
-                      <span className="font-bold text-blue-600">45 단어</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style={{width: '75%'}}></div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">주간 목표</span>
-                      <span className="font-bold text-green-600">210/280</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full" style={{width: '75%'}}></div>
-                    </div>
-                  </div>
-                </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-900">7개</div>
+              <div className="text-sm text-gray-600">시험 카테고리</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-900">
+                {collections.filter(c => c.type === 'official').length}개
               </div>
+              <div className="text-sm text-gray-600">공식 단어장</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-900">AI</div>
+              <div className="text-sm text-gray-600">맞춤 학습</div>
             </div>
           </div>
         </div>
-      </section>
+      </main>
 
-      {/* Testimonials */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              실제 사용자들의 후기
-            </h2>
-            <p className="text-xl text-gray-600">
-              이미 수천 명이 목표를 달성했습니다
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, idx) => (
-              <Card key={idx} className="border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-4 italic">
-                    "{testimonial.text}"
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                      <p className="text-sm text-gray-500">{testimonial.exam} {testimonial.score}점</p>
-                    </div>
-                    <MessageSquare className="h-8 w-8 text-gray-300" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-            지금 바로 시작하세요
-          </h2>
-          <p className="text-xl mb-8 text-white/90">
-            5분이면 충분합니다. 복잡한 가입 절차 없이 바로 시작할 수 있어요.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Button 
-              size="lg"
-              className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-6 text-lg"
-              onClick={() => router.push(user ? '/unified-dashboard' : '/login')}
-            >
-              {user ? '대시보드로 이동' : '무료로 시작하기'}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-center gap-6 text-sm text-white/80">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span>10,000+ 사용자</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              <span>평균 200점 상승</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              <span>4.8/5 평점</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-4 bg-gray-900 text-gray-400">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-white font-bold text-lg mb-4">Vocabulary Master</h3>
-              <p className="text-sm">
-                AI 기반 스마트 영어 단어 학습 플랫폼
-              </p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-3">제품</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">기능 소개</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">가격 정책</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">사용 가이드</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-3">지원</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">도움말</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">문의하기</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-3">회사</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">소개</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">블로그</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">채용</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            <p>© 2025 Vocabulary Master. All rights reserved.</p>
-            <p className="mt-2">Built with Next.js 15 + Firebase + TypeScript</p>
-          </div>
-        </div>
-      </footer>
+      {/* 학습 방법 선택 모달 */}
+      <StudyMethodModal
+        isOpen={studyModalOpen}
+        onClose={() => setStudyModalOpen(false)}
+        collection={selectedCollection}
+        onSelectMethod={handleStartLearning}
+        lastStudyMethod={undefined} // 이전 학습 방법은 localStorage에서 관리
+      />
     </div>
   )
 }

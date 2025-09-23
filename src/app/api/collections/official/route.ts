@@ -39,9 +39,13 @@ export async function GET(request: NextRequest) {
     if (options.tags && options.tags.length > 0) {
       query = query.where('tags', 'array-contains-any', options.tags)
     }
-    
-    // Apply sorting
-    query = query.orderBy(options.sortBy!, options.sortOrder as any)
+
+    // Apply sorting only if no filters are applied (to avoid index requirement)
+    // Or if sortBy is not createdAt (which requires composite index)
+    const hasFilters = options.category || options.difficulty || (options.tags && options.tags.length > 0)
+    if (!hasFilters || options.sortBy !== 'createdAt') {
+      query = query.orderBy(options.sortBy!, options.sortOrder as any)
+    }
     
     // Apply pagination
     if (options.limit) {

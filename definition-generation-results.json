@@ -1,0 +1,1271 @@
+{
+  "processed": 50,
+  "successful": 50,
+  "failed": 0,
+  "timestamp": "2025-09-22T01:35:58.237Z",
+  "definitions": [
+    {
+      "id": "0OjKfod84xrzxHNRcbhU",
+      "word": "economy",
+      "definition": "경제",
+      "englishDefinition": "The system by which goods and services are produced, sold, and bought in a country or region.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The economy of the country is growing quickly.",
+        "Many people are looking for jobs to help improve the economy.",
+        "A strong economy can lead to better living conditions for everyone."
+      ],
+      "synonyms": [
+        "financial system",
+        "market",
+        "commerce"
+      ],
+      "antonyms": [
+        "poverty",
+        "debt"
+      ],
+      "etymology": "The word 'economy' comes from the Greek word 'oikonomia', which means 'household management'.",
+      "pronunciation": "/ɪˈkɒnəmi/"
+    },
+    {
+      "id": "4gYvAZkDB3h9XHP8B7uc",
+      "word": "define",
+      "definition": "정의하다",
+      "englishDefinition": "To explain the meaning of a word or concept.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The teacher asked the students to define the word 'freedom'.",
+        "Can you define what happiness means to you?",
+        "In the essay, I will define the key terms used in my argument."
+      ],
+      "synonyms": [
+        "explain",
+        "describe",
+        "clarify"
+      ],
+      "antonyms": [
+        "confuse",
+        "obscure"
+      ],
+      "etymology": "The word 'define' comes from the Latin word 'definire', which means 'to limit' or 'to set boundaries'.",
+      "pronunciation": "/dɪˈfaɪn/"
+    },
+    {
+      "id": "8AUZTZ7Rq6lMhwQbQO0q",
+      "word": "formula",
+      "definition": "정해진 방식이나 규칙으로 만든 것",
+      "englishDefinition": "A set method or rule for doing something, often used in mathematics or science.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The formula for calculating the area of a rectangle is length times width.",
+        "In chemistry, you need to know the formula for water, which is H2O.",
+        "The teacher gave us a formula to help solve the math problems."
+      ],
+      "synonyms": [
+        "method",
+        "procedure",
+        "recipe"
+      ],
+      "antonyms": [
+        "chaos",
+        "disorder"
+      ],
+      "etymology": "From Latin 'formula', meaning 'a small form or pattern'.",
+      "pronunciation": "/ˈfɔːrmjʊlə/"
+    },
+    {
+      "id": "8nkLCWHZ2iwxtO0ZyfU1",
+      "word": "environment",
+      "definition": "환경",
+      "englishDefinition": "The surroundings or conditions in which a person, animal, or plant lives or operates.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The environment is important for all living things.",
+        "We should protect the environment to keep it healthy.",
+        "Many animals are affected by changes in their environment."
+      ],
+      "synonyms": [
+        "surroundings",
+        "setting",
+        "milieu"
+      ],
+      "antonyms": [
+        "isolation",
+        "seclusion"
+      ],
+      "etymology": "The word 'environment' comes from the French word 'environner', which means 'to surround'.",
+      "pronunciation": "/ɪnˈvaɪrənmənt/"
+    },
+    {
+      "id": "JjBqgCjDnsEikm5n5Av3",
+      "word": "export",
+      "definition": "수출하다; 다른 나라로 상품이나 서비스를 보내는 것",
+      "englishDefinition": "To send goods or services to another country for sale.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The country plans to export more electronics this year.",
+        "Many farmers export their crops to international markets.",
+        "Exporting goods can help a business grow."
+      ],
+      "synonyms": [
+        "ship",
+        "send",
+        "trade"
+      ],
+      "antonyms": [
+        "import"
+      ],
+      "etymology": "The word 'export' comes from the Latin 'exportare', where 'ex-' means 'out' and 'portare' means 'to carry'.",
+      "pronunciation": "/ˈɛkspɔrt/"
+    },
+    {
+      "id": "Jyh637wXIiducSfZQnwX",
+      "word": "data",
+      "definition": "정보, 사실, 수치 등의 모음",
+      "englishDefinition": "A collection of facts, figures, or information.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The scientist collected data from the experiment to analyze the results.",
+        "We need more data to make a better decision.",
+        "The data shows that students who study regularly perform better on tests."
+      ],
+      "synonyms": [
+        "information",
+        "statistics",
+        "facts"
+      ],
+      "antonyms": [
+        "ignorance",
+        "misinformation"
+      ],
+      "etymology": "The word 'data' comes from the Latin word 'datum', which means 'something given'.",
+      "pronunciation": "/ˈdeɪtə/"
+    },
+    {
+      "id": "Q28ywHIO2W6PNgsOOR7S",
+      "word": "concept",
+      "definition": "개념",
+      "englishDefinition": "An idea or a general understanding of something.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The concept of freedom is important in many cultures.",
+        "She explained the concept of gravity to the students.",
+        "Understanding the concept of time can help you manage it better."
+      ],
+      "synonyms": [
+        "idea",
+        "notion",
+        "thought"
+      ],
+      "antonyms": [
+        "reality",
+        "fact"
+      ],
+      "etymology": "From Latin 'conceptus', meaning 'something conceived', from 'concipere' meaning 'to take in, to seize'.",
+      "pronunciation": "/ˈkɒn.sɛpt/"
+    },
+    {
+      "id": "QaSEWibzJjUPioBS1zpI",
+      "word": "analyse",
+      "definition": "분석하다",
+      "englishDefinition": "To examine something in detail to understand it better or to draw conclusions.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The scientist will analyse the data from the experiment.",
+        "We need to analyse the results of the survey to find trends.",
+        "She decided to analyse the book's themes for her essay."
+      ],
+      "synonyms": [
+        "examine",
+        "study",
+        "evaluate"
+      ],
+      "antonyms": [
+        "ignore",
+        "overlook"
+      ],
+      "etymology": "The word 'analyse' comes from the Greek word 'analusis', which means 'a breaking up'.",
+      "pronunciation": "/əˈnæl.ə.saɪz/"
+    },
+    {
+      "id": "U0BafDHzfHVMs9jgQXOj",
+      "word": "approach",
+      "definition": "접근, 다가감",
+      "englishDefinition": "A way of doing something or a method to deal with a problem.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "We need a new approach to solve this issue.",
+        "She decided to approach her teacher for help.",
+        "His approach to studying is very effective."
+      ],
+      "synonyms": [
+        "method",
+        "strategy",
+        "way"
+      ],
+      "antonyms": [
+        "avoidance",
+        "retreat"
+      ],
+      "etymology": "The word 'approach' comes from the Old French 'aprochier', which means 'to come near'.",
+      "pronunciation": "/əˈproʊtʃ/"
+    },
+    {
+      "id": "a6V8ZnkAE6ugE8k73znr",
+      "word": "estimate",
+      "definition": "추정하다, 평가하다",
+      "englishDefinition": "To make a judgment or calculation about a value or amount.",
+      "partOfSpeech": [
+        "verb",
+        "noun"
+      ],
+      "examples": [
+        "We need to estimate the cost of the project before we start.",
+        "The teacher asked us to give an estimate of how long the assignment would take.",
+        "Can you provide an estimate of how many people will attend the event?"
+      ],
+      "synonyms": [
+        "approximation",
+        "assessment",
+        "calculation"
+      ],
+      "antonyms": [
+        "certainty",
+        "fact"
+      ],
+      "etymology": "From Latin 'aestimare', meaning 'to value or appraise'.",
+      "pronunciation": "/ˈɛstɪmeɪt/"
+    },
+    {
+      "id": "mTgxGyFnXJPRFGCWxjXz",
+      "word": "evident",
+      "definition": "명백한, 분명한",
+      "englishDefinition": "Clear and obvious; easily seen or understood.",
+      "partOfSpeech": [
+        "adjective"
+      ],
+      "examples": [
+        "It was evident that she was upset after hearing the news.",
+        "The evidence made it evident that he was telling the truth.",
+        "His talent for music was evident from a young age."
+      ],
+      "synonyms": [
+        "obvious",
+        "clear",
+        "apparent"
+      ],
+      "antonyms": [
+        "unclear",
+        "ambiguous"
+      ],
+      "etymology": "From Latin 'evidens', meaning 'obvious' or 'clear'.",
+      "pronunciation": "/ˈɛvɪdənt/"
+    },
+    {
+      "id": "sat2_area_52296501",
+      "word": "area",
+      "definition": "지역, 면적",
+      "englishDefinition": "A particular space or region; a section of a surface or a specific field of study.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The area of the park is perfect for picnics and outdoor activities.",
+        "She specializes in the area of environmental science.",
+        "The teacher asked the students to calculate the area of the rectangle."
+      ],
+      "synonyms": [
+        "region",
+        "zone",
+        "section"
+      ],
+      "antonyms": [
+        "whole",
+        "entirety"
+      ],
+      "etymology": "Derived from the Latin word 'area', meaning 'open space' or 'level ground'.",
+      "pronunciation": "/ˈɛəriə/"
+    },
+    {
+      "id": "sat2_factor_bef2d0c4",
+      "word": "factor",
+      "definition": "요인, 요소",
+      "englishDefinition": "A circumstance, fact, or influence that contributes to a result.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "Many factors contribute to climate change, including greenhouse gas emissions.",
+        "The success of the project will depend on several key factors.",
+        "To solve the equation, you need to factor the polynomial."
+      ],
+      "synonyms": [
+        "element",
+        "component",
+        "aspect"
+      ],
+      "antonyms": [
+        "whole",
+        "entirety"
+      ],
+      "etymology": "Derived from the Latin word 'facere', meaning 'to do or make'.",
+      "pronunciation": "/ˈfæktər/"
+    },
+    {
+      "id": "sat2_function_1f452ecb",
+      "word": "function",
+      "definition": "기능; 역할",
+      "englishDefinition": "The purpose or role that something serves; a specific activity or task.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The function of the heart is to pump blood throughout the body.",
+        "In mathematics, a function describes a relationship between inputs and outputs.",
+        "The software has a new function that allows users to edit photos more easily."
+      ],
+      "synonyms": [
+        "role",
+        "purpose",
+        "operation"
+      ],
+      "antonyms": [
+        "dysfunction",
+        "inactivity"
+      ],
+      "etymology": "Derived from the Latin word 'functio', meaning 'performance' or 'execution'.",
+      "pronunciation": "/ˈfʌŋkʃən/"
+    },
+    {
+      "id": "vi3jLmtHvK1XEFdWNHgo",
+      "word": "income",
+      "definition": "소득, 수입",
+      "englishDefinition": "The money that a person or organization receives in exchange for providing goods or services or through investing.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "Her income allows her to live comfortably.",
+        "Many people save a portion of their income for the future.",
+        "The company reported an increase in income this year."
+      ],
+      "synonyms": [
+        "earnings",
+        "revenue",
+        "salary"
+      ],
+      "antonyms": [
+        "expenses",
+        "loss"
+      ],
+      "etymology": "The word 'income' comes from the Old French 'encombre', meaning 'to come in'.",
+      "pronunciation": "/ˈɪnkʌm/"
+    },
+    {
+      "id": "zTsJeGGz44iJU5zoj2UM",
+      "word": "benefit",
+      "definition": "이익, 혜택",
+      "englishDefinition": "An advantage or profit gained from something.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The new law will benefit many families in our community.",
+        "She hopes to benefit from the training program.",
+        "Eating healthy food has many benefits for your body."
+      ],
+      "synonyms": [
+        "advantage",
+        "profit",
+        "gain"
+      ],
+      "antonyms": [
+        "disadvantage",
+        "loss"
+      ],
+      "etymology": "From Latin 'benefitium', meaning 'a doing good, kindness'.",
+      "pronunciation": "/ˈbɛnɪfɪt/"
+    },
+    {
+      "id": "5kP4UPcGGMcGpaHxxz2X",
+      "word": "occur",
+      "definition": "발생하다",
+      "englishDefinition": "To happen or take place.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The meeting will occur at 3 PM.",
+        "Many interesting events occur during the festival.",
+        "Changes in the weather can occur suddenly."
+      ],
+      "synonyms": [
+        "happen",
+        "take place",
+        "arise"
+      ],
+      "antonyms": [
+        "stop",
+        "cease"
+      ],
+      "etymology": "From Latin 'occurrere', meaning 'to run to meet'.",
+      "pronunciation": "/əˈkɜr/"
+    },
+    {
+      "id": "B1XMNZBipLXatHaDdLh1",
+      "word": "process",
+      "definition": "과정",
+      "englishDefinition": "A series of actions or steps taken to achieve a particular end.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The process of making bread includes mixing, kneading, and baking.",
+        "We need to process the data before we can analyze it.",
+        "Learning a new language is a long process that requires practice."
+      ],
+      "synonyms": [
+        "procedure",
+        "method",
+        "operation"
+      ],
+      "antonyms": [
+        "disorder",
+        "chaos"
+      ],
+      "etymology": "From Latin 'processus', meaning 'a going forward'.",
+      "pronunciation": "/ˈprɑːsɛs/"
+    },
+    {
+      "id": "CJYscIcpv7xcExyQVaWy",
+      "word": "source",
+      "definition": "출처, 근원",
+      "englishDefinition": "A place, person, or thing from which something comes or can be obtained.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The river is the main source of water for the town.",
+        "She is a reliable source of information for our project.",
+        "We need to source materials from local suppliers."
+      ],
+      "synonyms": [
+        "origin",
+        "provider",
+        "supplier"
+      ],
+      "antonyms": [
+        "result",
+        "outcome"
+      ],
+      "etymology": "The word 'source' comes from the Latin word 'surgere,' meaning 'to rise.'",
+      "pronunciation": "/sɔrs/"
+    },
+    {
+      "id": "CdeCtGq5393Qf7hTeYKW",
+      "word": "structure",
+      "definition": "구조; 어떤 것의 구성이나 형태",
+      "englishDefinition": "The arrangement or organization of parts in a whole.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The structure of the building is very strong.",
+        "She decided to structure her essay in three main parts.",
+        "The tree has a unique structure with many branches."
+      ],
+      "synonyms": [
+        "framework",
+        "construction",
+        "organization"
+      ],
+      "antonyms": [
+        "disorganization",
+        "chaos"
+      ],
+      "etymology": "From Latin 'structura', meaning 'a fitting together, building'.",
+      "pronunciation": "/ˈstrʌk.tʃər/"
+    },
+    {
+      "id": "DnRJ4YPFH5JkiUiWjRsd",
+      "word": "legislate",
+      "definition": "법률을 제정하다",
+      "englishDefinition": "To make or enact laws.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The government plans to legislate new environmental protections.",
+        "Many countries legislate against discrimination in the workplace.",
+        "It is important for citizens to understand how their leaders legislate."
+      ],
+      "synonyms": [
+        "enact",
+        "establish",
+        "create laws"
+      ],
+      "antonyms": [
+        "repeal",
+        "abolish"
+      ],
+      "etymology": "From Latin 'legis' meaning 'law' and 'latus' meaning 'to bring'.",
+      "pronunciation": "/ˈlɛdʒɪˌsleɪt/"
+    },
+    {
+      "id": "Gpx7oUfmt8FVEXrACp7G",
+      "word": "issue",
+      "definition": "문제, 주제, 발행물",
+      "englishDefinition": "A topic or problem that people discuss or deal with; to distribute something, such as a magazine or report.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The issue of climate change is very important.",
+        "She decided to issue a statement about the event.",
+        "There was a new issue of the magazine released this month."
+      ],
+      "synonyms": [
+        "problem",
+        "topic",
+        "matter"
+      ],
+      "antonyms": [
+        "solution",
+        "answer"
+      ],
+      "etymology": "From Latin 'exire', meaning 'to go out', which evolved into 'issue' in Middle English.",
+      "pronunciation": "/ˈɪʃuː/"
+    },
+    {
+      "id": "HOpZf5W4J58P2VuI0YX4",
+      "word": "respond",
+      "definition": "응답하다, 반응하다",
+      "englishDefinition": "To say or do something as a reaction to something that has been said or done.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "She responded to the question quickly.",
+        "The teacher asked the students to respond to the lesson.",
+        "He didn't respond to the email until the next day."
+      ],
+      "synonyms": [
+        "reply",
+        "answer",
+        "react"
+      ],
+      "antonyms": [
+        "ignore",
+        "neglect"
+      ],
+      "etymology": "From Latin 'respondere', meaning 'to answer' or 'to reply'.",
+      "pronunciation": "/rɪˈspɒnd/"
+    },
+    {
+      "id": "I3OheBej0jmnEJEzfVUR",
+      "word": "policy",
+      "definition": "정책, 규칙 또는 방침",
+      "englishDefinition": "A plan or course of action adopted by an organization or individual.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The school has a strict policy against bullying.",
+        "The government announced a new policy to improve public transportation.",
+        "Many companies have a policy of recycling to help the environment."
+      ],
+      "synonyms": [
+        "strategy",
+        "guideline",
+        "rule"
+      ],
+      "antonyms": [
+        "chaos",
+        "disorder"
+      ],
+      "etymology": "From Greek 'politeia' meaning 'citizenship' or 'government'.",
+      "pronunciation": "/ˈpɒl.ɪ.si/"
+    },
+    {
+      "id": "J8mM7LmbQnv3D40JpjKr",
+      "word": "specific",
+      "definition": "특정한, 명확한",
+      "englishDefinition": "Clearly defined or identified; precise.",
+      "partOfSpeech": [
+        "adjective"
+      ],
+      "examples": [
+        "She gave a specific answer to the question.",
+        "We need specific details to complete the project.",
+        "Can you provide a specific example of your work?"
+      ],
+      "synonyms": [
+        "particular",
+        "exact",
+        "definite"
+      ],
+      "antonyms": [
+        "general",
+        "vague"
+      ],
+      "etymology": "From Latin 'specificus', meaning 'of a particular kind'.",
+      "pronunciation": "/spəˈsɪfɪk/"
+    },
+    {
+      "id": "TTrxDcAE51Wnt1Fx1t8e",
+      "word": "section",
+      "definition": "부분, 구역",
+      "englishDefinition": "A part or division of something larger.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The book is divided into three sections.",
+        "Please read the first section of the article.",
+        "Each section of the test has different types of questions."
+      ],
+      "synonyms": [
+        "part",
+        "division",
+        "segment"
+      ],
+      "antonyms": [
+        "whole",
+        "entirety"
+      ],
+      "etymology": "From Latin 'sectio', meaning 'a cutting' or 'a division'.",
+      "pronunciation": "/ˈsɛkʃən/"
+    },
+    {
+      "id": "YGErabbKkEkNlxg2M5Kd",
+      "word": "period",
+      "definition": "기간, 시기",
+      "englishDefinition": "A length of time during which something happens or is true.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The project will take a long period to complete.",
+        "She studied for a short period before the exam.",
+        "There was a period of heavy rain last week."
+      ],
+      "synonyms": [
+        "duration",
+        "time frame",
+        "interval"
+      ],
+      "antonyms": [
+        "moment",
+        "instant"
+      ],
+      "etymology": "From Latin 'periodus', meaning 'a cycle or a recurring time'.",
+      "pronunciation": "/ˈpɪəriəd/"
+    },
+    {
+      "id": "dd8dYwOG9PHp2Ycw3SS8",
+      "word": "research",
+      "definition": "연구, 조사",
+      "englishDefinition": "The act of studying a subject in detail to discover new information or reach a new understanding.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "The scientist conducted research to find a cure for the disease.",
+        "She is researching the effects of climate change on wildlife.",
+        "Research shows that exercise can improve mental health."
+      ],
+      "synonyms": [
+        "study",
+        "investigation",
+        "inquiry"
+      ],
+      "antonyms": [
+        "ignorance",
+        "neglect"
+      ],
+      "etymology": "From Middle French 'recherche', meaning 'to seek out'.",
+      "pronunciation": "/ˈriːsɜːrtʃ/"
+    },
+    {
+      "id": "fGSGqeu3yLPXQip69Zyv",
+      "word": "legal",
+      "definition": "법적인",
+      "englishDefinition": "Relating to the law or rules that are made by a government.",
+      "partOfSpeech": [
+        "adjective"
+      ],
+      "examples": [
+        "It is important to understand your legal rights.",
+        "The legal system helps to protect citizens.",
+        "She is studying to become a legal expert."
+      ],
+      "synonyms": [
+        "lawful",
+        "legitimate",
+        "authorized"
+      ],
+      "antonyms": [
+        "illegal",
+        "unlawful"
+      ],
+      "etymology": "From Latin 'legalis', meaning 'of the law'.",
+      "pronunciation": "/ˈliːɡəl/"
+    },
+    {
+      "id": "lXElIpnxbtWQlKxTGDT5",
+      "word": "labour",
+      "definition": "노동, 일",
+      "englishDefinition": "Work, especially hard physical work.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "He put in a lot of labour to finish the project on time.",
+        "The labour of the workers is essential for the success of the company.",
+        "She decided to labour in the garden all weekend."
+      ],
+      "synonyms": [
+        "work",
+        "effort",
+        "toil"
+      ],
+      "antonyms": [
+        "leisure",
+        "rest"
+      ],
+      "etymology": "The word 'labour' comes from the Latin 'labor', which means 'work'.",
+      "pronunciation": "/ˈleɪbər/"
+    },
+    {
+      "id": "sat2_interpret_31c6b55b",
+      "word": "interpret",
+      "definition": "해석하다, 설명하다",
+      "englishDefinition": "To explain the meaning of something or to understand it in a particular way.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The teacher asked the students to interpret the poem in their own words.",
+        "Scientists often interpret data to draw conclusions about their experiments.",
+        "It's important to interpret the results carefully to avoid misunderstandings."
+      ],
+      "synonyms": [
+        "explain",
+        "clarify",
+        "translate"
+      ],
+      "antonyms": [
+        "misinterpret",
+        "confuse"
+      ],
+      "etymology": "From Latin 'interpretari', meaning 'to explain, expound'.",
+      "pronunciation": "/ɪnˈtɜːrprɪt/"
+    },
+    {
+      "id": "sat2_percent_d4a6dd74",
+      "word": "percent",
+      "definition": "백분율",
+      "englishDefinition": "A fraction or ratio expressed as a part of 100, often used to compare quantities.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The test scores improved by ten percent this year.",
+        "She received a twenty percent discount on her purchase.",
+        "Only five percent of the population voted in the election."
+      ],
+      "synonyms": [
+        "proportion",
+        "ratio",
+        "fraction"
+      ],
+      "antonyms": [
+        "whole",
+        "total"
+      ],
+      "etymology": "Derived from the Latin 'per centum', meaning 'by the hundred'.",
+      "pronunciation": "/pərˈsɛnt/"
+    },
+    {
+      "id": "sat2_principle_c094ff06",
+      "word": "principle",
+      "definition": "원칙, 주의, 법칙",
+      "englishDefinition": "A fundamental truth or proposition that serves as the foundation for a system of belief or behavior.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The principle of equality is essential in a democratic society.",
+        "She always follows the principle of honesty in her dealings with others.",
+        "Understanding the principle of gravity is crucial for studying physics."
+      ],
+      "synonyms": [
+        "rule",
+        "law",
+        "standard"
+      ],
+      "antonyms": [
+        "exception",
+        "anomaly"
+      ],
+      "etymology": "Derived from the Latin word 'principium', meaning 'beginning' or 'foundation'.",
+      "pronunciation": "/ˈprɪn.sə.pəl/"
+    },
+    {
+      "id": "sat2_sector_30ae74eb",
+      "word": "sector",
+      "definition": "부문, 분야",
+      "englishDefinition": "A distinct part or division of a larger whole, often used in reference to areas of the economy or society.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The technology sector has seen rapid growth in recent years.",
+        "Many jobs are available in the healthcare sector.",
+        "The education sector is crucial for the development of a country."
+      ],
+      "synonyms": [
+        "division",
+        "segment",
+        "area"
+      ],
+      "antonyms": [
+        "whole",
+        "entirety"
+      ],
+      "etymology": "Derived from the Latin word 'sectorem,' meaning 'to cut' or 'to divide,' indicating a part of a whole.",
+      "pronunciation": "/ˈsɛktər/"
+    },
+    {
+      "id": "uTLn3p8pJ7PGJ7FFrLVx",
+      "word": "indicate",
+      "definition": "나타내다, 지시하다",
+      "englishDefinition": "To show or point out something.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The sign indicates where the nearest restroom is.",
+        "The results of the test indicate that many students need more practice.",
+        "Her smile indicates that she is happy."
+      ],
+      "synonyms": [
+        "show",
+        "point out",
+        "signify"
+      ],
+      "antonyms": [
+        "conceal",
+        "hide"
+      ],
+      "etymology": "From Latin 'indicare', meaning 'to point out'.",
+      "pronunciation": "/ˈɪn.dɪ.keɪt/"
+    },
+    {
+      "id": "ywJ7Q2jiLFL5nJ5ekVQ2",
+      "word": "method",
+      "definition": "방법",
+      "englishDefinition": "A way of doing something or a planned way to achieve a goal.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "She used a new method to solve the math problem.",
+        "The teacher explained a method for studying effectively.",
+        "He has a unique method for organizing his work."
+      ],
+      "synonyms": [
+        "approach",
+        "technique",
+        "strategy"
+      ],
+      "antonyms": [
+        "chaos",
+        "disorder"
+      ],
+      "etymology": "The word 'method' comes from the Greek word 'methodos', meaning 'pursuit of knowledge'.",
+      "pronunciation": "/ˈmɛθəd/"
+    },
+    {
+      "id": "4xRu60LZoouUsIhJWVxo",
+      "word": "complex",
+      "definition": "복잡한, 여러 부분으로 이루어진",
+      "englishDefinition": "Made up of many different parts; not simple.",
+      "partOfSpeech": [
+        "adjective",
+        "noun"
+      ],
+      "examples": [
+        "The math problem was too complex for me to solve.",
+        "Her feelings about the situation were complex and hard to understand.",
+        "The complex of buildings included a library, a gym, and a cafeteria."
+      ],
+      "synonyms": [
+        "complicated",
+        "intricate",
+        "difficult"
+      ],
+      "antonyms": [
+        "simple",
+        "easy"
+      ],
+      "etymology": "From Latin 'complexus', meaning 'entwined' or 'composed of parts'.",
+      "pronunciation": "/ˈkɒmplɛks/"
+    },
+    {
+      "id": "BvIDFiKlAWwNOZwAdhbQ",
+      "word": "compute",
+      "definition": "계산하다",
+      "englishDefinition": "To find a number or answer by using mathematical methods.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "I need to compute the total cost of my shopping.",
+        "The teacher asked us to compute the area of the rectangle.",
+        "We can compute the distance between the two cities using a map."
+      ],
+      "synonyms": [
+        "calculate",
+        "figure",
+        "determine"
+      ],
+      "antonyms": [
+        "estimate",
+        "guess"
+      ],
+      "etymology": "From Latin 'computare', meaning 'to count, sum up'.",
+      "pronunciation": "/kəmˈpjuːt/"
+    },
+    {
+      "id": "C7crwxXWQEXEyY9YlRvG",
+      "word": "aspect",
+      "definition": "측면, 양상",
+      "englishDefinition": "A particular part or feature of something.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "One important aspect of studying is time management.",
+        "The new policy has many positive aspects.",
+        "We need to consider every aspect of the problem."
+      ],
+      "synonyms": [
+        "feature",
+        "element",
+        "facet"
+      ],
+      "antonyms": [
+        "whole",
+        "entirety"
+      ],
+      "etymology": "From Latin 'aspectus', meaning 'appearance, look, or view'.",
+      "pronunciation": "/ˈæs.pɛkt/"
+    },
+    {
+      "id": "EFbgCC5jzZYRrmWkbccn",
+      "word": "construct",
+      "definition": "구성하다, 만들다",
+      "englishDefinition": "To build or make something by putting parts together.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The workers will construct a new bridge over the river.",
+        "She plans to construct a model of the solar system for her science project.",
+        "They need to construct a plan before starting the project."
+      ],
+      "synonyms": [
+        "build",
+        "create",
+        "assemble"
+      ],
+      "antonyms": [
+        "destroy",
+        "demolish"
+      ],
+      "etymology": "From Latin 'constructus', meaning 'to build up'.",
+      "pronunciation": "/kənˈstrʌkt/"
+    },
+    {
+      "id": "EHZXBBeUYeZzB78gyfot",
+      "word": "conclude",
+      "definition": "결론을 내리다",
+      "englishDefinition": "To bring something to an end or to reach a decision after thinking about it.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "After discussing the project, we concluded that we needed more time.",
+        "The scientist concluded her research with a summary of her findings.",
+        "He concluded the meeting by thanking everyone for their hard work."
+      ],
+      "synonyms": [
+        "decide",
+        "finish",
+        "determine"
+      ],
+      "antonyms": [
+        "begin",
+        "start"
+      ],
+      "etymology": "From Latin 'concludere', meaning 'to shut up' or 'to close off'.",
+      "pronunciation": "/kənˈkluːd/"
+    },
+    {
+      "id": "Jx2xv3zB6byfacyZuSfT",
+      "word": "focus",
+      "definition": "집중하다; 어떤 것에 마음이나 생각을 모으다.",
+      "englishDefinition": "To concentrate attention or effort on something.",
+      "partOfSpeech": [
+        "noun",
+        "verb"
+      ],
+      "examples": [
+        "I need to focus on my studies to improve my grades.",
+        "The focus of the meeting was to discuss new projects.",
+        "She lost her focus while reading the book."
+      ],
+      "synonyms": [
+        "concentration",
+        "attention",
+        "emphasis"
+      ],
+      "antonyms": [
+        "distraction",
+        "indifference"
+      ],
+      "etymology": "From Latin 'focus', meaning 'hearth' or 'fireplace', which later came to mean 'center of activity'.",
+      "pronunciation": "/ˈfoʊ.kəs/"
+    },
+    {
+      "id": "LG1ephrCuRZ6lwWfyOuw",
+      "word": "consume",
+      "definition": "소비하다, 먹다",
+      "englishDefinition": "To use up a resource or to eat or drink something.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "I like to consume fruits and vegetables for a healthy diet.",
+        "The car consumes a lot of fuel when driving fast.",
+        "Many people consume too much sugar in their diets."
+      ],
+      "synonyms": [
+        "use",
+        "devour",
+        "ingest"
+      ],
+      "antonyms": [
+        "save",
+        "preserve"
+      ],
+      "etymology": "From Latin 'consumere', meaning 'to take up, use up'.",
+      "pronunciation": "/kənˈsjuːm/"
+    },
+    {
+      "id": "NcB434QU14sLrZb01kEc",
+      "word": "affect",
+      "definition": "영향을 미치다",
+      "englishDefinition": "To have an influence on someone or something.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The weather can affect your mood.",
+        "Her speech affected the audience deeply.",
+        "The new law will affect many businesses."
+      ],
+      "synonyms": [
+        "influence",
+        "impact",
+        "change"
+      ],
+      "antonyms": [
+        "remain",
+        "stay"
+      ],
+      "etymology": "From Latin 'affectare', meaning 'to strive after, to influence'.",
+      "pronunciation": "/əˈfɛkt/"
+    },
+    {
+      "id": "XuTp34r164hFZlk4C4ce",
+      "word": "achieve",
+      "definition": "성취하다, 이루다",
+      "englishDefinition": "To successfully reach a goal or complete something.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "She worked hard to achieve her dream of becoming a doctor.",
+        "They achieved their goal of raising money for charity.",
+        "With practice, he was able to achieve a high score on the test."
+      ],
+      "synonyms": [
+        "accomplish",
+        "attain",
+        "realize"
+      ],
+      "antonyms": [
+        "fail",
+        "give up"
+      ],
+      "etymology": "From Middle English 'achieven', from Old French 'achever', meaning 'to finish or complete'.",
+      "pronunciation": "/əˈtʃiv/"
+    },
+    {
+      "id": "ZShYmsi2GDgaOoP3ATUP",
+      "word": "chapter",
+      "definition": "장(章), 한 권의 책에서 구분된 부분",
+      "englishDefinition": "A section of a book or a written work that is usually numbered or titled.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "In the first chapter of the book, the main character is introduced.",
+        "Each chapter of the textbook covers a different topic.",
+        "I read two chapters of my novel last night."
+      ],
+      "synonyms": [
+        "section",
+        "part",
+        "division"
+      ],
+      "antonyms": [
+        "whole",
+        "entirety"
+      ],
+      "etymology": "From the Latin word 'capitulum', meaning 'small head' or 'section'.",
+      "pronunciation": "/ˈtʃæp.tər/"
+    },
+    {
+      "id": "eNgIP3J3blizAUwxwKTd",
+      "word": "culture",
+      "definition": "사람들이 공유하는 믿음, 가치, 전통, 예술, 그리고 행동의 집합",
+      "englishDefinition": "The beliefs, values, traditions, arts, and behaviors shared by a group of people.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The culture of Japan is known for its beautiful gardens and traditional tea ceremonies.",
+        "Learning about different cultures can help us understand each other better.",
+        "Music is an important part of many cultures around the world."
+      ],
+      "synonyms": [
+        "civilization",
+        "society",
+        "heritage"
+      ],
+      "antonyms": [
+        "barbarism",
+        "ignorance"
+      ],
+      "etymology": "From Latin 'cultura', meaning 'cultivation' or 'tillage', which relates to the growth of human society.",
+      "pronunciation": "/ˈkʌl.tʃər/"
+    },
+    {
+      "id": "ncNfDQXVnpDGZuv7Vfss",
+      "word": "category",
+      "definition": "범주, 종류",
+      "englishDefinition": "A group or class of things that have similar characteristics.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "The teacher divided the students into different categories based on their skills.",
+        "In the store, there are many categories of products, such as electronics and clothing.",
+        "Each category in the survey helps us understand people's preferences."
+      ],
+      "synonyms": [
+        "class",
+        "group",
+        "type"
+      ],
+      "antonyms": [
+        "individual",
+        "single"
+      ],
+      "etymology": "The word 'category' comes from the Greek word 'katēgoria', which means 'a saying' or 'a classification'.",
+      "pronunciation": "/ˈkæt.ɪ.ɡɔːr.i/"
+    },
+    {
+      "id": "sat2_element_bbe6beef",
+      "word": "element",
+      "definition": "요소, 성분",
+      "englishDefinition": "A basic or essential part of something.",
+      "partOfSpeech": [
+        "noun"
+      ],
+      "examples": [
+        "Water is a vital element for all living organisms.",
+        "In chemistry, an element is a substance that cannot be broken down into simpler substances.",
+        "Trust is an important element in any successful relationship."
+      ],
+      "synonyms": [
+        "component",
+        "ingredient",
+        "factor"
+      ],
+      "antonyms": [
+        "whole",
+        "entirety"
+      ],
+      "etymology": "From Middle English 'element', from Old French 'element', from Latin 'elementum', meaning 'principle, rudiment'.",
+      "pronunciation": "/ˈɛlɪmənt/"
+    },
+    {
+      "id": "sat2_evaluate_14032112",
+      "word": "evaluate",
+      "definition": "평가하다",
+      "englishDefinition": "To assess or determine the value, quality, or significance of something.",
+      "partOfSpeech": [
+        "verb"
+      ],
+      "examples": [
+        "The teacher will evaluate the students' projects at the end of the semester.",
+        "Before making a decision, it is important to evaluate all possible options.",
+        "The committee was tasked with evaluating the effectiveness of the new policy."
+      ],
+      "synonyms": [
+        "assess",
+        "appraise",
+        "judge"
+      ],
+      "antonyms": [
+        "ignore",
+        "overlook"
+      ],
+      "etymology": "From Latin 'evaluare', meaning 'to value' or 'to determine the worth of'.",
+      "pronunciation": "/ɪˈvæljueɪt/"
+    }
+  ]
+}

@@ -17,8 +17,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return false
   })
 
-  // 사이드바를 숨길 경로들
-  const hideSidebarPaths = ['/', '/login']
+  // 사이드바를 숨길 경로들 (홈은 제외)
+  const hideSidebarPaths = ['/login']
   const shouldHideSidebar = hideSidebarPaths.includes(pathname)
 
   useEffect(() => {
@@ -43,9 +43,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar />
         <main className={cn(
           "flex-1 transition-all duration-300 ease-in-out pb-16 md:pb-0",
-          isCollapsed ? "lg:ml-16" : "lg:ml-64"
+          isCollapsed ? "md:ml-10" : "md:ml-48"  // 사이드바 폭과 동일하게 설정
         )}>
-          <div className="container mx-auto px-4 py-4 md:py-8">
+          <div className="w-full px-1 md:px-2 py-2 md:py-3">
             {children}
           </div>
         </main>

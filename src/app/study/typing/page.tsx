@@ -301,7 +301,7 @@ export default function TypingPage() {
               <Button 
                 size="lg" 
                 variant="outline"
-                onClick={() => router.push('/study')}
+                onClick={() => router.push('/unified-dashboard')}
               >
                 돌아가기
               </Button>
@@ -317,7 +317,7 @@ export default function TypingPage() {
           correctCount={correctCount}
           totalWords={words.length}
           onRestart={handleRestartPractice}
-          onGoToStudy={() => router.push('/study')}
+          onGoToStudy={() => router.push('/unified-dashboard')}
         />
       ) : words.length === 0 ? (
         <Card>

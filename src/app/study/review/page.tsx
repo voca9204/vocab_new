@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { Button, StudyHeader } from '@/components/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
+import {
   ChevronLeft,
   Clock,
   AlertCircle,
@@ -26,6 +27,7 @@ import { useSettings, getTextSizeClass } from '@/components/providers/settings-p
 export default function ReviewPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { allWords, selectedCollections, loadWords: loadAllWordsContext } = useCollectionV2()
   const { textSize } = useSettings()
   const [words, setWords] = useState<VocabularyWord[]>([])
   const [reviewWords, setReviewWords] = useState<VocabularyWord[]>([])
@@ -37,65 +39,124 @@ export default function ReviewPage() {
   const [showHelp, setShowHelp] = useState(false)
   const [translations, setTranslations] = useState<{ [key: number]: string }>({})
   const [translatingIndex, setTranslatingIndex] = useState<number | null>(null)
+  const [userActivityData, setUserActivityData] = useState<Map<string, any>>(new Map())
 
   useEffect(() => {
-    if (user) {
+    if (user && selectedCollections.length > 0) {
+      // 복습 페이지는 전체 단어를 로드해야 정확한 복습 대상을 찾을 수 있음
+      loadAllWordsContext(10000) // 충분히 큰 limit으로 전체 로드
+    }
+  }, [user, selectedCollections, loadAllWordsContext])
+
+  useEffect(() => {
+    if (user && allWords && allWords.length > 0) {
       loadWords()
     }
-  }, [user, reviewType])
+  }, [user, allWords, reviewType])
 
   const loadWords = async () => {
-    if (!user) return
+    if (!user || !allWords) return
 
     try {
-      console.log('Loading words for review using new vocabulary service')
-      
-      // 새 호환성 레이어를 사용하여 사용자 선택 단어장의 단어 가져오기
-      const { words: allWords } = await vocabularyService.getAll(undefined, 2000, user.uid)
-      
-      console.log(`Loaded ${allWords.length} words for review`)
-      
-      // 단어가 없으면 빈 상태로 설정
+      console.log('[Review] Loading words from Firestore - Ver.4')
+
+      // 컨텍스트에서 단어 가져오기
       if (allWords.length === 0) {
         setWords([])
         setReviewWords([])
         setLoading(false)
         return
       }
-      
-      // 사용자의 학습 기록 가져오기 (user_words 컬렉션에서)
-      const { UserWordService } = await import('@/lib/vocabulary-v2/user-word-service')
-      const userWordService = new UserWordService()
-      const userStudiedWords = await userWordService.getUserStudiedWords(user.uid)
-      
-      console.log(`User has studied ${userStudiedWords.length} words total`)
-      console.log('[Review] User studied words sample:', userStudiedWords.slice(0, 3))
-      
-      // 마스터 단어 정보와 매칭
-      const wordsWithUserData = userStudiedWords.map(userWord => {
-        const masterWord = allWords.find(w => w.id === userWord.wordId)
-        if (masterWord) {
-          // 학습 정보를 마스터 단어에 합쳐서 반환
+
+      // Ver.4: Firestore에서 사용자 학습 데이터 가져오기 (POST로 변경 - HTTP 431 방지)
+      const wordIds = allWords.map(w => w.id).filter(Boolean)
+      const response = await fetch('/api/study-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'fetch',
+          userId: user.uid,
+          wordIds: wordIds
+        })
+      })
+
+      let activityData = new Map<string, any>()
+
+      if (response.ok) {
+        const { userWords } = await response.json()
+        console.log(`[Review] Fetched ${userWords.length} user progress records from Firestore`)
+
+        // Convert to Map for easy lookup
+        userWords.forEach((userWord: any) => {
+          if (userWord.wordId && userWord.studyStatus) {
+            activityData.set(userWord.wordId, {
+              correctCount: userWord.studyStatus.correctCount || 0,
+              incorrectCount: userWord.studyStatus.incorrectCount || 0,
+              lastStudied: userWord.studyStatus.lastStudied,
+              masteryLevel: userWord.studyStatus.masteryLevel || 0,
+              streak: userWord.studyStatus.streakCount || 0,
+              totalReviews: userWord.studyStatus.totalReviews || 0
+            })
+          }
+        })
+      } else {
+        console.error('[Review] Failed to fetch study progress from Firestore')
+      }
+
+      console.log(`[Review] Found activity data for ${activityData.size} words`)
+      setUserActivityData(activityData)
+
+      // 컨텍스트 단어에 활동 데이터 추가
+      const wordsWithUserData = allWords.map(word => {
+        const activityInfo = activityData.get(word.id)
+
+        if (activityInfo) {
+          // Ver.4: Firestore 데이터 사용
+          const totalAttempts = activityInfo.totalReviews ||
+                              ((activityInfo.correctCount || 0) + (activityInfo.incorrectCount || 0))
+          const masteryLevel = activityInfo.masteryLevel
+            ? activityInfo.masteryLevel / 100 // Convert from 0-100 to 0-1
+            : (totalAttempts > 0 ? (activityInfo.correctCount || 0) / totalAttempts : 0)
+
           return {
-            ...masterWord,
+            ...word,
             learningMetadata: {
-              timesStudied: userWord.studyStatus.totalReviews,
-              masteryLevel: userWord.studyStatus.masteryLevel / 100, // 백분율을 0-1로 변환
-              lastStudied: userWord.studyStatus.lastStudied || new Date(),
+              timesStudied: totalAttempts,
+              masteryLevel: masteryLevel,
+              lastStudied: activityInfo.lastStudied ? new Date(activityInfo.lastStudied) : new Date(),
               userProgress: {
-                userId: userWord.userId,
-                wordId: userWord.wordId,
-                correctAttempts: userWord.studyStatus.correctCount,
-                totalAttempts: userWord.studyStatus.totalReviews,
-                streak: userWord.studyStatus.streakCount,
-                nextReviewDate: userWord.studyStatus.nextReviewDate || new Date()
+                userId: user.uid,
+                wordId: word.id,
+                correctAttempts: activityInfo.correctCount || 0,
+                totalAttempts: totalAttempts,
+                streak: activityInfo.streak || 0,
+                nextReviewDate: activityInfo.nextReviewDate ? new Date(activityInfo.nextReviewDate) : new Date()
               }
             }
           }
         }
-        return null
-      }).filter(Boolean) as VocabularyWord[]
-      
+
+        // 활동 데이터가 없는 단어는 기본값으로
+        return {
+          ...word,
+          learningMetadata: {
+            timesStudied: 0,
+            masteryLevel: 0,
+            lastStudied: new Date(),
+            userProgress: {
+              userId: user.uid,
+              wordId: word.id,
+              correctAttempts: 0,
+              totalAttempts: 0,
+              streak: 0,
+              nextReviewDate: new Date()
+            }
+          }
+        }
+      })
+
       setWords(wordsWithUserData)
       
       // 복습할 단어 필터링
@@ -235,21 +296,78 @@ export default function ReviewPage() {
 
   const markAsReviewed = async (remembered: boolean) => {
     const currentWord = reviewWords[currentIndex]
-    if (!currentWord || !currentWord.id) return
+    if (!currentWord || !currentWord.id || !user) return
 
     try {
-      // 학습 진도 업데이트
-      const increment = remembered ? 10 : -5 // 백분율로 변경
-      await vocabularyService.updateStudyProgress(
-        currentWord.id,
-        'review',
-        remembered,
-        increment
-      )
+      // localStorage에 학습 진도 업데이트
+      const activityKey = `userActivityStats_${user.uid}`
+      const savedActivity = localStorage.getItem(activityKey)
+      let activityData: any = { words: {} }
+
+      if (savedActivity) {
+        try {
+          activityData = JSON.parse(savedActivity)
+          if (!activityData.words) {
+            activityData.words = {}
+          }
+        } catch (err) {
+          console.error('Error parsing activity data:', err)
+        }
+      }
+
+      // 현재 단어의 활동 데이터 업데이트
+      const wordActivity = activityData.words[currentWord.id] || {
+        correctCount: 0,
+        incorrectCount: 0,
+        streak: 0,
+        lastStudied: null,
+        nextReviewDate: null
+      }
+
+      if (remembered) {
+        wordActivity.correctCount = (wordActivity.correctCount || 0) + 1
+        wordActivity.streak = (wordActivity.streak || 0) + 1
+
+        // 다음 복습 날짜 계산 (간격 반복)
+        const streakDays = [1, 3, 7, 14, 30, 60]
+        const nextDays = streakDays[Math.min(wordActivity.streak - 1, streakDays.length - 1)]
+        const nextDate = new Date()
+        nextDate.setDate(nextDate.getDate() + nextDays)
+        wordActivity.nextReviewDate = nextDate.toISOString()
+      } else {
+        wordActivity.incorrectCount = (wordActivity.incorrectCount || 0) + 1
+        wordActivity.streak = 0
+
+        // 다시 1일 후 복습
+        const nextDate = new Date()
+        nextDate.setDate(nextDate.getDate() + 1)
+        wordActivity.nextReviewDate = nextDate.toISOString()
+      }
+
+      wordActivity.lastStudied = new Date().toISOString()
+      activityData.words[currentWord.id] = wordActivity
+
+      // localStorage에 저장
+      localStorage.setItem(activityKey, JSON.stringify(activityData))
+
+      // 서버 동기화 시도 (실패해도 계속 진행)
+      try {
+        const increment = remembered ? 10 : -5
+        await vocabularyService.updateStudyProgress(
+          currentWord.id,
+          'review',
+          remembered,
+          increment
+        )
+      } catch (err) {
+        console.log('Server sync failed, but local progress saved')
+      }
+
       console.log('Review progress updated:', currentWord.word, remembered)
-      
+
       // 로컬 상태 업데이트
       const currentMastery = currentWord.learningMetadata?.masteryLevel || 0
+      const increment = remembered ? 10 : -5  // 기억하면 +10, 못하면 -5
       const newMasteryLevel = Math.max(0, Math.min(100, currentMastery + increment))
       
       const updatedWords = [...reviewWords]
@@ -273,7 +391,7 @@ export default function ReviewPage() {
       } else {
         // 복습 완료
         alert('복습을 완료했습니다!')
-        router.push('/study')
+        router.push('/unified-dashboard')
       }
     } catch (error) {
       console.error('Error updating word:', error)
@@ -513,7 +631,7 @@ export default function ReviewPage() {
                 
                 {showAnswer ? (
                   <div className="space-y-4 animate-fade-in">
-                    <p className="text-xl text-gray-800">{currentWord.definitions[0]?.text || 'No definition available'}</p>
+                    <p className="text-xl text-gray-800">{currentWord.definitions?.[0]?.text || currentWord.definition || 'No definition available'}</p>
                     {currentWord.etymology?.origin && (
                       <p className="text-lg text-gray-600">{currentWord.etymology.origin}</p>
                     )}

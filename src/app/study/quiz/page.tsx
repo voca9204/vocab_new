@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 // Removed: import { vocabularyService } from '@/lib/api' - NO LONGER USING OLD SYSTEM
 import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
+import { QuizSkeleton } from '@/components/ui/quiz-skeleton'
 import type { VocabularyWord } from '@/types'
 import type { Word } from '@/types/vocabulary-v2'
 import type { PhotoVocabularyWord } from '@/types/photo-vocabulary-collection'
@@ -438,17 +439,26 @@ function QuizContent() {
       const increment = isCorrect ? 10 : -5 // 백분율로 변경
       const currentMastery = currentQuestion.word.learningMetadata?.masteryLevel || 0
       const newMasteryLevel = Math.max(0, Math.min(100, currentMastery + increment))
-      
+
       try {
-        // TODO: Update study progress with new collection service
-        // await collectionService.updateStudyProgress(
-        //   currentQuestion.word.id,
-        //   'quiz',
-        //   isCorrect,
-        //   increment
-        // )
-        console.log('TODO: Update study progress for word:', currentQuestion.word.id)
-        console.log('Quiz progress updated:', currentQuestion.word.word, isCorrect, newMasteryLevel)
+        // Ver.4: Study progress API 호출
+        const response = await fetch('/api/study-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user?.uid,
+            wordId: currentQuestion.word.id,
+            result: isCorrect ? 'correct' : 'incorrect',
+            studyType: 'quiz'
+          })
+        })
+
+        if (!response.ok) {
+          console.error('Failed to save quiz progress')
+        } else {
+          const data = await response.json()
+          console.log('[Quiz] Study progress saved:', currentQuestion.word.word, isCorrect, data.studyStatus?.masteryLevel)
+        }
       } catch (error) {
         console.error('Failed to update quiz progress:', error)
       }
@@ -508,11 +518,7 @@ function QuizContent() {
   }
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <p>로딩 중...</p>
-      </div>
-    )
+    return <QuizSkeleton />
   }
 
   const currentQuestion = questions[currentQuestionIndex]
@@ -523,17 +529,29 @@ function QuizContent() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 헤더 */}
-      <StudyHeader 
-        title="퀴즈 학습"
-        rightContent={
-          !quizComplete && questions.length > 0 ? (
-            <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>{Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}</span>
-            </div>
-          ) : undefined
-        }
-      />
+      <div className="mb-6">
+        <StudyHeader
+          title="퀴즈 학습"
+          rightContent={
+            !quizComplete && questions.length > 0 ? (
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>{Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}</span>
+              </div>
+            ) : undefined
+          }
+        />
+
+        {/* Collection Source Display */}
+        {selectedCollections.length > 0 && !quizComplete && (
+          <div className="flex items-center justify-center gap-2 flex-wrap -mt-6">
+            <BookOpen className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-600">
+              출처: {selectedCollections.map(c => c.name).join(', ')}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* 진행률 표시 */}
       {!quizComplete && questions.length > 0 && (
@@ -543,13 +561,14 @@ function QuizContent() {
             <span>{accuracy}% 정답률</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all"
               style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
             />
           </div>
         </div>
       )}
+
 
       {/* 퀴즈 완료 화면 */}
       {quizComplete ? (
@@ -597,8 +616,8 @@ function QuizContent() {
                     <RotateCcw className="h-4 w-4 mr-2" />
                     다시 풀기
                   </Button>
-                  <Button variant="outline" className="flex-1" onClick={() => router.push('/study')}>
-                    학습 메뉴로
+                  <Button variant="outline" className="flex-1" onClick={() => router.push('/unified-dashboard')}>
+                    대시보드로
                   </Button>
                 </div>
               </div>
@@ -617,11 +636,11 @@ function QuizContent() {
               }
             </p>
             <div className="mt-4 space-y-2">
-              <Button 
-                variant="outline" 
-                onClick={() => router.push('/settings')}
+              <Button
+                variant="outline"
+                onClick={() => router.push('/unified-dashboard')}
               >
-                단어장 설정하기
+                단어장 선택하기
               </Button>
               <br />
               <Button 

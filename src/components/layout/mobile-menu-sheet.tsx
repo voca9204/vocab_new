@@ -1,6 +1,6 @@
 'use client'
 
-import { X, ChevronRight, User, Settings, LogOut, HelpCircle, BookOpen, Trophy, BarChart3, GraduationCap } from 'lucide-react'
+import { X, ChevronRight, User, Settings, LogOut, HelpCircle, BookOpen, Trophy, BarChart3, GraduationCap, List, CreditCard, Brain, PenTool, RefreshCw, Calendar } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { signOut } from 'firebase/auth'
@@ -37,12 +37,49 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
   }
 
   const menuItems: MenuItem[] = [
+    // Study Methods Section
     {
-      id: 'profile',
-      label: '프로필',
-      icon: User,
-      href: '/settings'
+      id: 'study-list',
+      label: '단어 목록',
+      icon: List,
+      href: '/study/list'
     },
+    {
+      id: 'study-flashcards',
+      label: '플래시카드',
+      icon: CreditCard,
+      href: '/study/flashcards'
+    },
+    {
+      id: 'study-quiz',
+      label: '퀴즈',
+      icon: Brain,
+      href: '/study/quiz'
+    },
+    {
+      id: 'study-typing',
+      label: '타이핑 연습',
+      icon: PenTool,
+      href: '/study/typing'
+    },
+    {
+      id: 'study-review',
+      label: '복습',
+      icon: RefreshCw,
+      href: '/study/review'
+    },
+    {
+      id: 'study-daily',
+      label: '데일리 학습',
+      icon: Calendar,
+      href: '/study/daily'
+    },
+    {
+      id: 'divider1',
+      label: '',
+      divider: true
+    },
+    // Features Section
     {
       id: 'study-stats',
       label: '학습 통계',
@@ -56,22 +93,11 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
       href: '/achievements'
     },
     {
-      id: 'vocabulary-test',
-      label: '어휘 테스트',
-      icon: GraduationCap,
-      href: '/study/quiz'
-    },
-    {
-      id: 'divider1',
+      id: 'divider2',
       label: '',
       divider: true
     },
-    {
-      id: 'my-collections',
-      label: '내 단어장',
-      icon: BookOpen,
-      href: '/my-collections'
-    },
+    // User Section
     {
       id: 'settings',
       label: '설정',
@@ -85,7 +111,7 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
       href: '/help'
     },
     {
-      id: 'divider2',
+      id: 'divider3',
       label: '',
       divider: true
     },

@@ -832,10 +832,10 @@ export class WordAdapter {
   /**
    * 특정 단어장의 단어들 가져오기
    */
-  async getWordsByCollection(collectionId: string, wordbookType: string, limit: number = 2000): Promise<UnifiedWord[]> {
+  async getWordsByCollection(collectionId: string, wordbookType: string, limit: number = 2000, offset: number = 0): Promise<UnifiedWord[]> {
     try {
-      console.log(`[WordAdapter] 📚 Loading words from collection: ${collectionId} (type: ${wordbookType}, limit: ${limit})`)
-      
+      console.log(`[WordAdapter] 📚 Loading words from collection: ${collectionId} (type: ${wordbookType}, limit: ${limit}, offset: ${offset})`)
+
       if (wordbookType === 'official') {
         // 공식 단어장: vocabulary_collections에서 words 배열을 읽고 각 단어 ID로 words 컬렉션에서 가져오기
         const collectionDoc = await getDoc(doc(db, 'vocabulary_collections', collectionId))
@@ -843,16 +843,20 @@ export class WordAdapter {
           console.warn(`[WordAdapter] Official collection not found: ${collectionId}`)
           return []
         }
-        
+
         const collectionData = collectionDoc.data()
-        const wordIds = collectionData.wordIds || []
-        
-        console.log(`[WordAdapter] Official collection has ${wordIds.length} word IDs`)
-        
+        // Try both wordIds and words fields for backward compatibility
+        const wordIds = collectionData.wordIds || collectionData.words || []
+
+        console.log(`[WordAdapter] Official collection has ${wordIds.length} word IDs (field: ${collectionData.wordIds ? 'wordIds' : collectionData.words ? 'words' : 'none'})`)
+
+        // ✅ PAGINATION: Apply offset and limit to word IDs
+        const paginatedWordIds = wordIds.slice(offset, offset + limit)
+        console.log(`[WordAdapter] 📄 Pagination: offset=${offset}, limit=${limit}, selected ${paginatedWordIds.length} IDs`)
+
         // 배치 쿼리 최적화: getWordsByIds 메서드 사용
-        const limitedWordIds = wordIds.slice(0, limit)
-        const words = await this.getWordsByIds(limitedWordIds)
-        
+        const words = await this.getWordsByIds(paginatedWordIds)
+
         return words
         
       } else if (wordbookType === 'personal') {
@@ -862,20 +866,24 @@ export class WordAdapter {
           console.warn(`[WordAdapter] Personal collection not found: ${collectionId}`)
           return []
         }
-        
+
         const collectionData = collectionDoc.data()
         const wordIds = collectionData.wordIds || []
-        
+
         console.log(`[WordAdapter] Personal collection "${collectionData.name}" has ${wordIds.length} word IDs`)
-        
+
+        // ✅ PAGINATION: Apply offset and limit to word IDs
+        const paginatedWordIds = wordIds.slice(offset, offset + limit)
+        console.log(`[WordAdapter] 📄 Pagination: offset=${offset}, limit=${limit}, selected ${paginatedWordIds.length} IDs`)
+
         // 각 wordId로 단어 가져오기 (배치 처리)
         const words: UnifiedWord[] = []
-        
-        if (wordIds.length > 0) {
+
+        if (paginatedWordIds.length > 0) {
           const batchSize = 10 // Firestore 제한
-          
-          for (let i = 0; i < wordIds.length; i += batchSize) {
-            const batch = wordIds.slice(i, i + batchSize)
+
+          for (let i = 0; i < paginatedWordIds.length; i += batchSize) {
+            const batch = paginatedWordIds.slice(i, i + batchSize)
             
             // Personal collections store IDs from personal_collection_words
             const q = query(

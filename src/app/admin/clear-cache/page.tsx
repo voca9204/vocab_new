@@ -16,16 +16,12 @@ export default function ClearCachePage() {
     setMessage('캐시 클리어 중...')
     
     try {
-      // 1. Clear localStorage
+      // 1. Clear ALL localStorage (not just vocab/word items)
       const keys = Object.keys(localStorage)
-      let clearedCount = 0
-      
-      keys.forEach(key => {
-        if (key.startsWith('vocab_cache_') || key.startsWith('word_')) {
-          localStorage.removeItem(key)
-          clearedCount++
-        }
-      })
+      let clearedCount = keys.length
+
+      // Clear everything to ensure fresh data
+      localStorage.clear()
       
       // 2. Clear sessionStorage
       sessionStorage.clear()

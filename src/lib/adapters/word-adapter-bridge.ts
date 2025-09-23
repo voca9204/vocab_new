@@ -80,11 +80,11 @@ export class WordAdapterBridge {
   /**
    * Get words by collection - PRIORITY: words_v3 first, then fallback to old
    */
-  async getWordsByCollection(collectionId: string, collectionType?: string, limit?: number): Promise<UnifiedWord[]> {
-    logger.debug(`Loading collection ${collectionId} - attempting words_v3 first`)
-    
+  async getWordsByCollection(collectionId: string, collectionType?: string, limit?: number, offset?: number): Promise<UnifiedWord[]> {
+    logger.debug(`Loading collection ${collectionId} - attempting words_v3 first (limit: ${limit}, offset: ${offset})`)
+
     // First, get word IDs from the old collection structure
-    const words = await this.oldAdapter.getWordsByCollection(collectionId, collectionType, limit)
+    const words = await this.oldAdapter.getWordsByCollection(collectionId, collectionType, limit, offset)
     
     if (words.length === 0) {
       console.log(`[WordAdapterBridge] No words found for collection ${collectionId}`)

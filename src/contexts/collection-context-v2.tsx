@@ -28,6 +28,7 @@ export interface Collection {
   description?: string
   type: 'official' | 'personal' | 'ai-generated' | 'photo'
   category?: string // SAT, TOEFL, etc.
+  difficulty?: 'beginner' | 'intermediate' | 'advanced' // 난이도 필드 추가
   wordCount: number
   words: string[] // Word IDs
   createdAt: Date
@@ -81,6 +82,7 @@ interface CollectionContextV2Type {
   // Collection 작업
   loadCollections: () => Promise<void>
   selectCollection: (collectionId: string, priority?: number) => Promise<void>
+  selectSingleCollection: (collectionId: string) => Promise<void> // 단일 선택 모드
   unselectCollection: (collectionId: string) => Promise<void>
   toggleCollection: (collectionId: string) => Promise<void>
   refreshCollections: () => Promise<void>
@@ -94,8 +96,12 @@ interface CollectionContextV2Type {
   
   // Word 작업
   loadWords: (limit?: number) => Promise<void>
+  loadMoreWords: (limit?: number) => Promise<void>
   refreshWords: () => Promise<void>
   getWordById: (id: string) => UnifiedWord | undefined
+  hasMoreWords: boolean
+  currentPage: number
+  totalAvailableWords: number
   getWordByText: (word: string) => Promise<UnifiedWord | null>
   updateWordSynonyms: (wordId: string, synonyms: string[]) => Promise<void>
   
@@ -193,6 +199,12 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
   const [words, setWords] = useState<UnifiedWord[]>([])
   const [wordLoading, setWordLoading] = useState(false) // Start as false since we load on demand
   const [wordError, setWordError] = useState<string | null>(null)
+
+  // ===== State: Pagination =====
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMoreWords, setHasMoreWords] = useState(false)
+  const [totalAvailableWords, setTotalAvailableWords] = useState(0)
+  const WORDS_PER_PAGE = 50
   
   // ===== State: Filters =====
   const [filter, setFilterState] = useState<CollectionContextV2Type['filter']>({
@@ -270,6 +282,7 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
       description: dbCollection.description,
       type: collectionType,
       category: isOfficial ? (dbCollection as OfficialCollection).category : undefined,
+      difficulty: isOfficial ? (dbCollection as OfficialCollection).difficulty : undefined, // 최상위 레벨에 difficulty 추가
       wordCount: dbCollection.wordCount,
       words: finalWords,
       createdAt: dbCollection.createdAt,
@@ -442,12 +455,12 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
         })
       }
       
-      // Handle new selectedWordbooks
-      if (settings?.selectedWordbooks && settings.selectedWordbooks.length > 0) {
-        settings.selectedWordbooks.forEach(wb => {
-          selectedIds.add(wb.id)
-        })
-      }
+      // Ver.4: selectedWordbooks 자동 적용 제거 - 사용자가 명시적으로 선택한 것만 사용
+      // if (settings?.selectedWordbooks && settings.selectedWordbooks.length > 0) {
+      //   settings.selectedWordbooks.forEach(wb => {
+      //     selectedIds.add(wb.id)
+      //   })
+      // }
       
       // If nothing selected, select first official collection by default
       if (selectedIds.size === 0 && allCollections.length > 0) {
@@ -482,46 +495,57 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
   const loadWords = useCallback(async (limit?: number, collectionsToLoad?: Collection[]) => {
     // Use provided collections or fall back to selectedCollections
     const targetCollections = collectionsToLoad || selectedCollections
-    
+
     if (!user || !targetCollections || targetCollections.length === 0) {
       setWords([])
       setAllWords([])
       setWordLoading(false)
+      setCurrentPage(1)
+      setHasMoreWords(false)
+      setTotalAvailableWords(0)
       return
     }
-    
+
     setWordLoading(true)
     setWordError(null)
-    
+
+    // ✅ OPTIMIZATION: Enforce limit - default to WORDS_PER_PAGE (50)
+    const effectiveLimit = limit || WORDS_PER_PAGE
+
     try {
-      console.log(`[CollectionV2] Loading words from ${targetCollections.length} collections...`)
-      
+      console.log(`[CollectionV2] 🚀 Loading words (limit: ${effectiveLimit}) from ${targetCollections.length} collections...`)
+
       // Separate collections by type for proper handling
       const aiGeneratedCollections = targetCollections.filter(c => c.type === 'ai-generated')
       const officialCollections = targetCollections.filter(c => c.type === 'official')
       const personalCollections = targetCollections.filter(c => c.type === 'personal')
-      
+
+      // ✅ Calculate total available words
+      const totalWords = targetCollections.reduce((sum, c) => sum + c.wordCount, 0)
+      setTotalAvailableWords(totalWords)
+
       console.log(`[CollectionV2] Collections breakdown:`)
       console.log(`  - Official: ${officialCollections.length}`)
       console.log(`  - Personal: ${personalCollections.length}`)
       console.log(`  - AI Generated: ${aiGeneratedCollections.length}`)
-      
+      console.log(`  - Total available words: ${totalWords}`)
+
       let loadedWords: UnifiedWord[] = []
-      
+
       // Load words from official collections using getWordsByCollection
       for (const collection of officialCollections) {
-        console.log(`[CollectionV2] Loading official collection: ${collection.name} (${collection.wordCount} words)`)
-        const collectionWords = await wordAdapter.getWordsByCollection(collection.id, 'official', limit)
+        console.log(`[CollectionV2] Loading official collection: ${collection.name} (limit: ${effectiveLimit})`)
+        const collectionWords = await wordAdapter.getWordsByCollection(collection.id, 'official', effectiveLimit)
         loadedWords.push(...collectionWords)
-        console.log(`[CollectionV2] Loaded ${collectionWords.length} words from official collection ${collection.name}`)
+        console.log(`[CollectionV2] ✅ Loaded ${collectionWords.length} words from official collection ${collection.name}`)
       }
-      
+
       // Load words from personal collections using getWordsByCollection
       for (const collection of personalCollections) {
-        console.log(`[CollectionV2] Loading personal collection: ${collection.name} (${collection.wordCount} words)`)
-        const collectionWords = await wordAdapter.getWordsByCollection(collection.id, 'personal', limit)
+        console.log(`[CollectionV2] Loading personal collection: ${collection.name} (limit: ${effectiveLimit})`)
+        const collectionWords = await wordAdapter.getWordsByCollection(collection.id, 'personal', effectiveLimit)
         loadedWords.push(...collectionWords)
-        console.log(`[CollectionV2] Loaded ${collectionWords.length} words from personal collection ${collection.name}`)
+        console.log(`[CollectionV2] ✅ Loaded ${collectionWords.length} words from personal collection ${collection.name}`)
       }
       
       // Load words from AI-generated collections - Use standard batch loading ONLY
@@ -585,8 +609,14 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
       
       setAllWords(loadedWords)
       setWords(loadedWords) // Initially show all words
-      
-      console.log(`[CollectionV2] Loaded ${loadedWords.length} words`)
+
+      // ✅ Check if there are more words available
+      const hasMore = loadedWords.length < totalWords
+      setHasMoreWords(hasMore)
+      setCurrentPage(1)
+
+      console.log(`[CollectionV2] ✅ Loaded ${loadedWords.length} words`)
+      console.log(`[CollectionV2] 📊 Has more words: ${hasMore} (${loadedWords.length}/${totalWords})`)
       
     } catch (error) {
       console.error('[CollectionV2] Error loading words:', error)
@@ -594,8 +624,68 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
     } finally {
       setWordLoading(false)
     }
-  }, [user, selectedCollections, wordAdapter])
-  
+  }, [user, selectedCollections, wordAdapter, WORDS_PER_PAGE])
+
+  // ===== Load More Words (Pagination) =====
+  const loadMoreWords = useCallback(async (limit?: number) => {
+    if (!user || !selectedCollections || selectedCollections.length === 0 || !hasMoreWords) {
+      return
+    }
+
+    setWordLoading(true)
+
+    const effectiveLimit = limit || WORDS_PER_PAGE
+    const offset = currentPage * WORDS_PER_PAGE
+
+    try {
+      console.log(`[CollectionV2] 🔄 Loading more words (page ${currentPage + 1}, offset: ${offset}, limit: ${effectiveLimit})...`)
+
+      const officialCollections = selectedCollections.filter(c => c.type === 'official')
+      const personalCollections = selectedCollections.filter(c => c.type === 'personal')
+
+      let moreWords: UnifiedWord[] = []
+
+      // Load more words from official collections
+      for (const collection of officialCollections) {
+        const collectionWords = await wordAdapter.getWordsByCollection(
+          collection.id,
+          'official',
+          effectiveLimit,
+          offset
+        )
+        moreWords.push(...collectionWords)
+      }
+
+      // Load more words from personal collections
+      for (const collection of personalCollections) {
+        const collectionWords = await wordAdapter.getWordsByCollection(
+          collection.id,
+          'personal',
+          effectiveLimit,
+          offset
+        )
+        moreWords.push(...collectionWords)
+      }
+
+      // Append to existing words
+      const updatedWords = [...allWords, ...moreWords]
+      setAllWords(updatedWords)
+      setWords(updatedWords)
+
+      // Update pagination state
+      const newPage = currentPage + 1
+      setCurrentPage(newPage)
+      setHasMoreWords(updatedWords.length < totalAvailableWords)
+
+      console.log(`[CollectionV2] ✅ Loaded ${moreWords.length} more words (total: ${updatedWords.length}/${totalAvailableWords})`)
+
+    } catch (error) {
+      console.error('[CollectionV2] Error loading more words:', error)
+    } finally {
+      setWordLoading(false)
+    }
+  }, [user, selectedCollections, currentPage, hasMoreWords, allWords, wordAdapter, WORDS_PER_PAGE, totalAvailableWords])
+
   // ===== Apply filters to words =====
   const applyFilters = useCallback(() => {
     let filtered = [...allWords]
@@ -824,27 +914,63 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
     await loadWords(undefined, newSelected)
   }, [collections, user, userSettings, updateUserSettings, loadWords])
   
+  // 단일 선택 모드 - 이전 선택을 모두 지우고 하나만 선택
+  const selectSingleCollection = useCallback(async (collectionId: string) => {
+    const collection = collections.find(c => c.id === collectionId)
+    if (!collection || !user) return
+
+    console.log(`[selectSingleCollection] 🎯 Single selection mode: ${collection.name}`)
+
+    // 모든 컬렉션 선택 해제하고 선택한 것만 활성화
+    const updatedCollections = collections.map(c => ({
+      ...c,
+      isSelected: c.id === collectionId
+    }))
+
+    const newSelected = [collection]
+
+    setCollections(updatedCollections)
+    setSelectedCollections(newSelected)
+
+    // Update user settings - 선택한 것만 저장
+    const selectedInfo: SelectedWordbook = {
+      id: collectionId,
+      type: collection.type as any,
+      name: collection.name,
+      selectedAt: new Date()
+    }
+
+    const updatedSettings: Partial<UserSettings> = {
+      selectedWordbooks: [selectedInfo]
+    }
+
+    await updateUserSettings(updatedSettings)
+
+    // Reload words with the new selected collection
+    await loadWords(undefined, newSelected)
+  }, [collections, user, userSettings, updateUserSettings, loadWords])
+
   const unselectCollection = useCallback(async (collectionId: string) => {
     if (!user) return
-    
+
     // Update local state
     const updatedCollections = collections.map(c => ({
       ...c,
       isSelected: c.id === collectionId ? false : c.isSelected
     }))
-    
+
     const newSelected = updatedCollections.filter(c => c.isSelected)
-    
+
     setCollections(updatedCollections)
     setSelectedCollections(newSelected)
-    
+
     // Update user settings
     const updatedSettings: Partial<UserSettings> = {
       selectedWordbooks: (userSettings?.selectedWordbooks || []).filter(wb => wb.id !== collectionId)
     }
-    
+
     await updateUserSettings(updatedSettings)
-    
+
     // Reload words with the new selected collections
     await loadWords(undefined, newSelected)
   }, [collections, user, userSettings, updateUserSettings, loadWords])
@@ -962,6 +1088,7 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
     collectionError,
     loadCollections,
     selectCollection,
+    selectSingleCollection,
     unselectCollection,
     toggleCollection,
     refreshCollections,
@@ -973,10 +1100,14 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
     wordLoading,
     wordError,
     loadWords,
+    loadMoreWords,
     refreshWords,
     getWordById,
     getWordByText,
     updateWordSynonyms,
+    hasMoreWords,
+    currentPage,
+    totalAvailableWords,
     
     // Filters
     filter,

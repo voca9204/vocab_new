@@ -2,10 +2,143 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
 import type { StudyActivityType } from '@/types/vocabulary-v2'
 
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams
+    const userId = searchParams.get('userId')
+    const wordIds = searchParams.get('wordIds')?.split(',')
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Missing userId parameter' },
+        { status: 400 }
+      )
+    }
+
+    console.log(`[study-progress] Fetching progress for user ${userId}, words: ${wordIds?.length || 'all'}`)
+
+    const userWordsRef = adminDb.collection('user_words')
+    let query = userWordsRef.where('userId', '==', userId)
+
+    // If specific wordIds are provided, filter by them
+    if (wordIds && wordIds.length > 0) {
+      // Firestore 'in' query is limited to 10 items, so we need to batch
+      const batches = []
+      for (let i = 0; i < wordIds.length; i += 10) {
+        const batch = wordIds.slice(i, i + 10)
+        batches.push(batch)
+      }
+
+      const allResults = []
+      for (const batch of batches) {
+        const snapshot = await userWordsRef
+          .where('userId', '==', userId)
+          .where('wordId', 'in', batch)
+          .get()
+
+        snapshot.docs.forEach(doc => {
+          allResults.push({
+            id: doc.id,
+            ...doc.data()
+          })
+        })
+      }
+
+      return NextResponse.json({
+        success: true,
+        userWords: allResults
+      })
+    } else {
+      // Get all user words
+      const snapshot = await query.get()
+
+      const userWords = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+
+      return NextResponse.json({
+        success: true,
+        userWords
+      })
+    }
+  } catch (error) {
+    console.error('[study-progress] Error fetching study progress:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch study progress' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { userId, wordId, result, studyType } = await request.json()
-    
+    const body = await request.json()
+
+    // Check if this is a fetch request (for large word lists) or save request
+    if (body.action === 'fetch') {
+      // Handle fetching progress for large word lists
+      const { userId, wordIds } = body
+
+      if (!userId) {
+        return NextResponse.json(
+          { error: 'Missing userId parameter' },
+          { status: 400 }
+        )
+      }
+
+      console.log(`[study-progress] POST fetch - Fetching progress for user ${userId}, words: ${wordIds?.length || 'all'}`)
+
+      const userWordsRef = adminDb.collection('user_words')
+      let query = userWordsRef.where('userId', '==', userId)
+
+      // If specific wordIds are provided, filter by them
+      if (wordIds && wordIds.length > 0) {
+        // Firestore 'in' query is limited to 10 items, so we need to batch
+        const batches = []
+        for (let i = 0; i < wordIds.length; i += 10) {
+          const batch = wordIds.slice(i, i + 10)
+          batches.push(batch)
+        }
+
+        const allResults = []
+        for (const batch of batches) {
+          const snapshot = await userWordsRef
+            .where('userId', '==', userId)
+            .where('wordId', 'in', batch)
+            .get()
+
+          snapshot.docs.forEach(doc => {
+            allResults.push({
+              id: doc.id,
+              ...doc.data()
+            })
+          })
+        }
+
+        return NextResponse.json({
+          success: true,
+          userWords: allResults
+        })
+      } else {
+        // Get all user words
+        const snapshot = await query.get()
+
+        const userWords = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+
+        return NextResponse.json({
+          success: true,
+          userWords
+        })
+      }
+    }
+
+    // Otherwise, handle saving progress (original POST behavior)
+    const { userId, wordId, result, studyType } = body
+
     if (!userId || !wordId || !result || !studyType) {
       return NextResponse.json(
         { error: 'Missing required fields' },

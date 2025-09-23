@@ -8,8 +8,6 @@ import { Button } from '@/components/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Upload,
-  BookOpen,
-  Check,
   FileText,
   Trash2,
   ChevronLeft,
@@ -30,17 +28,10 @@ const settingsService = new UserSettingsService()
 export default function SettingsPage() {
   const { user, loading: authLoading, isAdmin } = useAuth()
   const router = useRouter()
-  const { 
-    collections,
-    selectedCollections,
-    selectCollection,
-    unselectCollection,
-    refreshCollections,
+  const {
     refreshWords,
     userSettings,
-    updateUserSettings,
-    collectionLoading,
-    getStats
+    updateUserSettings
   } = useCollectionV2()
   
   const [pronunciationStats, setPronunciationStats] = useState({
@@ -75,7 +66,7 @@ export default function SettingsPage() {
     collections: Record<string, number>
   } | null>(null)
 
-  const loading = authLoading || collectionLoading
+  const loading = authLoading
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -172,20 +163,6 @@ export default function SettingsPage() {
     }
   }
 
-  // Collection selection handlers
-  const handleToggleCollection = async (collectionId: string) => {
-    const collection = collections.find(c => c.id === collectionId)
-    if (!collection) return
-    
-    if (collection.isSelected) {
-      await unselectCollection(collectionId)
-    } else {
-      await selectCollection(collectionId)
-    }
-    
-    // Refresh words after selection change
-    await refreshWords()
-  }
 
   const handleUpdateDailyGoal = async () => {
     if (!user) return
@@ -325,8 +302,6 @@ export default function SettingsPage() {
     }
   }
 
-  // Get stats
-  const stats = getStats()
 
   if (loading) {
     return (
@@ -352,85 +327,6 @@ export default function SettingsPage() {
       </Button>
       
       <h1 className="text-3xl font-bold mb-8">설정</h1>
-      
-      {/* 단어장 선택 */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            단어장 선택
-          </CardTitle>
-          <CardDescription>학습할 단어장을 선택하세요</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {/* 공식 단어장 */}
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold text-gray-600 mb-2">공식 단어장</h3>
-              {collections.filter(c => c.type === 'official').map(collection => (
-                <div key={collection.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handleToggleCollection(collection.id)}
-                      className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
-                        collection.isSelected 
-                          ? 'bg-blue-600 border-blue-600' 
-                          : 'bg-white border-gray-300'
-                      }`}
-                    >
-                      {collection.isSelected && <Check className="h-3 w-3 text-white" />}
-                    </button>
-                    <div>
-                      <span className="font-medium">{collection.displayName || collection.name}</span>
-                      <span className="text-sm text-gray-500 ml-2">({collection.wordCount}개)</span>
-                      {collection.category && (
-                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                          {collection.category}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* 개인 단어장 */}
-            {collections.filter(c => c.type === 'personal').length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 mb-2">개인 단어장</h3>
-                {collections.filter(c => c.type === 'personal').map(collection => (
-                  <div key={collection.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleToggleCollection(collection.id)}
-                        className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
-                          collection.isSelected 
-                            ? 'bg-blue-600 border-blue-600' 
-                            : 'bg-white border-gray-300'
-                        }`}
-                      >
-                        {collection.isSelected && <Check className="h-3 w-3 text-white" />}
-                      </button>
-                      <div>
-                        <span className="font-medium">{collection.name}</span>
-                        <span className="text-sm text-gray-500 ml-2">({collection.wordCount}개)</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* 선택 통계 */}
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
-              선택된 단어장: {stats.selectedCollections}개, 
-              총 단어: {stats.totalWords}개
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* 학습 설정 */}
       <Card className="mb-6">
