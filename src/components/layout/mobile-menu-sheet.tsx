@@ -1,6 +1,6 @@
 'use client'
 
-import { X, ChevronRight, User, Settings, LogOut, HelpCircle, Bell, Moon, Globe, Palette, Shield, Database } from 'lucide-react'
+import { X, ChevronRight, User, Settings, LogOut } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { signOut } from 'firebase/auth'
@@ -37,7 +37,6 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
   }
 
   const menuItems: MenuItem[] = [
-    // User Settings Section
     {
       id: 'profile',
       label: '프로필 설정',
@@ -45,67 +44,13 @@ export default function MobileMenuSheet({ isOpen, onClose }: MobileMenuSheetProp
       href: '/profile'
     },
     {
-      id: 'notifications',
-      label: '알림 설정',
-      icon: Bell,
-      href: '/settings/notifications'
+      id: 'settings',
+      label: '앱 설정',
+      icon: Settings,
+      href: '/settings'
     },
     {
       id: 'divider1',
-      label: '',
-      divider: true
-    },
-    // App Settings Section
-    {
-      id: 'theme',
-      label: '테마 설정',
-      icon: Palette,
-      href: '/settings/theme'
-    },
-    {
-      id: 'dark-mode',
-      label: '다크 모드',
-      icon: Moon,
-      href: '/settings/appearance'
-    },
-    {
-      id: 'language',
-      label: '언어 설정',
-      icon: Globe,
-      href: '/settings/language'
-    },
-    {
-      id: 'divider2',
-      label: '',
-      divider: true
-    },
-    // Data & Privacy Section
-    {
-      id: 'data',
-      label: '데이터 관리',
-      icon: Database,
-      href: '/settings/data'
-    },
-    {
-      id: 'privacy',
-      label: '개인정보 보호',
-      icon: Shield,
-      href: '/settings/privacy'
-    },
-    {
-      id: 'divider3',
-      label: '',
-      divider: true
-    },
-    // Support Section
-    {
-      id: 'help',
-      label: '도움말',
-      icon: HelpCircle,
-      href: '/help'
-    },
-    {
-      id: 'divider4',
       label: '',
       divider: true
     },

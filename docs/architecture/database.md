@@ -40,9 +40,9 @@ vocabulary-app-new/
 
 ### 1. `words_v3` - Unified Master Word Pool ⭐
 
-**Purpose**: Central repository for all vocabulary words with unified structure  
-**Status**: ✅ Active (3,141 words migrated)  
-**Migration**: Completed August 2025 with 99.71% success rate  
+**Purpose**: Central repository for all vocabulary words with unified structure
+**Status**: ✅ Active (9,143+ words as of 2025-09-24)
+**Migration**: Initial migration completed August 2025, continuously updated with TOEIC/TOEFL/SAT imports  
 
 **Data Structure**:
 ```typescript

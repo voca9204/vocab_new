@@ -154,7 +154,7 @@ const WordCard = React.memo(function WordCard({ word, onClick }: WordCardProps) 
       </div>
       
       <p className="text-gray-700 mb-2 line-clamp-2 flex-grow">
-        {word.definition || word.englishDefinition || 'No definition available'}
+        {word.koreanDefinition || word.korean || word.definition || word.englishDefinition || 'No definition available'}
       </p>
       
       {word.partOfSpeech && (

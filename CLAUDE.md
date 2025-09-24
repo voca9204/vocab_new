@@ -124,28 +124,39 @@ vocabulary-v2/
 
 ## 📊 Data Architecture
 
-### Firebase Collections
+### ⚠️ CRITICAL: Database Terminology & Structure (Updated: 2025-09-24)
 
-#### Primary Collections
-| Collection | Purpose | Access |
-|------------|---------|--------|
-| `words_v3/` | Master word database (3,141+ words) | 🔥 PRIMARY SOURCE |
-| `user_words/` | User learning progress & stats | Per-user |
-| `userSettings/` | User preferences & display settings | Per-user |
-| `vocabulary_collections/` | Official collections (SAT, GRE, etc) | Admin only |
-| `personal_collections/` | User-created collections | All users |
+#### ✅ CURRENT ACTIVE COLLECTIONS
+| Collection | Purpose | Status | Document Count |
+|------------|---------|--------|----------------|
+| `words_v3/` | **MASTER WORD DATABASE** | 🔥 **PRIMARY SOURCE** | 9,143+ words |
+| `user_words/` | User learning progress & stats | Active | Per-user |
+| `userSettings/` | User preferences & display settings | Active | Per-user |
+| `vocabulary_collections/` | Official collections (SAT, GRE, TOEIC, etc) | Active | Admin only |
+| `personal_collections/` | User-created collections | Active | All users |
 
 #### Feature Collections
-| Collection | Purpose | Retention |
-|------------|---------|----------|
-| `ai_generated_words/` | Discovery modal generations | Permanent |
-| `photo_vocabulary_words/` | OCR extracted words | 48hr sessions |
-| `news_context/` | News article associations | 30 days |
+| Collection | Purpose | Status | Retention |
+|------------|---------|--------|-----------|
+| `ai_generated_words/` | Discovery modal generations | Active | Permanent |
+| `photo_vocabulary_words/` | OCR extracted words | Active | 48hr sessions |
+| `news_context/` | News article associations | Active | 30 days |
 
-#### Legacy (Deprecated)
-- `words/` → Migrated to `words_v3`
-- `veterans_vocabulary/` → Migrated to `words_v3`
-- `vocabulary/` → Migrated to `words_v3`
+#### ❌ DEPRECATED/EMPTY COLLECTIONS (DO NOT USE)
+| Collection | Status | Notes |
+|------------|--------|-------|
+| `vocabulary/` | **EMPTY (0 documents)** | Previously called "master DB", now migrated to `words_v3` |
+| `words/` | **EMPTY** | Legacy collection, migrated to `words_v3` |
+| `veterans_vocabulary/` | **EMPTY** | Migrated to `words_v3` |
+
+### 🎯 IMPORTANT NOTES FOR DEVELOPMENT
+
+1. **ALWAYS use `words_v3`** as the primary word source
+2. **NEVER refer to `vocabulary` as "master DB"** - it's empty!
+3. **Document IDs in `words_v3`** are auto-generated (e.g., `AbFg3nv2Y5coUB9Qyu9s`)
+4. **Search by field**, not by document ID: `.where('word', '==', 'fiduciary')`
+5. All import scripts (SAT, TOEIC, TOEFL) add to `words_v3` only
+6. Korean definitions are part of `words_v3` documents
 
 ### Performance Optimizations
 - **Batch Queries**: 30 items per batch (96% reduction)

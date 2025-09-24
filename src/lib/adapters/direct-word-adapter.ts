@@ -211,10 +211,20 @@ export class DirectWordAdapter {
    * Firestore 문서를 UnifiedWord로 변환
    */
   private convertToUnifiedWord(id: string, data: DocumentData): UnifiedWord {
+    // 한국어 정의를 메인 definition으로, 영어를 englishDefinition으로 매핑
+    const koreanDef = data.koreanDefinition || data.korean || '';
+    const englishDef = data.definition || data.englishDefinition || '';
+
     return {
       id,
       word: data.word || '',
-      definition: data.definition || '',
+      // definition은 한국어가 있으면 한국어, 없으면 영어
+      definition: koreanDef || englishDef,
+      // 한국어 필드들 유지 (UI에서 사용)
+      koreanDefinition: data.koreanDefinition,
+      korean: data.korean,
+      // 영어 정의
+      englishDefinition: englishDef,
       partOfSpeech: data.partOfSpeech || [],
       level: data.level || data.difficulty || 'intermediate',
       examples: data.examples || [],
@@ -229,7 +239,7 @@ export class DirectWordAdapter {
       commonMistakes: data.commonMistakes || [],
       relatedWords: data.relatedWords || [],
       confusables: data.confusables || [],
-      koreanTranslation: data.koreanTranslation,
+      koreanTranslation: data.koreanTranslation || data.koreanDefinition || data.korean,
       detailedExplanation: data.detailedExplanation,
       source: data.source || 'words_v3',
       createdAt: data.createdAt?.toDate?.() || new Date(),

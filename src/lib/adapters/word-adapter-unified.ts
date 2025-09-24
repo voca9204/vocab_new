@@ -38,7 +38,7 @@ export class UnifiedWordAdapter {
   
   private async checkAndClearStaleCache() {
     const CACHE_VERSION_KEY = 'word_cache_version'
-    const CURRENT_VERSION = '2.2.0' // Etymology field fixes
+    const CURRENT_VERSION = '2.4.0' // UnifiedWordAdapter Korean definition priority fix
     
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
     if (storedVersion !== CURRENT_VERSION) {
@@ -59,17 +59,23 @@ export class UnifiedWordAdapter {
       if (typeof ts === 'string') return new Date(ts)
       return new Date()
     }
-    
+
     // Derive isSAT from categories for backward compatibility
     const isSAT = data.categories?.includes('SAT') || false
-    
+
+    // Prioritize Korean definitions over English
+    const koreanDef = data.koreanDefinition || data.korean || '';
+    const englishDef = data.definition || data.englishDefinition || '';
+
     return {
       id,
       word: data.word || '',
       normalizedWord: data.normalizedWord || data.word?.toLowerCase() || '',
-      
-      definition: data.definition || 'No definition available',
-      englishDefinition: data.englishDefinition || null,
+
+      definition: koreanDef || englishDef || 'No definition available',
+      englishDefinition: data.englishDefinition || data.definition || null,
+      koreanDefinition: data.koreanDefinition || data.korean || null,
+      korean: data.korean || null,
       
       pronunciation: data.pronunciation || null,
       partOfSpeech: data.partOfSpeech || [],

@@ -10,16 +10,20 @@ export interface UnifiedWord {
   
   // 정의 (항상 단일 문자열로 통합)
   definition: string
-  
+
+  // 한국어 정의 필드들 (데이터베이스 호환성)
+  koreanDefinition?: string
+  korean?: string
+
   // 예문 (항상 문자열 배열)
   examples: string[]
-  
+
   // 품사 정보
   partOfSpeech: string[]
-  
+
   // 발음 정보
   pronunciation?: string
-  
+
   // 영어 정의
   englishDefinition?: string
   

@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, BookOpen, User, BarChart3, Settings } from 'lucide-react'
+import { Home, BookOpen, User, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import MobileMenuSheet from './mobile-menu-sheet'
+import StudyMenuSheet from './study-menu-sheet'
 
 interface NavItem {
   id: string
@@ -18,6 +19,7 @@ export default function MobileNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [showMenu, setShowMenu] = useState(false)
+  const [showStudyMenu, setShowStudyMenu] = useState(false)
 
   const navItems: NavItem[] = [
     {
@@ -30,13 +32,7 @@ export default function MobileNav() {
       id: 'study',
       label: '학습',
       icon: BookOpen,
-      href: '/unified-dashboard'
-    },
-    {
-      id: 'stats',
-      label: '통계',
-      icon: BarChart3,
-      href: '/study/stats'
+      action: () => setShowStudyMenu(true)
     },
     {
       id: 'profile',
@@ -48,7 +44,7 @@ export default function MobileNav() {
       id: 'settings',
       label: '설정',
       icon: Settings,
-      action: () => setShowMenu(true)  // Opens settings and more options
+      action: () => setShowMenu(true)
     }
   ]
 
@@ -60,14 +56,10 @@ export default function MobileNav() {
   return (
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 md:hidden">
-        <nav className="grid grid-cols-5 h-16" role="navigation" aria-label="바로가기 네비게이션">
+        <nav className="grid grid-cols-4 h-16" role="navigation" aria-label="바로가기 네비게이션">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = item.href && (
-              pathname === item.href ||
-              (item.href === '/unified-dashboard' && pathname.startsWith('/study/')) ||
-              (item.href === '/study/stats' && pathname.startsWith('/achievement'))
-            )
+            const isActive = item.href && pathname === item.href
             
             return (
               <button
@@ -103,10 +95,16 @@ export default function MobileNav() {
         </nav>
       </div>
 
-      {/* Mobile Menu Sheet */}
-      <MobileMenuSheet 
-        isOpen={showMenu} 
-        onClose={() => setShowMenu(false)} 
+      {/* Study Menu Sheet */}
+      <StudyMenuSheet
+        isOpen={showStudyMenu}
+        onClose={() => setShowStudyMenu(false)}
+      />
+
+      {/* Settings Menu Sheet */}
+      <MobileMenuSheet
+        isOpen={showMenu}
+        onClose={() => setShowMenu(false)}
       />
     </>
   )

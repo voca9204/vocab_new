@@ -440,15 +440,21 @@ export class WordAdapter {
       // Ensure frequency is a number
       const frequency = typeof data.frequency === 'number' ? data.frequency : 5
       
+      // 한국어 정의를 우선으로 매핑
+      const koreanDef = data.koreanDefinition || data.korean || '';
+      const englishDef = data.definition || data.englishDefinition || data.meaning || '';
+
       // words_v3는 이미 UnifiedWord 형식이므로 직접 반환
       const word: UnifiedWord = {
         id,
         word: data.word || '',
-        definition: data.meaning || data.definition || data.korean || '', // Use meaning, definition, or korean
+        definition: koreanDef || englishDef, // 한국어 우선, 없으면 영어
+        koreanDefinition: data.koreanDefinition,
+        korean: data.korean,
         examples: Array.isArray(data.examples) ? data.examples : [],
         partOfSpeech,
         pronunciation: data.pronunciation,
-        englishDefinition: data.meaning || data.englishDefinition,
+        englishDefinition: englishDef,
         etymology: data.etymology,
         synonyms: Array.isArray(data.synonyms) ? data.synonyms : [],
         antonyms: Array.isArray(data.antonyms) ? data.antonyms : [],

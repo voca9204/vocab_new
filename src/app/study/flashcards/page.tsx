@@ -898,18 +898,18 @@ function FlashcardsContent() {
 
             {showAnswer ? (
               <div className="space-y-4 animate-fade-in">
-                {/* 한글 뜻 */}
+                {/* 한글 뜻 우선 표시 */}
                 <div className="text-center">
                   <p className={cn("text-3xl text-gray-800 font-semibold", getTextSizeClass(textSize))}>
-                    {currentWord.definition || 'Definition not available'}
+                    {currentWord.koreanDefinition || currentWord.korean || currentWord.definition || 'Definition not available'}
                   </p>
                 </div>
-                
-                {/* 영어 설명 */}
-                {currentWord.englishDefinition && (
+
+                {/* 영어 설명 (한글 뜻이 있고 영어 설명도 있는 경우만 표시) */}
+                {(currentWord.koreanDefinition || currentWord.korean) && (currentWord.englishDefinition || currentWord.definition) && (
                   <div className="text-center">
                     <p className={cn("text-lg text-gray-600", getTextSizeClass(textSize))}>
-                      {currentWord.englishDefinition}
+                      {currentWord.englishDefinition || currentWord.definition}
                     </p>
                   </div>
                 )}

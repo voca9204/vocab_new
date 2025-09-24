@@ -29,6 +29,13 @@ import {
 import type { Collection } from '@/contexts/collection-context-v2'
 import { RecentLearningWidget } from '@/components/home/recent-learning-widget'
 import { StudyMethodModal } from '@/components/vocabulary/study-method-modal'
+import {
+  QuickStartCard,
+  StudyStatsCard,
+  CategoryCard,
+  QuickActionButton,
+  RecommendedCollection
+} from '@/components/home/mobile-home-redesign'
 
 // 카테고리별 설명
 const categoryDescriptions: Record<OfficialCategory, string> = {
@@ -168,6 +175,9 @@ export default function HomePage() {
   // 학습 기록 저장 함수 (학습 방법 포함)
   const saveToHistory = (collection: Collection, studyMethod: string = 'flashcards') => {
     try {
+      // 브라우저 환경이 아닌 경우 바로 리턴
+      if (typeof window === 'undefined') return
+
       const savedHistory = localStorage.getItem('learning_history')
       const history = savedHistory ? JSON.parse(savedHistory) : []
 
@@ -282,6 +292,58 @@ export default function HomePage() {
   const categories: OfficialCategory[] = ['SAT', 'TOEFL', 'TOEIC', '수능', 'GRE', 'IELTS', '기본', '학원']
   const difficulties: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced']
 
+  // 모바일 여부 체크
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // 추천 컬렉션 선택 (가장 최근 학습한 컬렉션)
+  const [recommendedCollection, setRecommendedCollection] = useState<Collection | null>(null)
+
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem('learning_history')
+      if (!savedHistory) return
+
+      const history = JSON.parse(savedHistory)
+      if (!history || history.length === 0) return
+
+      const latestCollectionId = history[0]?.collectionId
+      if (!latestCollectionId) return
+
+      const collection = collections.find(c => c.id === latestCollectionId)
+      if (collection) {
+        setRecommendedCollection(collection)
+      }
+    } catch {
+      // 에러 무시
+    }
+  }, [collections])
+
+  // 통계 데이터 계산
+  const [studyStats, setStudyStats] = useState({
+    totalWords: 0,
+    streak: 0,
+    todayWords: 0
+  })
+
+  useEffect(() => {
+    // 실제 데이터는 Firebase에서 가져와야 함
+    // 클라이언트 사이드에서만 랜덤 데이터 설정
+    setStudyStats({
+      totalWords: Math.floor(Math.random() * 500) + 100,
+      streak: Math.floor(Math.random() * 7) + 1,
+      todayWords: Math.floor(Math.random() * 50) + 10
+    })
+  }, [])
+
   const loading = authLoading || collectionLoading
 
   // 로딩 중일 때
@@ -308,6 +370,121 @@ export default function HomePage() {
     )
   }
 
+  // 모바일 홈 화면
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        {/* 심플한 모바일 헤더 */}
+        <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-blue-600" />
+                <h1 className="text-lg font-bold text-gray-900">Vocabulary Master</h1>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => router.push('/settings')}
+                className="p-2"
+              >
+                ⚙️
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* 모바일 메인 컨텐츠 */}
+        <main className="px-4 py-6 pb-20">
+          {/* Quick Start Card - 이어서 학습하기 */}
+          {recommendedCollection && (
+            <QuickStartCard
+              collection={recommendedCollection}
+              onStart={() => handleStartLearning(recommendedCollection, 'flashcards')}
+              loading={isLoading}
+            />
+          )}
+
+          {/* 학습 통계 */}
+          <StudyStatsCard
+            totalWords={studyStats.totalWords}
+            streak={studyStats.streak}
+            todayWords={studyStats.todayWords}
+          />
+
+          {/* 빠른 액션 버튼들 */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <QuickActionButton
+              icon={<Zap className="h-6 w-6" />}
+              label="빠른 복습"
+              sublabel="5분 학습"
+              onClick={() => {
+                const satCollection = collections.find(c =>
+                  c.category === 'SAT' && c.difficulty === 'intermediate'
+                )
+                if (satCollection) handleCollectionClick(satCollection)
+              }}
+              variant="primary"
+            />
+            <QuickActionButton
+              icon={<Target className="h-6 w-6" />}
+              label="시험 대비"
+              sublabel="모의고사"
+              onClick={() => router.push('/study/quiz')}
+            />
+          </div>
+
+          {/* 카테고리 섹션 */}
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-3">학습 카테고리</h2>
+            <div className="space-y-3">
+              {categories.slice(0, 4).map((category) => {
+                const hasContent = getCategoryHasContent(category)
+                const totalWords = getCategoryTotalWords(category)
+                const collection = Object.values(groupedCollections[category] || {})[0]
+
+                if (!hasContent) return null
+
+                return (
+                  <CategoryCard
+                    key={category}
+                    category={category}
+                    description={categoryDescriptions[category]}
+                    icon={categoryIcons[category]}
+                    wordCount={totalWords}
+                    difficulty={collection?.difficulty}
+                    color={categoryColors[category]}
+                    onClick={() => collection && handleCollectionClick(collection)}
+                    isPopular={category === 'SAT' || category === 'TOEFL'}
+                  />
+                )
+              }).filter(Boolean)}
+            </div>
+          </div>
+
+          {/* 추천 컬렉션 */}
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-3">추천 학습</h2>
+            <div className="space-y-3">
+              {collections
+                .filter(c => c.type === 'official' && c.wordCount > 0)
+                .slice(0, 2)
+                .map((collection) => (
+                  <RecommendedCollection
+                    key={collection.id}
+                    collection={collection}
+                    reason={`${collection.wordCount}개의 필수 단어로 구성`}
+                    onClick={() => handleCollectionClick(collection)}
+                  />
+                ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // 데스크톱 화면 (기존 코드)
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* 심플한 헤더 */}
