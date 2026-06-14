@@ -130,49 +130,86 @@ export default function VocabularyListPage() {
     }
   }, [contextWords])
 
-  // Memoized filter function to prevent infinite loops
-  const filterWords = useCallback(() => {
-    let filtered = contextWords
-
-    // 중복된 ID 제거 (같은 ID가 여러 개 있을 경우 첫 번째 것만 사용)
-    const uniqueWords = new Map<string, typeof contextWords[0]>()
-    filtered.forEach(word => {
-      if (word.id && !uniqueWords.has(word.id)) {
-        uniqueWords.set(word.id, word)
-      }
-    })
-    filtered = Array.from(uniqueWords.values())
-
-    // 검색어 필터링 (UnifiedWord 구조에 맞게 수정)
-    if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase()
-      filtered = filtered.filter(word =>
-        word.word.toLowerCase().includes(lowerSearch) ||
-        getFieldString(word.definition).toLowerCase().includes(lowerSearch) ||
-        getFieldString(word.englishDefinition).toLowerCase().includes(lowerSearch)
-      )
-    }
-
-    // 학습 상태 필터링 (UnifiedWord의 studyStatus 구조 사용)
+  // 학습 상태 필터
+  const applyStatusFilter = useCallback((words: UnifiedWord[]): UnifiedWord[] => {
     switch (filterType) {
-      case 'studied':
-        filtered = filtered.filter(w => (w.studyStatus?.reviewCount || 0) > 0)
-        break
-      case 'not-studied':
-        filtered = filtered.filter(w => (w.studyStatus?.reviewCount || 0) === 0)
-        break
-      case 'mastered':
-        filtered = filtered.filter(w => (w.studyStatus?.masteryLevel || 0) >= 80) // UnifiedWord uses 0-100 scale
-        break
+      case 'studied': return words.filter(w => (w.studyStatus?.reviewCount || 0) > 0)
+      case 'not-studied': return words.filter(w => (w.studyStatus?.reviewCount || 0) === 0)
+      case 'mastered': return words.filter(w => (w.studyStatus?.masteryLevel || 0) >= 80)
+      default: return words
+    }
+  }, [filterType])
+
+  // 메모리 검색 (Typesense 폴백용)
+  const memorySearch = (words: UnifiedWord[], lower: string): UnifiedWord[] =>
+    words.filter(word =>
+      word.word.toLowerCase().includes(lower) ||
+      getFieldString(word.definition).toLowerCase().includes(lower) ||
+      getFieldString(word.englishDefinition).toLowerCase().includes(lower)
+    )
+
+  // 검색/필터: 검색어는 Typesense(컬렉션 범위)로, 실패·미인덱싱 시 메모리 폴백
+  useEffect(() => {
+    let cancelled = false
+
+    const run = async () => {
+      // 중복 ID 제거 + 상태 필터
+      const uniqueWords = new Map<string, UnifiedWord>()
+      contextWords.forEach(word => {
+        if (word.id && !uniqueWords.has(word.id)) uniqueWords.set(word.id, word)
+      })
+      const base = applyStatusFilter(Array.from(uniqueWords.values()))
+
+      const term = searchTerm.trim()
+      if (!term) {
+        if (!cancelled) setFilteredWords(base)
+        return
+      }
+      const lower = term.toLowerCase()
+
+      // Typesense 컬렉션 범위 검색 (공식 단어장)
+      try {
+        const collectionIds = selectedCollections.map(c => c.id).filter(Boolean).join(',')
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(term)}&collectionIds=${encodeURIComponent(collectionIds)}&perPage=250`
+        )
+        const data = await res.json()
+        if (!cancelled && data && !data.fallback && Array.isArray(data.docs) && data.docs.length > 0) {
+          // 로드된 단어(studyStatus 등 풍부한 데이터)는 그대로, 미로드 단어는 Typesense 데이터로 구성
+          const loadedById = new Map(Array.from(uniqueWords.values()).map(w => [w.id, w]))
+          const ordered: UnifiedWord[] = data.docs.map((d: any) => {
+            const loaded = loadedById.get(d.id)
+            if (loaded) return loaded
+            return {
+              id: d.id,
+              word: d.word,
+              definition: d.koreanDefinition || d.definition || '',
+              englishDefinition: d.englishDefinition || '',
+              partOfSpeech: Array.isArray(d.partOfSpeech) ? d.partOfSpeech : [],
+              difficulty: d.difficulty,
+            } as UnifiedWord
+          })
+          // 상태 필터: 로드된 단어에만 적용(미로드 단어는 status 불명이라 검색 결과로 노출)
+          const result = filterType === 'all'
+            ? ordered
+            : ordered.filter(w => !loadedById.has(w.id) || applyStatusFilter([w]).length > 0)
+          setFilteredWords(result)
+          return
+        }
+      } catch {
+        // 무시 → 메모리 폴백
+      }
+
+      // 폴백: 메모리 검색 (개인 단어장 / Typesense 미설정·다운)
+      if (!cancelled) setFilteredWords(memorySearch(base, lower))
     }
 
-    setFilteredWords(filtered)
-  }, [contextWords, searchTerm, filterType])
-
-  // Apply filters when dependencies change
-  useEffect(() => {
-    filterWords()
-  }, [filterWords])
+    const debounce = setTimeout(run, 250)
+    return () => {
+      cancelled = true
+      clearTimeout(debounce)
+    }
+  }, [contextWords, searchTerm, filterType, selectedCollections, applyStatusFilter])
 
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty <= 3) return 'text-green-600'
