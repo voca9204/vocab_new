@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
@@ -28,6 +28,7 @@ import {
   Info,
   BookOpen
 } from 'lucide-react'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import { FlashcardSkeleton } from '@/components/ui/flashcard-skeleton'
 import { cn } from '@/lib/utils'
 import { photoVocabularyCollectionService } from '@/lib/api/photo-vocabulary-collection-service'
@@ -76,7 +77,7 @@ function FlashcardsContent() {
   useEffect(() => {
     console.log('[Flashcards] Component mounted/updated')
     console.log('[Flashcards] URL collectionId:', collectionId)
-    console.log('[Flashcards] selectedCollections:', selectedCollections.length, selectedCollections.map(c => c.name))
+    console.log('[Flashcards] selectedCollections:', selectedCollections.length, selectedCollections.map(c => getCollectionName(c.name)))
     console.log('[Flashcards] vocabularyWords:', vocabularyWords.length)
     console.log('[Flashcards] wordsLoading:', wordsLoading)
   }, [collectionId, selectedCollections, vocabularyWords, wordsLoading])
@@ -88,7 +89,7 @@ function FlashcardsContent() {
   // NO FALLBACK - only use UnifiedVocabularyContext
   
   // Combined words based on source - ensure examples are properly mapped
-  const words = isPhotoCollection ? 
+  const baseWords = isPhotoCollection ?
     photoWords.map(pw => {
       console.log('[Flashcards] Converting photo word:', pw.word, {
         id: pw.id,
@@ -153,7 +154,24 @@ function FlashcardsContent() {
       return word
     }) : 
     vocabularyWords // NO FALLBACK - only use context words
-  
+
+  // Optional shuffled order (list of word ids). null = original order.
+  const [shuffleOrder, setShuffleOrder] = useState<string[] | null>(null)
+
+  // Apply the shuffled order on top of the derived words. Keyed by id so it
+  // survives the words array being re-derived on every render.
+  const words = useMemo(() => {
+    if (!shuffleOrder) return baseWords
+    const byId = new Map(baseWords.map(w => [w.id, w]))
+    const ordered = shuffleOrder
+      .map(id => byId.get(id))
+      .filter((w): w is VocabularyWord => Boolean(w))
+    if (ordered.length === baseWords.length) return ordered
+    // Append any words missing from the saved order (e.g. the set changed)
+    const seen = new Set(shuffleOrder)
+    return [...ordered, ...baseWords.filter(w => !seen.has(w.id))]
+  }, [baseWords, shuffleOrder])
+
   // Generate a unique key for the current collection set
   const getProgressKey = () => {
     const collectionIds = selectedCollections.map(c => c.id).sort().join('-')
@@ -162,6 +180,8 @@ function FlashcardsContent() {
 
   // Load saved progress from localStorage
   const getSavedProgress = () => {
+    // localStorage is unavailable during SSR; the initial render runs on the server
+    if (typeof window === 'undefined') return 0
     try {
       const key = getProgressKey()
       const saved = localStorage.getItem(key)
@@ -268,14 +288,16 @@ function FlashcardsContent() {
   useEffect(() => {
     setCurrentIndex(0)
     setShowAnswer(false)
+    setShuffleOrder(null) // 단어 집합이 바뀌면 셔플 해제
   }, [filter.studyMode])
-  
+
   // 컬렉션이 변경되면 저장된 진도를 복원
   useEffect(() => {
     const savedProgress = getSavedProgress()
     console.log(`[Flashcards] Collection changed, restoring progress: ${savedProgress}`)
     setCurrentIndex(savedProgress)
     setShowAnswer(false)
+    setShuffleOrder(null) // 단어 집합이 바뀌면 셔플 해제
   }, [selectedCollections])
 
   // Fetch pronunciation for current word if not available
@@ -523,22 +545,43 @@ function FlashcardsContent() {
   }
 
   const nextWord = () => {
-    setCurrentIndex((prev) => (prev + 1) % words.length)
+    setCurrentIndex((prev) => Math.min(prev + 1, words.length - 1))
     setShowAnswer(false)
   }
 
   const prevWord = () => {
-    setCurrentIndex((prev) => (prev - 1 + words.length) % words.length)
+    setCurrentIndex((prev) => Math.max(prev - 1, 0))
     setShowAnswer(false)
   }
 
+  // 답변 플로우에서 호출: 마지막 카드면 완료 처리, 아니면 다음 카드로
+  // (예전에는 nextWord가 모듈로로 wrap해 마지막 카드에서 1번 카드로 되돌아갔음)
+  const advanceOrComplete = () => {
+    if (words.length > 0 && currentIndex >= words.length - 1) {
+      try {
+        localStorage.removeItem(getProgressKey()) // 다음 진입 시 처음부터
+      } catch (error) {
+        console.error('[Flashcards] Error clearing progress on complete:', error)
+      }
+      alert('플래시카드 학습을 완료했습니다!')
+      router.push('/unified-dashboard')
+    } else {
+      nextWord()
+    }
+  }
+
   const shuffleWords = () => {
-    // UnifiedVocabularyContext에서는 직접 words를 수정할 수 없으므로
-    // 로컬에서 셔플된 인덱스 배열을 관리하는 방식으로 변경 필요
-    // 현재는 간단히 주석 처리
-    console.log('Shuffle feature needs to be reimplemented with UnifiedVocabularyContext')
-    setIsShuffled(true)
+    if (words.length === 0) return
+    // Fisher-Yates shuffle over the current word ids
+    const order = words.map(w => w.id)
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[order[i], order[j]] = [order[j], order[i]]
+    }
+    setShuffleOrder(order)
+    setCurrentIndex(0)
     setShowAnswer(false)
+    setIsShuffled(true)
   }
 
   const markAsStudied = async () => {
@@ -581,7 +624,7 @@ function FlashcardsContent() {
         console.error('Error saving study progress:', error)
       }
     }
-    nextWord()
+    advanceOrComplete()
   }
 
   const markAsNotStudied = async () => {
@@ -613,7 +656,7 @@ function FlashcardsContent() {
         console.error('Error saving study progress:', error)
       }
     }
-    nextWord()
+    advanceOrComplete()
   }
 
   const resetProgress = () => {
@@ -792,7 +835,7 @@ function FlashcardsContent() {
           <div className="flex items-center justify-center gap-2 flex-wrap">
             <BookOpen className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
-              출처: {selectedCollections.map(c => c.name).join(', ')}
+              출처: {selectedCollections.map(c => getCollectionName(c.name)).join(', ')}
             </span>
           </div>
         )}

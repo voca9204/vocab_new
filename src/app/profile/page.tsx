@@ -18,6 +18,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
+import { useUserStatistics } from '@/hooks/useUserStatistics'
 
 interface UserStats {
   totalWords: number
@@ -31,60 +32,7 @@ interface UserStats {
 export default function ProfilePage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [stats, setStats] = useState<UserStats>({
-    totalWords: 0,
-    masteredWords: 0,
-    studyDays: 0,
-    currentStreak: 0,
-    totalStudyTime: 0,
-    averageAccuracy: 0
-  })
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const loadUserStats = async () => {
-      if (!user) return
-
-      try {
-        const db = getFirestore()
-
-        // Load user progress data
-        const userWordsRef = collection(db, 'user_words')
-        const q = query(userWordsRef, where('userId', '==', user.uid))
-        const querySnapshot = await getDocs(q)
-
-        let totalWords = 0
-        let masteredWords = 0
-        let totalAccuracy = 0
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data()
-          totalWords++
-          if (data.masteryLevel >= 80) {
-            masteredWords++
-          }
-          if (data.correctAttempts && data.totalAttempts) {
-            totalAccuracy += (data.correctAttempts / data.totalAttempts)
-          }
-        })
-
-        setStats({
-          totalWords,
-          masteredWords,
-          studyDays: Math.floor(Math.random() * 30) + 10, // Mock data
-          currentStreak: Math.floor(Math.random() * 7) + 1, // Mock data
-          totalStudyTime: Math.floor(Math.random() * 100) + 20, // Mock data in hours
-          averageAccuracy: totalWords > 0 ? Math.round((totalAccuracy / totalWords) * 100) : 0
-        })
-      } catch (error) {
-        console.error('Error loading user stats:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadUserStats()
-  }, [user])
+  const userStats = useUserStatistics()
 
   if (!user) {
     return (
@@ -125,7 +73,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <BookOpen className="w-8 h-8 text-blue-500" />
             <div>
-              <p className="text-2xl font-bold">{stats.totalWords}</p>
+              <p className="text-2xl font-bold">{userStats.totalWords}</p>
               <p className="text-sm text-gray-600">학습한 단어</p>
             </div>
           </div>
@@ -135,7 +83,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <Trophy className="w-8 h-8 text-yellow-500" />
             <div>
-              <p className="text-2xl font-bold">{stats.masteredWords}</p>
+              <p className="text-2xl font-bold">{userStats.masteredWords}</p>
               <p className="text-sm text-gray-600">마스터한 단어</p>
             </div>
           </div>
@@ -145,7 +93,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <Target className="w-8 h-8 text-green-500" />
             <div>
-              <p className="text-2xl font-bold">{stats.averageAccuracy}%</p>
+              <p className="text-2xl font-bold">{userStats.averageAccuracy}%</p>
               <p className="text-sm text-gray-600">평균 정답률</p>
             </div>
           </div>
@@ -155,7 +103,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <Calendar className="w-8 h-8 text-purple-500" />
             <div>
-              <p className="text-2xl font-bold">{stats.studyDays}일</p>
+              <p className="text-2xl font-bold">{userStats.studyDays}일</p>
               <p className="text-sm text-gray-600">총 학습일</p>
             </div>
           </div>
@@ -165,7 +113,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-red-500" />
             <div>
-              <p className="text-2xl font-bold">{stats.currentStreak}일</p>
+              <p className="text-2xl font-bold">{userStats.currentStreak}일</p>
               <p className="text-sm text-gray-600">연속 학습</p>
             </div>
           </div>
@@ -175,7 +123,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <Clock className="w-8 h-8 text-indigo-500" />
             <div>
-              <p className="text-2xl font-bold">{stats.totalStudyTime}시간</p>
+              <p className="text-2xl font-bold">{userStats.totalStudyTime}시간</p>
               <p className="text-sm text-gray-600">총 학습 시간</p>
             </div>
           </div>

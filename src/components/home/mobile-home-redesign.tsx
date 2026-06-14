@@ -16,6 +16,7 @@ import {
   Target,
   Play
 } from 'lucide-react'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import type { Collection } from '@/contexts/collection-context-v2'
 
 interface QuickStartCardProps {
@@ -36,7 +37,9 @@ export function QuickStartCard({ collection, onStart, loading }: QuickStartCardP
       <div className="flex justify-between items-start mb-4">
         <div>
           <p className="text-blue-100 text-sm mb-1">이어서 학습하기</p>
-          <h3 className="text-xl font-bold">{collection.name}</h3>
+          <h3 className="text-xl font-bold">
+            {getCollectionName(collection.name)}
+          </h3>
         </div>
         <div className="bg-white/20 rounded-full p-2">
           <BookOpen className="h-5 w-5" />
@@ -227,7 +230,9 @@ export function RecommendedCollection({ collection, reason, onClick }: Recommend
 
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <h4 className="font-semibold text-gray-900">{collection.name}</h4>
+          <h4 className="font-semibold text-gray-900">
+            {getCollectionName(collection.name)}
+          </h4>
           <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full">
             추천
           </span>

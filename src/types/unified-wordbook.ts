@@ -5,6 +5,7 @@
 
 import type { WordbookType } from './user-settings'
 import type { OfficialCollection, PersonalCollection } from './collections'
+import { getCollectionName } from '@/lib/utils/collection-name'
 
 // 통합 단어장 인터페이스
 export interface UnifiedWordbook {
@@ -114,7 +115,7 @@ export function adaptOfficialCollection(
 ): UnifiedWordbook {
   return {
     id: collection.id,
-    name: collection.displayName || collection.name,
+    name: getCollectionName(collection.displayName || collection.name),
     description: collection.description,
     type: 'official',
     category: collection.category,
@@ -138,7 +139,7 @@ export function adaptPersonalCollection(
 ): UnifiedWordbook {
   return {
     id: collection.id,
-    name: collection.name,
+    name: getCollectionName(collection.name),
     description: collection.description || '',
     type: 'personal',
     wordCount: collection.wordCount,

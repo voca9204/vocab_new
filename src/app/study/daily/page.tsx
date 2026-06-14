@@ -67,12 +67,26 @@ export default function DailyGoalPage() {
     }
   }, [user])
 
+  // 학습 후 탭으로 돌아오면 진행 상황을 다시 불러옴 (수동 새로고침 불필요)
+  useEffect(() => {
+    if (!user) return
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadDailyProgress()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [user])
+
   const loadDailyProgress = async () => {
     if (!user) return
 
     try {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
       
       console.log('Loading daily progress using new vocabulary service')
       
@@ -126,8 +140,8 @@ export default function DailyGoalPage() {
           studiedDate = new Date(lastStudied as any)
         }
         
-        // 오늘 날짜와 비교
-        return studiedDate >= today
+        // 오늘 범위 [오늘 0시, 내일 0시) 와 비교
+        return studiedDate >= today && studiedDate < tomorrow
       })
       
       console.log(`Today's studied words: ${todayWords.length}`)

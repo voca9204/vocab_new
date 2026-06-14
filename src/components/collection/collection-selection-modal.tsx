@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { LoadingMessage, LoadingMessages } from '@/components/ui/loading-message'
 import { cn } from '@/lib/utils'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import { CollectionGrid } from './collection-grid'
 import { Check, X, Search, BookOpen, User, Camera, Globe, Brain } from 'lucide-react'
 import type { Collection } from '@/contexts/collection-context-v2'
@@ -361,7 +362,7 @@ export function CollectionSelectionModal({
                         {/* Collection info */}
                         <div className="pr-8">
                           <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
-                            {collection.name}
+                            {getCollectionName(collection.name)}
                           </h3>
                           
                           <div className="flex items-center gap-2 mb-2">
@@ -428,7 +429,7 @@ export function CollectionSelectionModal({
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500">
               {!allowMultiple && selectedCollections.length > 0 ? (
-                <span>선택됨: {selectedCollections[0].name}</span>
+                <span>선택됨: {getCollectionName(selectedCollections[0].name)}</span>
               ) : allowMultiple && selectedCollections.length > 0 ? (
                 <span>총 {selectedCollections.length}개 단어장 선택됨</span>
               ) : (
@@ -490,7 +491,7 @@ export function CollectionSelect({
           {selectedCollection ? (
             <span className="flex items-center gap-2">
               <span>{selectedCollection.type === 'official' ? '📖' : selectedCollection.type === 'personal' ? '👤' : selectedCollection.type === 'photo' ? '📸' : '🌍'}</span>
-              {selectedCollection.name}
+              {getCollectionName(selectedCollection.name)}
             </span>
           ) : (
             placeholder

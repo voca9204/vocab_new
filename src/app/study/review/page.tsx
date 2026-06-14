@@ -19,10 +19,29 @@ import {
   Sparkles,
   BookOpen
 } from 'lucide-react'
-import { vocabularyService } from '@/lib/api'
 import type { VocabularyWord } from '@/types'
 import { cn } from '@/lib/utils'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
+
+/**
+ * Robustly parse a date that may arrive as a JS Date, epoch millis, ISO string,
+ * or a Firestore Timestamp serialized over JSON ({ _seconds } / { seconds }).
+ */
+function toDate(value: any): Date | null {
+  if (!value) return null
+  if (value instanceof Date) return isNaN(value.getTime()) ? null : value
+  if (typeof value === 'number') return new Date(value)
+  if (typeof value === 'string') {
+    const d = new Date(value)
+    return isNaN(d.getTime()) ? null : d
+  }
+  if (typeof value === 'object') {
+    if (typeof value.toDate === 'function') return value.toDate()
+    const seconds = value._seconds ?? value.seconds
+    if (typeof seconds === 'number') return new Date(seconds * 1000)
+  }
+  return null
+}
 
 export default function ReviewPage() {
   const router = useRouter()
@@ -95,6 +114,7 @@ export default function ReviewPage() {
               correctCount: userWord.studyStatus.correctCount || 0,
               incorrectCount: userWord.studyStatus.incorrectCount || 0,
               lastStudied: userWord.studyStatus.lastStudied,
+              nextReviewDate: userWord.studyStatus.nextReviewDate || null,
               masteryLevel: userWord.studyStatus.masteryLevel || 0,
               streak: userWord.studyStatus.streakCount || 0,
               totalReviews: userWord.studyStatus.totalReviews || 0
@@ -125,14 +145,16 @@ export default function ReviewPage() {
             learningMetadata: {
               timesStudied: totalAttempts,
               masteryLevel: masteryLevel,
-              lastStudied: activityInfo.lastStudied ? new Date(activityInfo.lastStudied) : new Date(),
+              lastStudied: toDate(activityInfo.lastStudied) || new Date(),
               userProgress: {
                 userId: user.uid,
                 wordId: word.id,
                 correctAttempts: activityInfo.correctCount || 0,
                 totalAttempts: totalAttempts,
                 streak: activityInfo.streak || 0,
-                nextReviewDate: activityInfo.nextReviewDate ? new Date(activityInfo.nextReviewDate) : new Date()
+                // epoch (always "due") when the word was studied before scheduling
+                // existed, so legacy words surface for review once
+                nextReviewDate: toDate(activityInfo.nextReviewDate) || new Date(0)
               }
             }
           }
@@ -151,7 +173,7 @@ export default function ReviewPage() {
               correctAttempts: 0,
               totalAttempts: 0,
               streak: 0,
-              nextReviewDate: new Date()
+              nextReviewDate: new Date(0)
             }
           }
         }
@@ -169,35 +191,19 @@ export default function ReviewPage() {
           (w.learningMetadata?.masteryLevel || 0) < 0.5
         )
       } else {
-        // 복습 예정 단어 (다음 복습 날짜가 오늘 이전)
+        // 복습 예정 단어: 학습한 적이 있고, 예정된 복습 날짜가 지난 단어
+        // (스케줄은 /api/study-progress 저장 시 streak 기반으로 계산됨)
         const now = new Date()
         toReview = wordsWithUserData.filter(w => {
+          if ((w.learningMetadata?.timesStudied || 0) === 0) return false
+
           const nextReviewDate = w.learningMetadata?.userProgress?.nextReviewDate
-          if (!nextReviewDate) return false
-          
+          // 스케줄이 아직 없는 단어(예전에 학습됨)는 한 번 복습 대상으로 노출
+          if (!nextReviewDate) return true
+
           const reviewDate = nextReviewDate instanceof Date ? nextReviewDate : new Date(nextReviewDate)
           return reviewDate <= now
         })
-        
-        // 대안: 마지막 학습 후 일정 시간 경과한 단어들
-        if (toReview.length === 0) {
-          toReview = wordsWithUserData.filter(w => {
-            if ((w.learningMetadata?.timesStudied || 0) === 0 || !w.learningMetadata?.lastStudied) return false
-            
-            const lastStudied = w.learningMetadata.lastStudied instanceof Date 
-              ? w.learningMetadata.lastStudied 
-              : new Date(w.learningMetadata.lastStudied)
-            const daysSince = (now.getTime() - lastStudied.getTime()) / (1000 * 60 * 60 * 24)
-            
-            // 숙련도에 따라 복습 주기 결정
-            const masteryPercent = (w.learningMetadata.masteryLevel || 0) * 100
-            const reviewInterval = masteryPercent >= 80 ? 7 :
-                                 masteryPercent >= 60 ? 3 :
-                                 masteryPercent >= 40 ? 2 : 1
-            
-            return daysSince >= reviewInterval
-          })
-        }
       }
       
       console.log(`[Review] Found ${toReview.length} words to review (type: ${reviewType})`)
@@ -350,25 +356,29 @@ export default function ReviewPage() {
       // localStorage에 저장
       localStorage.setItem(activityKey, JSON.stringify(activityData))
 
-      // 서버 동기화 시도 (실패해도 계속 진행)
+      // 서버 동기화: 다른 학습 모드와 동일한 경로로 저장해 Firestore의
+      // nextReviewDate(간격 반복 스케줄)가 streak 기반으로 갱신되도록 함
       try {
-        const increment = remembered ? 10 : -5
-        await vocabularyService.updateStudyProgress(
-          currentWord.id,
-          'review',
-          remembered,
-          increment
-        )
+        await fetch('/api/study-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            wordId: currentWord.id,
+            result: remembered ? 'correct' : 'incorrect',
+            studyType: 'review'
+          })
+        })
       } catch (err) {
         console.log('Server sync failed, but local progress saved')
       }
 
       console.log('Review progress updated:', currentWord.word, remembered)
 
-      // 로컬 상태 업데이트
+      // 로컬 상태 업데이트 (learningMetadata.masteryLevel은 0~1 스케일)
       const currentMastery = currentWord.learningMetadata?.masteryLevel || 0
-      const increment = remembered ? 10 : -5  // 기억하면 +10, 못하면 -5
-      const newMasteryLevel = Math.max(0, Math.min(100, currentMastery + increment))
+      const increment = remembered ? 0.1 : -0.05  // 기억하면 +10%p, 못하면 -5%p
+      const newMasteryLevel = Math.max(0, Math.min(1, currentMastery + increment))
       
       const updatedWords = [...reviewWords]
       updatedWords[currentIndex] = {

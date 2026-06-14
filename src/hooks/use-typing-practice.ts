@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import type { VocabularyWord } from '@/types'
-import { vocabularyService } from '@/lib/api'
+import { useAuth } from '@/components/providers/auth-provider'
 
 export interface TypingResult {
   word: VocabularyWord
@@ -8,6 +8,14 @@ export interface TypingResult {
   correct: boolean
   time: number
   hintsUsed: number
+}
+
+/**
+ * Normalize a typed answer for comparison: trim, lowercase, and strip diacritics
+ * so "cafe" matches "café" and "naive" matches "naïve".
+ */
+export function normalizeTypedAnswer(value: string): string {
+  return value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 }
 
 interface UseTypingPracticeReturn {
@@ -43,6 +51,7 @@ interface UseTypingPracticeReturn {
 }
 
 export function useTypingPractice(): UseTypingPracticeReturn {
+  const { user } = useAuth()
   const [words, setWords] = useState<VocabularyWord[]>([])
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [typedWord, setTypedWord] = useState('')
@@ -69,7 +78,7 @@ export function useTypingPractice(): UseTypingPracticeReturn {
   const submitWord = useCallback((hintLevel: number) => {
     if (showResult || !typedWord.trim() || !currentWord || !wordStartTime) return
 
-    const isTypedCorrect = typedWord.trim().toLowerCase() === currentWord.word.toLowerCase()
+    const isTypedCorrect = normalizeTypedAnswer(typedWord) === normalizeTypedAnswer(currentWord.word)
     const timeSpent = (new Date().getTime() - wordStartTime.getTime()) / 1000
     const allLettersRevealed = hintLevel >= currentWord.word.length
     
@@ -98,21 +107,25 @@ export function useTypingPractice(): UseTypingPracticeReturn {
     setCurrentResult(result)
     setShowResult(true)
 
-    // 학습 진도 업데이트
-    if (currentWord.id) {
-      const increment = isCorrect ? 10 : -5
-      vocabularyService.updateStudyProgress(
-        currentWord.id,
-        'typing',
-        isCorrect,
-        increment
-      ).then(() => {
+    // 학습 진도 업데이트 - 다른 학습 모드(quiz/flashcards/review)와 동일한
+    // /api/study-progress 경로로 저장해 mastery 계산과 복습 스케줄을 일관되게 유지
+    if (currentWord.id && user) {
+      fetch('/api/study-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          wordId: currentWord.id,
+          result: isCorrect ? 'correct' : 'incorrect',
+          studyType: 'typing'
+        })
+      }).then(() => {
         console.log('Typing progress updated:', currentWord.word, isCorrect)
       }).catch(error => {
         console.error('Failed to update typing progress:', error)
       })
     }
-  }, [showResult, typedWord, currentWord, wordStartTime])
+  }, [showResult, typedWord, currentWord, wordStartTime, user])
 
   const nextWord = useCallback(() => {
     if (currentWordIndex < words.length - 1) {

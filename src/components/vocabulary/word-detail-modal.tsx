@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 import { useCache } from '@/contexts/cache-context'
 import { useVocabulary } from '@/contexts/collection-context-v2'
+import { getFieldString } from '@/lib/utils/word-field-normalizer'
 
 export interface WordDetailModalProps {
   open: boolean
@@ -426,7 +427,7 @@ const WordDetailModalBase = React.forwardRef<HTMLDivElement, WordDetailModalProp
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="font-semibold text-blue-800 mb-1">영어 정의</h3>
                   <p className={cn("text-blue-700", getTextSizeClass(textSize))}>
-                    {word.englishDefinition}
+                    {getFieldString(word.englishDefinition)}
                   </p>
                 </div>
               )}

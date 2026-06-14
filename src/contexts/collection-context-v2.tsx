@@ -5,17 +5,18 @@ import { useAuth } from '@/components/providers/auth-provider'
 import { wordAdapterBridge as WordAdapter } from '@/lib/adapters/word-adapter-bridge'
 import { UserSettingsService } from '@/lib/settings/user-settings-service'
 import { CollectionService } from '@/lib/services/collection-service'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import type { UnifiedWord } from '@/types/unified-word'
-import type { 
-  OfficialCollection, 
-  PersonalCollection, 
+import type {
+  OfficialCollection,
+  PersonalCollection,
   VocabularyCollection,
   CollectionFilterOptions
 } from '@/types/collections'
-import type { 
-  UserSettings, 
+import type {
+  UserSettings,
   SelectedWordbook,
-  DEFAULT_USER_SETTINGS 
+  DEFAULT_USER_SETTINGS
 } from '@/types/user-settings'
 
 // ============= 새로운 통합 타입 정의 =============
@@ -277,13 +278,18 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
     
     return {
       id: dbCollection.id,
-      name: dbCollection.name,
-      displayName: isOfficial ? (dbCollection as OfficialCollection).displayName : undefined,
+      name: getCollectionName(dbCollection.name),
+      displayName: isOfficial && (dbCollection as OfficialCollection).displayName
+        ? getCollectionName((dbCollection as OfficialCollection).displayName)
+        : undefined,
       description: dbCollection.description,
       type: collectionType,
       category: isOfficial ? (dbCollection as OfficialCollection).category : undefined,
       difficulty: isOfficial ? (dbCollection as OfficialCollection).difficulty : undefined, // 최상위 레벨에 difficulty 추가
-      wordCount: dbCollection.wordCount,
+      // AI 컬렉션은 실제 로드되는 단어 ID 수를 wordCount로 사용 (stale count 방지)
+      wordCount: collectionType === 'ai-generated' && finalWords
+        ? finalWords.length
+        : dbCollection.wordCount,
       words: finalWords,
       createdAt: dbCollection.createdAt,
       updatedAt: dbCollection.updatedAt,
@@ -532,11 +538,16 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
 
       let loadedWords: UnifiedWord[] = []
 
+      // Collect words per collection so the session draws evenly from each and
+      // the limit is enforced on the TOTAL (previously the limit was applied per
+      // collection, multiplying the session size).
+      const perCollectionWords: UnifiedWord[][] = []
+
       // Load words from official collections using getWordsByCollection
       for (const collection of officialCollections) {
         console.log(`[CollectionV2] Loading official collection: ${collection.name} (limit: ${effectiveLimit})`)
         const collectionWords = await wordAdapter.getWordsByCollection(collection.id, 'official', effectiveLimit)
-        loadedWords.push(...collectionWords)
+        perCollectionWords.push(collectionWords)
         console.log(`[CollectionV2] ✅ Loaded ${collectionWords.length} words from official collection ${collection.name}`)
       }
 
@@ -544,10 +555,10 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
       for (const collection of personalCollections) {
         console.log(`[CollectionV2] Loading personal collection: ${collection.name} (limit: ${effectiveLimit})`)
         const collectionWords = await wordAdapter.getWordsByCollection(collection.id, 'personal', effectiveLimit)
-        loadedWords.push(...collectionWords)
+        perCollectionWords.push(collectionWords)
         console.log(`[CollectionV2] ✅ Loaded ${collectionWords.length} words from personal collection ${collection.name}`)
       }
-      
+
       // Load words from AI-generated collections - Use standard batch loading ONLY
       for (const aiCollection of aiGeneratedCollections) {
         console.log(`[CollectionV2] 🔍 AI Collection Loading Debug:`)
@@ -556,47 +567,64 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
         console.log(`  - Collection Type: ${aiCollection.type}`)
         console.log(`  - Words array:`, aiCollection.words)
         console.log(`  - Words array length: ${aiCollection.words?.length || 0}`)
-        
+
         if (aiCollection.words && aiCollection.words.length > 0) {
           console.log(`  - Calling wordAdapter.getWordsByIds with:`, aiCollection.words)
-          
+
           // Use standard batch loading for AI collections
           const aiWords = await wordAdapter.getWordsByIds(aiCollection.words)
-          loadedWords.push(...aiWords)
+          perCollectionWords.push(aiWords)
           console.log(`  - WordAdapter returned ${aiWords.length} words`)
           console.log(`  - Sample returned words:`, aiWords.slice(0, 2).map(w => ({ id: w.id, word: w.word })))
         } else {
           console.log(`  - ❌ AI collection ${aiCollection.id} has no words - skipping`)
         }
-        
-        // Load user study status for these words
-        if (user) {
-          try {
-            const response = await fetch(`/api/user-words?userId=${user.uid}`)
-            if (response.ok) {
-              const { userWords } = await response.json()
-              
-              // Merge study status into loaded words
-              if (userWords && Array.isArray(userWords)) {
-                const userWordMap = new Map(userWords.map((uw: any) => [uw.wordId, uw]))
-                
-                loadedWords = loadedWords.map(word => {
-                  const userWord = userWordMap.get(word.id)
-                  if (userWord && userWord.studyStatus) {
-                    return {
-                      ...word,
-                      studyStatus: userWord.studyStatus
-                    }
-                  }
-                  return word
-                })
-                
-                console.log(`[CollectionV2] Merged study status for ${userWordMap.size} words`)
-              }
-            }
-          } catch (error) {
-            console.error('[CollectionV2] Failed to load user study status:', error)
+      }
+
+      // Round-robin interleave across collections, dedup by id, and cap to the
+      // total session limit. Fixes: (1) per-collection limit multiplying the
+      // session size, (2) a shared word appearing twice across collections.
+      const seenWordIds = new Set<string>()
+      const maxCollectionLen = perCollectionWords.reduce((max, arr) => Math.max(max, arr.length), 0)
+      for (let i = 0; i < maxCollectionLen && loadedWords.length < effectiveLimit; i++) {
+        for (const collectionWords of perCollectionWords) {
+          if (loadedWords.length >= effectiveLimit) break
+          const word = collectionWords[i]
+          if (word && word.id && !seenWordIds.has(word.id)) {
+            seenWordIds.add(word.id)
+            loadedWords.push(word)
           }
+        }
+      }
+
+      // Merge user study status into the final word set (only when AI collections
+      // are involved, matching prior behavior; now runs once instead of per collection)
+      if (user && aiGeneratedCollections.length > 0) {
+        try {
+          const response = await fetch(`/api/user-words?userId=${user.uid}`)
+          if (response.ok) {
+            const { userWords } = await response.json()
+
+            // Merge study status into loaded words
+            if (userWords && Array.isArray(userWords)) {
+              const userWordMap = new Map(userWords.map((uw: any) => [uw.wordId, uw]))
+
+              loadedWords = loadedWords.map(word => {
+                const userWord = userWordMap.get(word.id)
+                if (userWord && userWord.studyStatus) {
+                  return {
+                    ...word,
+                    studyStatus: userWord.studyStatus
+                  }
+                }
+                return word
+              })
+
+              console.log(`[CollectionV2] Merged study status for ${userWordMap.size} words`)
+            }
+          }
+        } catch (error) {
+          console.error('[CollectionV2] Failed to load user study status:', error)
         }
       }
       
@@ -667,8 +695,14 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
         moreWords.push(...collectionWords)
       }
 
-      // Append to existing words
-      const updatedWords = [...allWords, ...moreWords]
+      // Append to existing words, deduping by id so pagination and shared
+      // collections don't reintroduce words that are already loaded
+      const seenIds = new Set<string>()
+      const updatedWords = [...allWords, ...moreWords].filter(word => {
+        if (!word.id || seenIds.has(word.id)) return false
+        seenIds.add(word.id)
+        return true
+      })
       setAllWords(updatedWords)
       setWords(updatedWords)
 

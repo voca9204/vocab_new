@@ -16,7 +16,9 @@ import {
   CheckCircle,
   Star,
   AlertCircle,
-  Loader2
+  Loader2,
+  ChevronRight,
+  ArrowLeft
 } from 'lucide-react'
 import { CollectionCardSkeleton, DifficultyCardSkeleton } from '@/components/ui/collection-card-skeleton'
 import {
@@ -26,6 +28,7 @@ import {
   categoryIcons,
   getCollectionPath
 } from '@/types/collections-simplified'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import type { Collection } from '@/contexts/collection-context-v2'
 import { RecentLearningWidget } from '@/components/home/recent-learning-widget'
 import { StudyMethodModal } from '@/components/vocabulary/study-method-modal'
@@ -36,6 +39,7 @@ import {
   QuickActionButton,
   RecommendedCollection
 } from '@/components/home/mobile-home-redesign'
+import { useUserStatistics } from '@/hooks/useUserStatistics'
 
 // 카테고리별 설명
 const categoryDescriptions: Record<OfficialCategory, string> = {
@@ -183,7 +187,7 @@ export default function HomePage() {
 
       const newEntry = {
         collectionId: collection.id,
-        collectionName: collection.name || collection.displayName || 'Unknown',
+        collectionName: getCollectionName(collection.displayName || collection.name),
         category: collection.category || collection.metadata?.category || '기본',
         difficulty: collection.metadata?.difficulty || 'intermediate',
         lastStudyMethod: studyMethod, // 학습 방법 추가
@@ -225,9 +229,12 @@ export default function HomePage() {
 
   // 학습 시작 - 단어장 선택 시 모달 열기
   const handleCollectionClick = (collection: Collection) => {
+    console.log('[handleCollectionClick] called with collection:', collection)
     if (!collection || collection.wordCount === 0) {
+      console.log('[handleCollectionClick] rejected - no collection or no words')
       return
     }
+    console.log('[handleCollectionClick] Setting modal open for collection:', collection.name)
     setSelectedCollection(collection)
     setStudyModalOpen(true)
   }
@@ -292,8 +299,8 @@ export default function HomePage() {
   const categories: OfficialCategory[] = ['SAT', 'TOEFL', 'TOEIC', '수능', 'GRE', 'IELTS', '기본', '학원']
   const difficulties: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced']
 
-  // 모바일 여부 체크
-  const [isMobile, setIsMobile] = useState(false)
+  // 모바일 여부 체크 - 초기값을 서버/클라이언트 일치시키기 위해 undefined로 시작
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -327,22 +334,8 @@ export default function HomePage() {
     }
   }, [collections])
 
-  // 통계 데이터 계산
-  const [studyStats, setStudyStats] = useState({
-    totalWords: 0,
-    streak: 0,
-    todayWords: 0
-  })
-
-  useEffect(() => {
-    // 실제 데이터는 Firebase에서 가져와야 함
-    // 클라이언트 사이드에서만 랜덤 데이터 설정
-    setStudyStats({
-      totalWords: Math.floor(Math.random() * 500) + 100,
-      streak: Math.floor(Math.random() * 7) + 1,
-      todayWords: Math.floor(Math.random() * 50) + 10
-    })
-  }, [])
+  // 실제 통계 데이터를 Firebase에서 가져옴
+  const userStats = useUserStatistics()
 
   const loading = authLoading || collectionLoading
 
@@ -371,8 +364,9 @@ export default function HomePage() {
   }
 
   // 모바일 홈 화면
-  if (isMobile) {
+  if (isMobile === true) {
     return (
+      <>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         {/* 심플한 모바일 헤더 */}
         <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10">
@@ -396,6 +390,57 @@ export default function HomePage() {
 
         {/* 모바일 메인 컨텐츠 */}
         <main className="px-4 py-6 pb-20">
+          {/* 선택된 카테고리가 있으면 난이도 선택 화면 표시 */}
+          {selectedCategory ? (
+            <div className="min-h-screen">
+              {/* 뒤로가기 버튼 */}
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ChevronRight className="h-4 w-4 rotate-180" />
+                <span>카테고리 선택</span>
+              </button>
+
+              {/* 선택된 카테고리 정보 */}
+              <div className="text-center mb-6">
+                <span className="text-4xl mb-2">{categoryIcons[selectedCategory]}</span>
+                <h2 className="text-2xl font-bold text-gray-900 mt-2">{selectedCategory}</h2>
+                <p className="text-gray-600 mt-1">{categoryDescriptions[selectedCategory]}</p>
+              </div>
+
+              {/* 난이도 카드들 */}
+              <div className="space-y-4">
+                {difficulties.map((difficulty) => {
+                  const info = difficultyInfo[difficulty]
+                  const collection = groupedCollections[selectedCategory][difficulty]
+                  const hasWords = collection && collection.wordCount > 0
+
+                  if (!hasWords) return null
+
+                  return (
+                    <Card
+                      key={difficulty}
+                      className="p-4 cursor-pointer hover:shadow-lg transition-all"
+                      onClick={() => handleCollectionClick(collection)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="text-3xl">{info.icon}</div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg text-gray-900">{info.label}</h3>
+                          <p className="text-sm text-gray-600">
+                            {collection.wordCount.toLocaleString()}개 단어
+                          </p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <>
           {/* Quick Start Card - 이어서 학습하기 */}
           {recommendedCollection && (
             <QuickStartCard
@@ -407,9 +452,9 @@ export default function HomePage() {
 
           {/* 학습 통계 */}
           <StudyStatsCard
-            totalWords={studyStats.totalWords}
-            streak={studyStats.streak}
-            todayWords={studyStats.todayWords}
+            totalWords={userStats.totalWords}
+            streak={userStats.streak}
+            todayWords={userStats.todayWords}
           />
 
           {/* 빠른 액션 버튼들 */}
@@ -438,12 +483,19 @@ export default function HomePage() {
           <div className="mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-3">학습 카테고리</h2>
             <div className="space-y-3">
-              {categories.slice(0, 4).map((category) => {
+              {categories.slice(0, 5).map((category) => {
                 const hasContent = getCategoryHasContent(category)
                 const totalWords = getCategoryTotalWords(category)
-                const collection = Object.values(groupedCollections[category] || {})[0]
+                const categoryCollections = groupedCollections[category] || {}
+                // 우선순위: intermediate > beginner > advanced
+                const collection = categoryCollections['intermediate'] ||
+                                  categoryCollections['beginner'] ||
+                                  categoryCollections['advanced']
 
-                if (!hasContent) return null
+                // 모바일 디버깅 로그
+                console.log(`[Mobile] ${category} - hasContent:`, hasContent, 'totalWords:', totalWords, 'collection:', collection)
+
+                if (!hasContent || !collection) return null
 
                 return (
                   <CategoryCard
@@ -454,7 +506,10 @@ export default function HomePage() {
                     wordCount={totalWords}
                     difficulty={collection?.difficulty}
                     color={categoryColors[category]}
-                    onClick={() => collection && handleCollectionClick(collection)}
+                    onClick={() => {
+                      console.log(`[Mobile] ${category} CategoryCard clicked, setting selectedCategory`)
+                      setSelectedCategory(category)
+                    }}
                     isPopular={category === 'SAT' || category === 'TOEFL'}
                   />
                 )
@@ -479,13 +534,30 @@ export default function HomePage() {
                 ))}
             </div>
           </div>
+          </>
+          )}
         </main>
       </div>
+
+      {/* 학습 방법 선택 모달 - 모바일에서도 표시 */}
+      {console.log('[Mobile Modal Debug] studyModalOpen:', studyModalOpen, 'selectedCollection:', selectedCollection)}
+      <StudyMethodModal
+        isOpen={studyModalOpen}
+        onClose={() => {
+          console.log('[Mobile Modal Debug] onClose called')
+          setStudyModalOpen(false)
+        }}
+        collection={selectedCollection}
+        onSelectMethod={handleStartLearning}
+        lastStudyMethod={undefined}
+      />
+      </>
     )
   }
 
   // 데스크톱 화면 (기존 코드)
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* 심플한 헤더 */}
       <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10">
@@ -718,7 +790,7 @@ export default function HomePage() {
                     } ${hoveredCard === cardId ? 'ring-4 ring-blue-400 ring-opacity-50' : ''}`}
                     onMouseEnter={() => setHoveredCard(cardId)}
                     onMouseLeave={() => setHoveredCard(null)}
-                    onClick={() => hasWords && handleStartLearning(collection)}
+                    onClick={() => hasWords && handleCollectionClick(collection)}
                   >
                     {/* 난이도별 배경 그라데이션 */}
                     <div className={`absolute top-0 left-0 right-0 h-2 ${
@@ -762,11 +834,6 @@ export default function HomePage() {
                             className="w-full"
                             size="lg"
                             disabled={isLoading}
-                            onClick={() => {
-                              if (!isLoading) {
-                                router.push(`/study/${selectedCategory}/${difficulty}`)
-                              }
-                            }}
                           >
                             {isLoading ? (
                               <>
@@ -828,14 +895,19 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* 학습 방법 선택 모달 */}
-      <StudyMethodModal
-        isOpen={studyModalOpen}
-        onClose={() => setStudyModalOpen(false)}
-        collection={selectedCollection}
-        onSelectMethod={handleStartLearning}
-        lastStudyMethod={undefined} // 이전 학습 방법은 localStorage에서 관리
-      />
+      {/* 학습 방법 선택 모달 - 모바일에서도 표시되도록 데스크톱 영역 밖으로 이동 */}
     </div>
+
+    <StudyMethodModal
+      isOpen={studyModalOpen}
+      onClose={() => {
+        console.log('[Desktop Modal Debug] onClose called')
+        setStudyModalOpen(false)
+      }}
+      collection={selectedCollection}
+      onSelectMethod={handleStartLearning}
+      lastStudyMethod={undefined}
+    />
+    </>
   )
 }

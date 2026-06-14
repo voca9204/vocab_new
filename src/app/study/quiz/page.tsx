@@ -28,6 +28,7 @@ import type { VocabularyWord } from '@/types'
 import type { Word } from '@/types/vocabulary-v2'
 import type { PhotoVocabularyWord } from '@/types/photo-vocabulary-collection'
 import { cn } from '@/lib/utils'
+import { getCollectionName } from '@/lib/utils/collection-name'
 
 interface QuizQuestion {
   word: VocabularyWord
@@ -214,29 +215,36 @@ function QuizContent() {
     
     // 각 단어에 대해 문제 생성
     const newQuestions: QuizQuestion[] = quizWords.map(word => {
-      // 정답 포함 4개 선택지 만들기
-      const otherWords = allWords.filter(w => w.id !== word.id)
-      const randomOptionWords = otherWords
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3)
-      
+      const correctDef = word.definition || '정의 없음'
+      const shuffledOthers = allWords.filter(w => w.id !== word.id).sort(() => Math.random() - 0.5)
+
+      // 정답과, 서로 간에 정의가 겹치지 않는 오답 보기 최대 3개 선택
+      // (정의가 비어 모두 '정의 없음'이 되거나 정답과 같은 보기가 나오는 것을 방지)
+      const usedDefs = new Set<string>([correctDef])
+      const distractors: VocabularyWord[] = []
+      for (const w of shuffledOthers) {
+        const def = w.definition || '정의 없음'
+        if (!usedDefs.has(def)) {
+          usedDefs.add(def)
+          distractors.push(w)
+          if (distractors.length === 3) break
+        }
+      }
+      // 고유 정의가 부족하면(작은 단어장) 남은 단어로 채워 4지선다 유지
+      if (distractors.length < 3) {
+        for (const w of shuffledOthers) {
+          if (!distractors.includes(w)) {
+            distractors.push(w)
+            if (distractors.length === 3) break
+          }
+        }
+      }
+
       // 선택지 단어 배열 만들고 섞기
-      const allOptionWords = [word, ...randomOptionWords]
-      const shuffledOptionWords = allOptionWords.sort(() => Math.random() - 0.5)
+      const shuffledOptionWords = [word, ...distractors].sort(() => Math.random() - 0.5)
       const correctIndex = shuffledOptionWords.findIndex(w => w.id === word.id)
-      
-      // 각 선택지의 정의 생성 - 이미 변환된 VocabularyWord에서 definition 필드 사용
-      const options = shuffledOptionWords.map((w) => {
-        const definition = w.definition || '정의 없음'
-        
-        console.log(`[Quiz] Word "${w.word}" option definition:`, {
-          definition: w.definition,
-          final: definition
-        })
-        
-        return definition
-      })
-      
+      const options = shuffledOptionWords.map(w => w.definition || '정의 없음')
+
       return {
         word,
         options,
@@ -547,7 +555,7 @@ function QuizContent() {
           <div className="flex items-center justify-center gap-2 flex-wrap -mt-6">
             <BookOpen className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
-              출처: {selectedCollections.map(c => c.name).join(', ')}
+              출처: {selectedCollections.map(c => getCollectionName(c.name)).join(', ')}
             </span>
           </div>
         )}

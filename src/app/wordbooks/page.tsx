@@ -10,14 +10,15 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { LoadingMessage, LoadingMessages } from '@/components/ui/loading-message'
 import { cn } from '@/lib/utils'
-import { 
-  Search, 
-  BookOpen, 
-  User, 
-  Camera, 
-  Globe, 
-  Star, 
-  TrendingUp, 
+import { getCollectionName } from '@/lib/utils/collection-name'
+import {
+  Search,
+  BookOpen,
+  User,
+  Camera,
+  Globe,
+  Star,
+  TrendingUp,
   Lock,
   Unlock,
   Plus,
@@ -459,7 +460,7 @@ function WordbookCard({ wordbook, isSelected, onToggleSelect, onStartStudy }: Wo
           </div>
           
           <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
-            {wordbook.name}
+            {getCollectionName(wordbook.name)}
           </h3>
           
           {wordbook.description && (
