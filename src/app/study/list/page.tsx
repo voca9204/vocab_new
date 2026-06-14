@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useCollectionV2 } from '@/contexts/collection-context-v2'
@@ -189,6 +190,34 @@ export default function VocabularyListPage() {
     }
   }
 
+  // ===== 가상화: 대량 단어를 한 번에 DOM에 렌더하지 않도록 행 단위 윈도우 가상화 =====
+  // 반응형 컬럼 수 (md:2 lg:3 xl:4, 기본 1) — 기존 그리드와 동일한 브레이크포인트
+  const [columns, setColumns] = useState(1)
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth
+      setColumns(w >= 1280 ? 4 : w >= 1024 ? 3 : w >= 768 ? 2 : 1)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
+  const listRef = useRef<HTMLDivElement>(null)
+  const rowCount = Math.ceil(filteredWords.length / columns)
+  const rowVirtualizer = useWindowVirtualizer({
+    count: rowCount,
+    estimateSize: () => 180, // 카드 행 추정 높이 (실제 높이는 measureElement로 보정)
+    overscan: 6,
+    scrollMargin: listRef.current?.offsetTop ?? 0,
+  })
+
+  const gridColsClass: Record<number, string> = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-2',
+    3: 'grid-cols-3',
+    4: 'grid-cols-4',
+  }
 
   if (!user) {
     return (
@@ -254,13 +283,34 @@ export default function VocabularyListPage() {
         </div>
       </div>
 
-      {/* 단어 목록 - 그리드 레이아웃 */}
+      {/* 단어 목록 - 행 단위 윈도우 가상화 (대량 단어도 보이는 만큼만 DOM 렌더) */}
       {loading ? (
         <div className="text-center py-8">로딩 중...</div>
+      ) : filteredWords.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">단어가 없습니다</div>
       ) : (
-        // 모든 경우에 그리드 레이아웃 사용 (가상화는 300개 이상일 때만 고려)
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredWords.map((word, index) => (
+        <div ref={listRef}>
+          <div style={{ height: rowVirtualizer.getTotalSize(), width: '100%', position: 'relative' }}>
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const start = virtualRow.index * columns
+              const rowWords = filteredWords.slice(start, start + columns)
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualRow.start - rowVirtualizer.options.scrollMargin}px)`,
+                  }}
+                >
+                  <div className={`grid ${gridColsClass[columns]} gap-4 pb-4`}>
+                    {rowWords.map((word, idx) => {
+                      const index = start + idx
+                      return (
             <Card
               key={`${word.id}-${index}`}
               className="p-4 cursor-pointer hover:shadow-md transition-shadow"
@@ -335,7 +385,13 @@ export default function VocabularyListPage() {
                 </div>
               )}
             </Card>
-          ))}
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
