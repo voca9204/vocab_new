@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
 import type { StudyActivityType } from '@/types/vocabulary-v2'
 
+// Spaced-repetition intervals (in days) keyed by consecutive-correct streak.
+// Matches the schedule advertised in the review UI: 1 → 3 → 7 → 14 → 30 → 60 days.
+const REVIEW_INTERVALS_DAYS = [1, 3, 7, 14, 30, 60]
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Compute the next review date from the new consecutive-correct streak.
+ * An incorrect answer (streak 0) schedules a retry in 1 day.
+ */
+function computeNextReviewDate(from: Date, streakCount: number): Date {
+  const index = Math.min(Math.max(streakCount - 1, 0), REVIEW_INTERVALS_DAYS.length - 1)
+  const days = streakCount <= 0 ? 1 : REVIEW_INTERVALS_DAYS[index]
+  return new Date(from.getTime() + days * DAY_MS)
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -163,6 +178,7 @@ export async function POST(request: NextRequest) {
     if (querySnapshot.empty) {
       // Create new user word record
       docRef = userWordsRef.doc()
+      const initialStreak = result === 'correct' ? 1 : 0
       userWord = {
         id: docRef.id,
         userId,
@@ -174,7 +190,8 @@ export async function POST(request: NextRequest) {
           totalReviews: 1,
           correctCount: result === 'correct' ? 1 : 0,
           incorrectCount: result === 'incorrect' ? 1 : 0,
-          streakCount: result === 'correct' ? 1 : 0,
+          streakCount: initialStreak,
+          nextReviewDate: computeNextReviewDate(now, initialStreak),
           lastStudied: now,
           lastResult: result,
           lastActivity: studyType as StudyActivityType,
@@ -207,17 +224,22 @@ export async function POST(request: NextRequest) {
       }
       
       if (result === 'correct') {
+        const newStreak = (existingData.studyStatus?.streakCount || 0) + 1
         updates['studyStatus.correctCount'] = (existingData.studyStatus?.correctCount || 0) + 1
-        updates['studyStatus.streakCount'] = (existingData.studyStatus?.streakCount || 0) + 1
+        updates['studyStatus.streakCount'] = newStreak
         // Simple mastery calculation
         const currentMastery = existingData.studyStatus?.masteryLevel || 0
         updates['studyStatus.masteryLevel'] = Math.min(100, currentMastery + 10)
+        // Schedule the next review further out as the streak grows
+        updates['studyStatus.nextReviewDate'] = computeNextReviewDate(now, newStreak)
       } else if (result === 'incorrect') {
         updates['studyStatus.incorrectCount'] = (existingData.studyStatus?.incorrectCount || 0) + 1
         updates['studyStatus.streakCount'] = 0
         // Decrease mastery on incorrect
         const currentMastery = existingData.studyStatus?.masteryLevel || 0
         updates['studyStatus.masteryLevel'] = Math.max(0, currentMastery - 5)
+        // Reset the schedule: retry in 1 day
+        updates['studyStatus.nextReviewDate'] = computeNextReviewDate(now, 0)
       }
       
       // Update activity stats

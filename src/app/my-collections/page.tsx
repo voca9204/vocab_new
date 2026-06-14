@@ -7,6 +7,7 @@ import { Plus, Edit2, Trash2, Share2, Lock, Unlock, BookOpen, TrendingUp, Upload
 import { Button } from '@/components/ui'
 import { Card } from '@/components/ui/card'
 import { UploadModal } from '@/components/collections'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import type { PersonalCollection, UserQuota } from '@/types/collections'
 import type { Word } from '@/types/vocabulary-v2'
 
@@ -378,7 +379,7 @@ function CollectionCard({
     <Card className="p-6 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">{collection.name}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{getCollectionName(collection.name)}</h3>
           {collection.description && (
             <p className="mt-1 text-sm text-gray-600 line-clamp-2">{collection.description}</p>
           )}

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui'
 import { Card } from '@/components/ui/card'
 import { useAuth } from '@/hooks/use-auth'
 import { useUnifiedVocabulary } from '@/contexts/collection-context-v2'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import type { OfficialCollection, PersonalCollection } from '@/types/collections'
 
 export default function CollectionsPage() {
@@ -278,7 +279,7 @@ function OfficialCollectionCard({
               {difficultyLabels[collection.difficulty] || collection.difficulty}
             </span>
           </div>
-          <h3 className="text-base md:text-lg font-semibold text-gray-900 line-clamp-2">{collection.displayName || collection.name}</h3>
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 line-clamp-2">{getCollectionName(collection.displayName || collection.name)}</h3>
           {collection.description && (
             <p className="mt-1 text-xs md:text-sm text-gray-600 line-clamp-2">{collection.description}</p>
           )}
@@ -328,7 +329,7 @@ function PublicCollectionCard({
   return (
     <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onSelect}>
       <div className="mb-3 md:mb-4">
-        <h3 className="text-base md:text-lg font-semibold text-gray-900 line-clamp-2">{collection.name}</h3>
+        <h3 className="text-base md:text-lg font-semibold text-gray-900 line-clamp-2">{getCollectionName(collection.name)}</h3>
         {collection.description && (
           <p className="mt-1 text-xs md:text-sm text-gray-600 line-clamp-2">{collection.description}</p>
         )}

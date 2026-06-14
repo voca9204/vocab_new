@@ -8,6 +8,7 @@ import { Plus, Edit2, Trash2, Users, BookOpen, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Card } from '@/components/ui/card'
 import { UploadModal } from '@/components/collections'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import type { OfficialCollection, PersonalCollection, OfficialCategory } from '@/types/collections'
 import type { Word } from '@/types/vocabulary-v2'
 
@@ -359,7 +360,7 @@ function CollectionCard({
       <div className="flex-1">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-medium text-gray-900">
-            {isOfficial ? (collection as OfficialCollection).displayName : collection.name}
+            {isOfficial ? (collection as OfficialCollection).displayName : getCollectionName(collection.name)}
           </h3>
           {isOfficial && (
             <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">

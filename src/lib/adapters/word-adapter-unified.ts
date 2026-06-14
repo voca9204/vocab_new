@@ -21,6 +21,7 @@ import { db } from '@/lib/firebase/config'
 import { UnifiedWord } from '@/types/unified-word'
 import { LocalCacheManager } from '@/lib/cache/local-cache-manager'
 import { logger } from '@/lib/utils/logger'
+import { getFieldString } from '@/lib/utils/word-field-normalizer'
 
 // Initialize cache manager
 const cacheManager = new LocalCacheManager()
@@ -38,7 +39,7 @@ export class UnifiedWordAdapter {
   
   private async checkAndClearStaleCache() {
     const CACHE_VERSION_KEY = 'word_cache_version'
-    const CURRENT_VERSION = '2.4.0' // UnifiedWordAdapter Korean definition priority fix
+    const CURRENT_VERSION = '2.5.0' // Normalize object-typed definition fields to strings at adapter
     
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
     if (storedVersion !== CURRENT_VERSION) {
@@ -63,9 +64,13 @@ export class UnifiedWordAdapter {
     // Derive isSAT from categories for backward compatibility
     const isSAT = data.categories?.includes('SAT') || false
 
-    // Prioritize Korean definitions over English
-    const koreanDef = data.koreanDefinition || data.korean || '';
-    const englishDef = data.definition || data.englishDefinition || '';
+    // Normalize definition fields that may be stored as objects ({korean, english})
+    // in legacy data into plain strings, so every consumer receives strings.
+    const koreanDef = getFieldString(data.koreanDefinition, true) || getFieldString(data.korean, true);
+    // Fallback used for the primary `definition` field (definition-first, matches legacy priority)
+    const englishDef = getFieldString(data.definition, false) || getFieldString(data.englishDefinition, false);
+    // The `englishDefinition` output keeps its own priority (englishDefinition-first)
+    const englishDefinitionOut = getFieldString(data.englishDefinition, false) || getFieldString(data.definition, false);
 
     return {
       id,
@@ -73,9 +78,9 @@ export class UnifiedWordAdapter {
       normalizedWord: data.normalizedWord || data.word?.toLowerCase() || '',
 
       definition: koreanDef || englishDef || 'No definition available',
-      englishDefinition: data.englishDefinition || data.definition || null,
-      koreanDefinition: data.koreanDefinition || data.korean || null,
-      korean: data.korean || null,
+      englishDefinition: englishDefinitionOut || undefined,
+      koreanDefinition: koreanDef || undefined,
+      korean: getFieldString(data.korean, true) || undefined,
       
       pronunciation: data.pronunciation || null,
       partOfSpeech: data.partOfSpeech || [],
@@ -162,50 +167,54 @@ export class UnifiedWordAdapter {
    */
   async getWordsByIds(ids: string[]): Promise<UnifiedWord[]> {
     if (ids.length === 0) return []
-    
-    const words: UnifiedWord[] = []
+
+    // Collect into a map so the result can be returned in the SAME order as the
+    // input ids. Firestore 'in' queries do NOT preserve the requested order, so
+    // appending results as they arrive would scramble the study sequence.
+    const wordsById = new Map<string, UnifiedWord>()
     const uncachedIds: string[] = []
-    
+
     // Check caches first
     for (const id of ids) {
-      const cached = this.memoryCache.get(id) || 
+      const cached = this.memoryCache.get(id) ||
                     await cacheManager.get<UnifiedWord>(`${id}`)
-      
+
       if (cached) {
-        words.push(cached)
+        wordsById.set(id, cached)
       } else {
         uncachedIds.push(id)
       }
     }
-    
+
     // Batch fetch uncached words
     if (uncachedIds.length > 0) {
       logger.debug(`Batch fetching ${uncachedIds.length} uncached words`)
-      
+
       // Ensure db is initialized
       if (!db) {
         logger.error('Firestore database not initialized')
-        return words
+        // Return whatever was cached, still in input order
+        return ids.map(id => wordsById.get(id)).filter((w): w is UnifiedWord => Boolean(w))
       }
-      
+
       for (let i = 0; i < uncachedIds.length; i += this.BATCH_SIZE) {
         const batch = uncachedIds.slice(i, i + this.BATCH_SIZE)
-        
+
         try {
           const q = query(
             collection(db, this.COLLECTION_NAME),
             where('__name__', 'in', batch)
           )
-          
+
           const snapshot = await getDocs(q)
-          
+
           snapshot.forEach(doc => {
             const word = this.documentToWord(doc.data(), doc.id)
-            words.push(word)
-            
+            wordsById.set(word.id, word)
+
             // Cache the result
             this.memoryCache.set(word.id, word)
-            cacheManager.set(`${word.id}`, word).catch(err => 
+            cacheManager.set(`${word.id}`, word).catch(err =>
               logger.warn(`Failed to cache word ${word.id}:`, err)
             )
           })
@@ -214,7 +223,10 @@ export class UnifiedWordAdapter {
         }
       }
     }
-    
+
+    // Reassemble in the original input order, dropping ids with no document
+    const words = ids.map(id => wordsById.get(id)).filter((w): w is UnifiedWord => Boolean(w))
+
     logger.info(`Returned ${words.length} words`)
     return words
   }

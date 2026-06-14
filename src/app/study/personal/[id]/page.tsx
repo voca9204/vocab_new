@@ -9,6 +9,7 @@ import { useWordDiscovery } from '@/hooks/use-word-discovery'
 import { useCache } from '@/contexts/cache-context'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
 import { DiscoveryModal } from '@/components/vocabulary/discovery-modal'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import { Button } from '@/components/ui'
 import { Card, CardContent } from '@/components/ui/card'
 import { 
@@ -370,7 +371,7 @@ export default function PersonalCollectionStudyPage() {
           
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{collection.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{getCollectionName(collection.name)}</h1>
               <p className="text-gray-600 mt-1">{collection.description}</p>
             </div>
             <div className="text-right">

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { ChevronLeft, Keyboard, CheckCircle, Volume2 } from 'lucide-react'
 // Removed: import { vocabularyService } from '@/lib/api' - NO LONGER USING OLD SYSTEM
 import { prepareWordsForTyping } from '@/lib/typing-utils'
-import { useTypingPractice } from '@/hooks/use-typing-practice'
+import { useTypingPractice, normalizeTypedAnswer } from '@/hooks/use-typing-practice'
 import { useTypingTimer } from '@/hooks/use-typing-timer'
 import { 
   TypingStatsGrid, 
@@ -202,7 +202,7 @@ export default function TypingPage() {
     const baseClasses = 'text-center text-2xl py-6 font-mono'
     if (!showResult || !currentWord) return baseClasses
     
-    const isCorrect = typedWord.trim().toLowerCase() === currentWord.word.toLowerCase()
+    const isCorrect = normalizeTypedAnswer(typedWord) === normalizeTypedAnswer(currentWord.word)
     const resultClasses = isCorrect 
       ? 'border-green-500 bg-green-50' 
       : 'border-red-500 bg-red-50'

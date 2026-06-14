@@ -6,9 +6,9 @@ import { useAuth } from '@/components/providers/auth-provider'
 import { useCollectionV2 } from '@/contexts/collection-context-v2'
 import { Button, Input, StudyHeader } from '@/components/ui'
 import { Card } from '@/components/ui/card'
-import { 
-  Search, 
-  Filter, 
+import {
+  Search,
+  Filter,
   ChevronLeft,
   BookOpen,
   Check,
@@ -17,12 +17,14 @@ import {
   Sparkles
 } from 'lucide-react'
 import { WordAdapter } from '@/lib/adapters/word-adapter'
+import { getFieldString } from '@/lib/utils/word-field-normalizer'
 import type { UnifiedWord } from '@/types/unified-word'
 import { WordDetailModal } from '@/components/vocabulary/word-detail-modal'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
 import { useWordDiscovery } from '@/hooks/use-word-discovery'
 import { DiscoveryModal } from '@/components/vocabulary/discovery-modal'
 import { VirtualWordList } from '@/components/vocabulary/virtual-word-list'
+import { getCollectionName } from '@/lib/utils/collection-name'
 
 export default function VocabularyListPage() {
   const router = useRouter()
@@ -142,10 +144,11 @@ export default function VocabularyListPage() {
 
     // 검색어 필터링 (UnifiedWord 구조에 맞게 수정)
     if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase()
       filtered = filtered.filter(word =>
-        word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (word.definition && word.definition.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (word.englishDefinition && word.englishDefinition.toLowerCase().includes(searchTerm.toLowerCase()))
+        word.word.toLowerCase().includes(lowerSearch) ||
+        getFieldString(word.definition).toLowerCase().includes(lowerSearch) ||
+        getFieldString(word.englishDefinition).toLowerCase().includes(lowerSearch)
       )
     }
 
@@ -203,7 +206,7 @@ export default function VocabularyListPage() {
       {/* 헤더 */}
       <StudyHeader
         title="단어 목록"
-        subtitle={`${selectedCollections.map(wb => wb.name).join(', ')} - ${filteredWords.length}개 단어`}
+        subtitle={`${selectedCollections.map(wb => getCollectionName(wb.name)).join(', ')} - ${filteredWords.length}개 단어`}
         backPath="/unified-dashboard"
       />
 
@@ -313,7 +316,7 @@ export default function VocabularyListPage() {
               
               {word.englishDefinition && (
                 <p className="text-xs text-gray-500 break-words whitespace-normal">
-                  {word.englishDefinition}
+                  {getFieldString(word.englishDefinition)}
                 </p>
               )}
               

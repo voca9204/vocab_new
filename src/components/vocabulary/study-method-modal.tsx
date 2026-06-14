@@ -15,6 +15,7 @@ import {
   Target,
   Keyboard
 } from 'lucide-react'
+import { getCollectionName } from '@/lib/utils/collection-name'
 import type { Collection } from '@/contexts/collection-context-v2'
 
 interface StudyMethodModalProps {
@@ -34,7 +35,12 @@ export function StudyMethodModal({
 }: StudyMethodModalProps) {
   const [selectedMethod, setSelectedMethod] = useState<'list' | 'flashcards' | 'quiz' | 'typing' | null>(null)
 
-  if (!collection) return null
+  console.log('[StudyMethodModal] Render - isOpen:', isOpen, 'collection:', collection)
+
+  if (!collection) {
+    console.log('[StudyMethodModal] No collection, returning null')
+    return null
+  }
 
   const studyMethods = [
     {
@@ -101,7 +107,9 @@ export function StudyMethodModal({
         <div className="mb-4">
           <h2 className="text-2xl font-bold mb-2">학습 방법 선택</h2>
           <p className="text-base text-gray-600">
-            <span className="font-semibold text-gray-900">{collection.name}</span> 단어장을
+            <span className="font-semibold text-gray-900">
+              {getCollectionName(collection.name)}
+            </span> 단어장을
             어떤 방법으로 학습하시겠습니까?
           </p>
         </div>
