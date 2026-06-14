@@ -111,7 +111,7 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
         console.log(`[generate-examples] Calling OpenAI API for ${word.word}`)
         
         const completion = await openai.chat.completions.create({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',

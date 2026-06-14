@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const estimatedCosts = {
       perExample: 0.002, // 예문 생성당 약 $0.002
       perEtymology: 0.0015, // 어원 생성당 약 $0.0015
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       pricing: {
         input: '$0.0005 / 1K tokens',
         output: '$0.0015 / 1K tokens'

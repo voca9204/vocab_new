@@ -66,7 +66,7 @@ Format the response as a JSON array of strings like: ["sentence1", "sentence2", 
     console.log(`[generate-examples-unified] Generating examples for ${word}`)
     
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
