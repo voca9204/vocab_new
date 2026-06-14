@@ -17,6 +17,7 @@ import {
   writeBatch
 } from 'firebase/firestore'
 import type { Word, WordDefinition } from '@/types/vocabulary-v2'
+import { toDate } from '@/lib/utils/timestamp'
 
 export class WordService {
   private readonly collectionName = 'words'
@@ -453,15 +454,15 @@ export class WordService {
   private fromFirestore(data: DocumentData): Word {
     const word = {
       ...data,
-      createdAt: data.createdAt?.toDate() || new Date(),
-      updatedAt: data.updatedAt?.toDate() || new Date(),
+      createdAt: toDate(data.createdAt) || new Date(),
+      updatedAt: toDate(data.updatedAt) || new Date(),
       definitions: (data.definitions || []).map((def: any) => ({
         ...def,
-        createdAt: def.createdAt?.toDate() || new Date()
+        createdAt: toDate(def.createdAt) || new Date()
       })),
       aiGenerated: data.aiGenerated ? {
         ...data.aiGenerated,
-        generatedAt: data.aiGenerated.generatedAt?.toDate() || null
+        generatedAt: toDate(data.aiGenerated.generatedAt)
       } : undefined
     } as Word
     
