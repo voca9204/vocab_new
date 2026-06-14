@@ -286,7 +286,10 @@ export function CollectionProviderV2({ children }: CollectionProviderV2Props) {
       type: collectionType,
       category: isOfficial ? (dbCollection as OfficialCollection).category : undefined,
       difficulty: isOfficial ? (dbCollection as OfficialCollection).difficulty : undefined, // 최상위 레벨에 difficulty 추가
-      wordCount: dbCollection.wordCount,
+      // AI 컬렉션은 실제 로드되는 단어 ID 수를 wordCount로 사용 (stale count 방지)
+      wordCount: collectionType === 'ai-generated' && finalWords
+        ? finalWords.length
+        : dbCollection.wordCount,
       words: finalWords,
       createdAt: dbCollection.createdAt,
       updatedAt: dbCollection.updatedAt,

@@ -67,6 +67,18 @@ export default function DailyGoalPage() {
     }
   }, [user])
 
+  // 학습 후 탭으로 돌아오면 진행 상황을 다시 불러옴 (수동 새로고침 불필요)
+  useEffect(() => {
+    if (!user) return
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadDailyProgress()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [user])
+
   const loadDailyProgress = async () => {
     if (!user) return
 
