@@ -23,26 +23,7 @@ import {
 import type { VocabularyWord } from '@/types'
 import { cn } from '@/lib/utils'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
-
-/**
- * Robustly parse a date that may arrive as a JS Date, epoch millis, ISO string,
- * or a Firestore Timestamp serialized over JSON ({ _seconds } / { seconds }).
- */
-function toDate(value: any): Date | null {
-  if (!value) return null
-  if (value instanceof Date) return isNaN(value.getTime()) ? null : value
-  if (typeof value === 'number') return new Date(value)
-  if (typeof value === 'string') {
-    const d = new Date(value)
-    return isNaN(d.getTime()) ? null : d
-  }
-  if (typeof value === 'object') {
-    if (typeof value.toDate === 'function') return value.toDate()
-    const seconds = value._seconds ?? value.seconds
-    if (typeof seconds === 'number') return new Date(seconds * 1000)
-  }
-  return null
-}
+import { toDate } from '@/lib/utils/timestamp'
 
 export default function ReviewPage() {
   const router = useRouter()
