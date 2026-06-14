@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { speakText } from '@/lib/utils/speech'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { directWordAdapter } from '@/lib/adapters/direct-word-adapter'
@@ -126,10 +127,7 @@ export default function StudyPageClient({ category, difficulty }: StudyPageClien
   // 발음 재생
   const playPronunciation = useCallback(() => {
     if (currentWord?.pronunciation) {
-      const utterance = new SpeechSynthesisUtterance(currentWord.word)
-      utterance.lang = 'en-US'
-      utterance.rate = 0.8
-      speechSynthesis.speak(utterance)
+      speakText(currentWord.word, { rate: 0.8 })
     }
   }, [currentWord])
 
