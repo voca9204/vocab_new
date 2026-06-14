@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { vocabularyService } from '@/lib/api'
 import { UserSettingsService } from '@/lib/settings/user-settings-service'
+import { speakText, getEnglishVoices, PREFERRED_VOICE_KEY } from '@/lib/utils/speech'
 
 const settingsService = new UserSettingsService()
 
@@ -54,6 +55,8 @@ export default function SettingsPage() {
   const [deletingData, setDeletingData] = useState(false)
   const [textSize, setTextSize] = useState<'small' | 'medium' | 'large'>('medium')
   const [updatingTextSize, setUpdatingTextSize] = useState(false)
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [selectedVoice, setSelectedVoice] = useState<string>('')
   const [displayOptions, setDisplayOptions] = useState({
     showSynonyms: true,
     showAntonyms: false,
@@ -193,6 +196,35 @@ export default function SettingsPage() {
     } finally {
       setUpdatingTextSize(false)
     }
+  }
+
+  // 발음 음성 목록 로드 (getVoices는 비동기 로드될 수 있음)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    const load = () => setVoices(getEnglishVoices())
+    load()
+    window.speechSynthesis.addEventListener('voiceschanged', load)
+    try {
+      setSelectedVoice(localStorage.getItem(PREFERRED_VOICE_KEY) || '')
+    } catch {
+      // 무시
+    }
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', load)
+  }, [])
+
+  const handleSelectVoice = (voiceName: string) => {
+    setSelectedVoice(voiceName)
+    try {
+      if (voiceName) {
+        localStorage.setItem(PREFERRED_VOICE_KEY, voiceName)
+      } else {
+        localStorage.removeItem(PREFERRED_VOICE_KEY) // 자동(권장)으로 복귀
+      }
+    } catch {
+      // 무시
+    }
+    // 선택한 음성으로 즉시 미리듣기 (speakText가 localStorage를 읽음)
+    speakText('vocabulary')
   }
 
   const handleUpdateDisplayOptions = async (option: keyof typeof displayOptions) => {
@@ -410,6 +442,41 @@ export default function SettingsPage() {
               ))}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* 발음 설정 */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Volume2 className="h-5 w-5" />
+            발음 설정
+          </CardTitle>
+          <CardDescription>단어 발음에 사용할 음성을 선택하세요</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="text-sm font-medium text-gray-700 mb-2 block">음성</label>
+          <div className="flex gap-2 items-center">
+            <select
+              value={selectedVoice}
+              onChange={(e) => handleSelectVoice(e.target.value)}
+              className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm bg-white"
+            >
+              <option value="">자동 (권장)</option>
+              {voices.map((v) => (
+                <option key={v.name} value={v.name}>
+                  {v.name} ({v.lang})
+                </option>
+              ))}
+            </select>
+            <Button variant="outline" size="sm" onClick={() => speakText('vocabulary')}>
+              <Volume2 className="h-4 w-4 mr-1" />
+              미리듣기
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            영어 학습에 적합한 음성(예: Samantha)을 자동으로 선택합니다. 원하는 음성을 직접 고를 수도 있습니다.
+          </p>
         </CardContent>
       </Card>
 

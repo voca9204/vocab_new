@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { speakText } from '@/lib/utils/speech'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
@@ -291,12 +292,7 @@ export default function PersonalCollectionStudyPage() {
 
   // Play pronunciation
   const playPronunciation = useCallback((text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
-      utterance.rate = 0.9
-      speechSynthesis.speak(utterance)
-    }
+    speakText(text)
   }, [])
 
   // Handle synonym click

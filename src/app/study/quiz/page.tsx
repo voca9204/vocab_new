@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
+import { speakText } from '@/lib/utils/speech'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
@@ -500,18 +501,7 @@ function QuizContent() {
   }
 
   const speakWord = (text: string) => {
-    if ('speechSynthesis' in window) {
-      // 이전 음성 정지
-      window.speechSynthesis.cancel()
-      
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
-      utterance.rate = 0.9
-      utterance.pitch = 1
-      utterance.volume = 1
-      
-      window.speechSynthesis.speak(utterance)
-    }
+    speakText(text, { pitch: 1, volume: 1 })
   }
 
   if (!user) {

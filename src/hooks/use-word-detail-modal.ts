@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import { speakText } from '@/lib/utils/speech'
 import { UnifiedWord } from '@/types/unified-word'
 import { useAuth } from '@/hooks/use-auth'
 import { WordAdapter } from '@/lib/adapters/word-adapter'
@@ -217,13 +218,7 @@ export function useWordDetailModal() {
   }, [user])
 
   const speakWord = useCallback((text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
-      utterance.rate = 0.9
-      window.speechSynthesis.speak(utterance)
-    }
+    speakText(text)
   }, [])
 
   return {
