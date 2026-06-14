@@ -106,7 +106,6 @@ const withPWA = require('next-pwa')({
 
 const nextConfig: NextConfig = {
   transpilePackages: ['firebase', 'firebase-admin'],
-  swcMinify: true,
   productionBrowserSourceMaps: false,
   webpack: (config, { isServer }) => {
     if (!isServer) {
