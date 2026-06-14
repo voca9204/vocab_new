@@ -12,10 +12,12 @@ import { BookOpen, GraduationCap, Library, Lightbulb, AlertCircle } from 'lucide
 function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user } = useAuth()
+  const { user, signIn } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [isInAppBrowser, setIsInAppBrowser] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   // 인앱 브라우저 감지
   useEffect(() => {
@@ -64,6 +66,28 @@ function LoginPageContent() {
       }
 
       setError(errorMessages[err.code] || 'Google 로그인 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 개발 전용 이메일/비밀번호 로그인 (프로덕션 번들에서는 폼이 제거됨)
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+
+    try {
+      await signIn(email, password)
+      const next = searchParams.get('next') || '/'
+      router.push(next)
+    } catch (err: any) {
+      console.error('Email sign-in error:', err)
+      setError(
+        err?.code === 'auth/invalid-credential' || err?.code === 'auth/wrong-password'
+          ? '이메일 또는 비밀번호가 올바르지 않습니다.'
+          : '이메일 로그인 중 오류가 발생했습니다.'
+      )
     } finally {
       setIsLoading(false)
     }
@@ -174,6 +198,41 @@ function LoginPageContent() {
                 </div>
               )}
             </Button>
+
+            {/* 개발 전용 이메일 로그인 (NODE_ENV는 빌드 시 정적 치환 → 프로덕션 번들에서 제거) */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="pt-4 border-t border-slate-100">
+                <p className="text-xs text-slate-400 mb-3 text-center">개발 전용 · 이메일 로그인</p>
+                <form onSubmit={handleEmailSignIn} className="space-y-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="이메일"
+                    autoComplete="username"
+                    required
+                    className="w-full h-10 px-3 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="비밀번호"
+                    autoComplete="current-password"
+                    required
+                    className="w-full h-10 px-3 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  />
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="w-full h-10"
+                    disabled={isLoading}
+                  >
+                    이메일로 로그인
+                  </Button>
+                </form>
+              </div>
+            )}
 
             {/* 추가 정보 */}
             <div className="text-center text-xs text-slate-500 space-y-2">
