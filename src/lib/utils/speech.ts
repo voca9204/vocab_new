@@ -17,8 +17,8 @@ export interface SpeakOptions {
   volume?: number
 }
 
-// localStorage key for a user-chosen voice (set via a settings selector, if added)
-const PREFERRED_VOICE_KEY = 'tts_preferred_voice'
+// localStorage key for a user-chosen voice (set via the settings selector)
+export const PREFERRED_VOICE_KEY = 'tts_preferred_voice'
 
 // High-quality voices to prefer, in priority order (substring match on name).
 const PREFERRED_VOICE_NAMES = [
