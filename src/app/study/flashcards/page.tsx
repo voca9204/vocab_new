@@ -545,13 +545,29 @@ function FlashcardsContent() {
   }
 
   const nextWord = () => {
-    setCurrentIndex((prev) => (prev + 1) % words.length)
+    setCurrentIndex((prev) => Math.min(prev + 1, words.length - 1))
     setShowAnswer(false)
   }
 
   const prevWord = () => {
-    setCurrentIndex((prev) => (prev - 1 + words.length) % words.length)
+    setCurrentIndex((prev) => Math.max(prev - 1, 0))
     setShowAnswer(false)
+  }
+
+  // 답변 플로우에서 호출: 마지막 카드면 완료 처리, 아니면 다음 카드로
+  // (예전에는 nextWord가 모듈로로 wrap해 마지막 카드에서 1번 카드로 되돌아갔음)
+  const advanceOrComplete = () => {
+    if (words.length > 0 && currentIndex >= words.length - 1) {
+      try {
+        localStorage.removeItem(getProgressKey()) // 다음 진입 시 처음부터
+      } catch (error) {
+        console.error('[Flashcards] Error clearing progress on complete:', error)
+      }
+      alert('플래시카드 학습을 완료했습니다!')
+      router.push('/unified-dashboard')
+    } else {
+      nextWord()
+    }
   }
 
   const shuffleWords = () => {
@@ -608,7 +624,7 @@ function FlashcardsContent() {
         console.error('Error saving study progress:', error)
       }
     }
-    nextWord()
+    advanceOrComplete()
   }
 
   const markAsNotStudied = async () => {
@@ -640,7 +656,7 @@ function FlashcardsContent() {
         console.error('Error saving study progress:', error)
       }
     }
-    nextWord()
+    advanceOrComplete()
   }
 
   const resetProgress = () => {

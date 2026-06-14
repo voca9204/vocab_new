@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { FieldValue } from 'firebase-admin/firestore'
 import { adminDb } from '@/lib/firebase/admin'
 import type { StudyActivityType } from '@/types/vocabulary-v2'
 
@@ -219,13 +220,14 @@ export async function POST(request: NextRequest) {
         'studyStatus.lastStudied': now,
         'studyStatus.lastResult': result,
         'studyStatus.lastActivity': studyType,
-        'studyStatus.totalReviews': (existingData.studyStatus?.totalReviews || 0) + 1,
+        // Atomic increment avoids lost updates on near-simultaneous submissions
+        'studyStatus.totalReviews': FieldValue.increment(1),
         updatedAt: now
       }
-      
+
       if (result === 'correct') {
         const newStreak = (existingData.studyStatus?.streakCount || 0) + 1
-        updates['studyStatus.correctCount'] = (existingData.studyStatus?.correctCount || 0) + 1
+        updates['studyStatus.correctCount'] = FieldValue.increment(1)
         updates['studyStatus.streakCount'] = newStreak
         // Simple mastery calculation
         const currentMastery = existingData.studyStatus?.masteryLevel || 0
@@ -233,7 +235,7 @@ export async function POST(request: NextRequest) {
         // Schedule the next review further out as the streak grows
         updates['studyStatus.nextReviewDate'] = computeNextReviewDate(now, newStreak)
       } else if (result === 'incorrect') {
-        updates['studyStatus.incorrectCount'] = (existingData.studyStatus?.incorrectCount || 0) + 1
+        updates['studyStatus.incorrectCount'] = FieldValue.increment(1)
         updates['studyStatus.streakCount'] = 0
         // Decrease mastery on incorrect
         const currentMastery = existingData.studyStatus?.masteryLevel || 0
@@ -241,11 +243,10 @@ export async function POST(request: NextRequest) {
         // Reset the schedule: retry in 1 day
         updates['studyStatus.nextReviewDate'] = computeNextReviewDate(now, 0)
       }
-      
-      // Update activity stats
+
+      // Update activity stats (atomic increment)
       const activityPath = `studyStatus.activityStats.${studyType}.count`
-      const currentCount = existingData.studyStatus?.activityStats?.[studyType]?.count || 0
-      updates[activityPath] = currentCount + 1
+      updates[activityPath] = FieldValue.increment(1)
       
       await docRef.update(updates)
       
