@@ -375,10 +375,10 @@ export default function ReviewPage() {
 
       console.log('Review progress updated:', currentWord.word, remembered)
 
-      // 로컬 상태 업데이트
+      // 로컬 상태 업데이트 (learningMetadata.masteryLevel은 0~1 스케일)
       const currentMastery = currentWord.learningMetadata?.masteryLevel || 0
-      const increment = remembered ? 10 : -5  // 기억하면 +10, 못하면 -5
-      const newMasteryLevel = Math.max(0, Math.min(100, currentMastery + increment))
+      const increment = remembered ? 0.1 : -0.05  // 기억하면 +10%p, 못하면 -5%p
+      const newMasteryLevel = Math.max(0, Math.min(1, currentMastery + increment))
       
       const updatedWords = [...reviewWords]
       updatedWords[currentIndex] = {
