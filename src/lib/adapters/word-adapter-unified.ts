@@ -40,7 +40,7 @@ export class UnifiedWordAdapter {
   
   private async checkAndClearStaleCache() {
     const CACHE_VERSION_KEY = 'word_cache_version'
-    const CURRENT_VERSION = '2.9.0' // SAT 단어 예문(examples) 누락 전수 채움
+    const CURRENT_VERSION = '2.10.0' // 문맥 속 어휘(contextQuestion) 보너스 문제 추가
     
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
     if (storedVersion !== CURRENT_VERSION) {
@@ -90,6 +90,7 @@ export class UnifiedWordAdapter {
       
       synonyms: data.synonyms || [],
       antonyms: data.antonyms || [],
+      contextQuestion: data.contextQuestion || undefined,
       
       etymology: data.etymology || null,
       
