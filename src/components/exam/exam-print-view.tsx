@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { UnifiedWord } from '@/types/unified-word'
 import { getFieldString } from '@/lib/utils/word-field-normalizer'
 
@@ -9,13 +11,17 @@ interface ExamPrintViewProps {
 }
 
 /**
- * 인쇄 전용 단어 목록 (단어 + 뜻). 화면에서는 숨기고 인쇄 시에만 표시(print:block).
- * 2열(columns-2) compact 레이아웃으로 한 페이지에 최대한 빽빽이 채워, 단어 수가
- * 적은 줄에서 페이지가 낭비되지 않도록 한다. 각 항목은 줄바꿈으로 잘리지 않음.
- * globals.css의 @media print 격리(.print-area)와 함께 앱 크롬 없이 목록만 출력.
+ * 인쇄 전용 단어 목록 (단어 + 뜻).
+ * body 직속으로 포털해, 인쇄 시 앱 레이아웃을 숨기고(globals.css의 @media print)
+ * 이 목록만 출력한다. 2열 compact 레이아웃으로 페이지를 빽빽이 채운다.
+ * 화면에서는 hidden, 인쇄 시에만 print:block.
  */
 export function ExamPrintView({ title, words }: ExamPrintViewProps) {
-  return (
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return null
+
+  const content = (
     <div className="print-area hidden print:block p-5 text-black">
       <h1 className="text-lg font-bold mb-0.5">{title}</h1>
       <p className="text-xs text-gray-500 mb-3">{words.length}개 단어</p>
@@ -39,4 +45,6 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
       </div>
     </div>
   )
+
+  return createPortal(content, document.body)
 }
