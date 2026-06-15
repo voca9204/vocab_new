@@ -114,22 +114,21 @@ export function StudyMethodModal({
       onClose={onClose}
       className="max-w-2xl"
     >
-      <div className="p-6">
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold mb-2">학습 방법 선택</h2>
-          <p className="text-base text-gray-600">
+      <div className="p-4 sm:p-6">
+        <div className="mb-3">
+          <h2 className="text-xl font-bold mb-1">학습 방법 선택</h2>
+          <p className="text-sm text-gray-600">
             <span className="font-semibold text-gray-900">
               {getCollectionName(collection.name)}
-            </span> 단어장을
-            어떤 방법으로 학습하시겠습니까?
+            </span> 학습 방법을 선택하세요
           </p>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-2 sm:gap-3">
           {studyMethods.map((method) => (
             <Card
               key={method.id}
-              className={`relative cursor-pointer transition-all duration-200 p-6 border-2 ${
+              className={`relative cursor-pointer transition-all duration-200 p-3 sm:p-4 border-2 ${
                 selectedMethod === method.id
                   ? 'ring-2 ring-blue-500 border-blue-500'
                   : method.color
@@ -154,42 +153,33 @@ export function StudyMethodModal({
                 </div>
               )}
 
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-lg ${method.color.replace('hover:bg-', 'bg-').replace('100', '200')}`}>
-                  <method.icon className={`w-6 h-6 ${method.iconColor}`} />
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg shrink-0 ${method.color.replace('hover:bg-', 'bg-').replace('100', '200')}`}>
+                  <method.icon className={`w-5 h-5 ${method.iconColor}`} />
                 </div>
 
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-gray-900">
                     {method.title}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-xs text-gray-600 truncate">
                     {method.description}
                   </p>
 
-                  <div className="flex flex-wrap gap-2">
+                  {/* features 태그는 데스크톱에서만 (모바일은 한 화면에 다 보이게 생략) */}
+                  <div className="hidden sm:flex flex-wrap gap-1.5 mt-1.5">
                     {method.features.map((feature, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md"
+                        className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md"
                       >
                         {feature}
                       </span>
                     ))}
                   </div>
-
-                  {/* 진도 정보 (플래시카드인 경우) */}
-                  {method.id === 'flashcards' && collection.progress?.studied && (
-                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>
-                        현재 진도: {collection.progress.studied}/{collection.wordCount} 단어
-                      </span>
-                    </div>
-                  )}
                 </div>
 
-                <ChevronRight className={`w-5 h-5 ${
+                <ChevronRight className={`w-5 h-5 shrink-0 ${
                   selectedMethod === method.id ? 'text-blue-500' : 'text-gray-400'
                 } transition-colors`} />
               </div>
