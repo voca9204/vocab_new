@@ -14,7 +14,7 @@ interface ExamPrintViewProps {
  */
 export function ExamPrintView({ title, words }: ExamPrintViewProps) {
   return (
-    <div className="hidden print:block p-6 text-black">
+    <div className="print-area hidden print:block p-6 text-black">
       <h1 className="text-xl font-bold mb-1">{title}</h1>
       <p className="text-sm text-gray-500 mb-4">{words.length}개 단어</p>
       <table className="w-full border-collapse text-sm">
