@@ -58,19 +58,10 @@
   }
 }
 
-/* 인쇄 격리: .print-area만 출력하고 앱 크롬(네비/사이드바/헤더/플로팅 위젯)은 숨김 */
+/* 인쇄 격리: body 직속으로 포털된 .print-area만 출력하고 앱 레이아웃은 숨김.
+   (absolute/visibility 대신 display:none을 써서 빈 페이지 없이 정상 페이지네이션) */
 @media print {
-  body * {
-    visibility: hidden !important;
-  }
-  .print-area,
-  .print-area * {
-    visibility: visible !important;
-  }
-  .print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+  body > *:not(.print-area) {
+    display: none !important;
   }
 }
