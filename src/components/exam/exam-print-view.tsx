@@ -25,11 +25,8 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
     <div className="print-area hidden print:block p-5 text-black">
       <h1 className="text-lg font-bold mb-0.5">{title}</h1>
       <p className="text-xs text-gray-500 mb-3">{words.length}개 단어</p>
-      {/* multi-column 대신 grid 2열: 인쇄 시 빈 페이지/제목 분리 없이 안정적으로 페이지네이션 */}
-      <div
-        className="text-[11px] leading-snug"
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '1.5rem' }}
-      >
+      {/* 1열 목록: 페이지 수 관계없이 위에서 아래로 한 줄씩 */}
+      <div className="text-[11px] leading-snug">
         {words.map((w, i) => {
           const pos = Array.isArray(w.partOfSpeech) ? w.partOfSpeech.join(', ') : ''
           const synonyms = (Array.isArray(w.synonyms) ? w.synonyms : []).slice(0, 2).map(String)
