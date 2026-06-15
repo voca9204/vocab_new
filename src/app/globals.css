@@ -61,6 +61,15 @@
 /* 인쇄 격리: body 직속으로 포털된 .print-area만 출력하고 앱 레이아웃은 숨김.
    (absolute/visibility 대신 display:none을 써서 빈 페이지 없이 정상 페이지네이션) */
 @media print {
+  /* 용지/여백 고정: 25단어 묶음이 한 페이지에 정확히 들어가도록 */
+  @page {
+    size: A4;
+    margin: 11mm;
+  }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
   body > *:not(.print-area) {
     display: none !important;
   }
