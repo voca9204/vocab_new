@@ -25,9 +25,10 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
     <div className="print-area hidden print:block p-5 text-black">
       <h1 className="text-lg font-bold mb-0.5">{title}</h1>
       <p className="text-xs text-gray-500 mb-3">{words.length}개 단어</p>
+      {/* multi-column 대신 grid 2열: 인쇄 시 빈 페이지/제목 분리 없이 안정적으로 페이지네이션 */}
       <div
         className="text-[11px] leading-snug"
-        style={{ columnCount: 2, columnGap: '1.5rem', columnFill: 'auto' }}
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '1.5rem' }}
       >
         {words.map((w, i) => (
           <div
