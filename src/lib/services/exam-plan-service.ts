@@ -99,6 +99,15 @@ export class ExamPlanService {
     return (data.wordIds || data.words || []) as string[]
   }
 
+  /** 단어장 문서의 이름(컨텍스트에 없을 때 폴백용). string 또는 {korean,english} */
+  async getCollectionDisplayName(collectionId: string, type: ExamCollectionType): Promise<any | null> {
+    const coll = type === 'personal' ? 'personal_collections' : 'vocabulary_collections'
+    const snap = await getDoc(doc(db, coll, collectionId))
+    if (!snap.exists()) return null
+    const data = snap.data()
+    return data.name ?? data.displayName ?? null
+  }
+
   /** 날짜 기준 오늘 배치 계산 (순차) */
   computeTodayBatch(plan: ExamPlan, orderedWordIds: string[]): TodayBatch {
     const n = Math.max(plan.dailyWordCount, 1)
