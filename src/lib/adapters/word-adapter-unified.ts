@@ -22,6 +22,7 @@ import { UnifiedWord } from '@/types/unified-word'
 import { LocalCacheManager } from '@/lib/cache/local-cache-manager'
 import { logger } from '@/lib/utils/logger'
 import { getFieldString } from '@/lib/utils/word-field-normalizer'
+import { normalizePartOfSpeech } from '@/lib/utils/part-of-speech'
 
 // Initialize cache manager
 const cacheManager = new LocalCacheManager()
@@ -39,7 +40,7 @@ export class UnifiedWordAdapter {
   
   private async checkAndClearStaleCache() {
     const CACHE_VERSION_KEY = 'word_cache_version'
-    const CURRENT_VERSION = '2.6.0' // SAT 초급/중급/고급 빈도 기준 재분류 (컬렉션 멤버십 변경)
+    const CURRENT_VERSION = '2.7.0' // 품사(partOfSpeech) 표준 약어 정규화 + 누락 전수 채움
     
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
     if (storedVersion !== CURRENT_VERSION) {
@@ -83,7 +84,7 @@ export class UnifiedWordAdapter {
       korean: getFieldString(data.korean, true) || undefined,
       
       pronunciation: data.pronunciation || null,
-      partOfSpeech: data.partOfSpeech || [],
+      partOfSpeech: normalizePartOfSpeech(data.partOfSpeech),
       
       examples: data.examples || [],
       
