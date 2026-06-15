@@ -39,7 +39,7 @@ export class UnifiedWordAdapter {
   
   private async checkAndClearStaleCache() {
     const CACHE_VERSION_KEY = 'word_cache_version'
-    const CURRENT_VERSION = '2.5.0' // Normalize object-typed definition fields to strings at adapter
+    const CURRENT_VERSION = '2.6.0' // SAT 초급/중급/고급 빈도 기준 재분류 (컬렉션 멤버십 변경)
     
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
     if (storedVersion !== CURRENT_VERSION) {
