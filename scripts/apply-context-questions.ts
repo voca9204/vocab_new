@@ -31,7 +31,10 @@ function validate(q: any, word: string): { ok: boolean; reason?: string; norm?: 
   if (!Number.isInteger(answer) || answer < 0 || answer > 3) return { ok: false, reason: 'bad answer' }
   // 형식은 라벨이 아니라 내용으로 확정: 빈칸이 있으면 cloze, 없으면 meaning
   const format = passage.includes('___') ? 'cloze' : 'meaning'
-  if (format === 'meaning' && !passage.toLowerCase().includes(word.toLowerCase())) {
+  // meaning은 본문에 단어(또는 활용형)가 있어야 함 — 어간 기준으로 검사
+  const lw = word.toLowerCase()
+  const stem = lw.slice(0, Math.max(4, lw.length - 3))
+  if (format === 'meaning' && !passage.toLowerCase().includes(stem)) {
     return { ok: false, reason: 'meaning passage missing word' }
   }
   return { ok: true, norm: { word, format, passage, options, answer } }
@@ -47,7 +50,13 @@ async function main() {
   const badSamples: string[] = []
   for (const f of fs.existsSync(FILLS) ? fs.readdirSync(FILLS) : []) {
     if (!f.endsWith('.json')) continue
-    const obj = JSON.parse(fs.readFileSync(path.join(FILLS, f), 'utf8'))
+    let obj: any
+    try {
+      obj = JSON.parse(fs.readFileSync(path.join(FILLS, f), 'utf8'))
+    } catch (e: any) {
+      console.error(`!! skipped ${f}: invalid JSON (${e.message})`)
+      continue
+    }
     for (const [id, q] of Object.entries(obj)) {
       const v = validate(q, expected.get(id) || '')
       if (!v.ok) { bad++; if (badSamples.length < 10) badSamples.push(`${expected.get(id) || id}:${v.reason}`); continue }

@@ -40,7 +40,7 @@ export class UnifiedWordAdapter {
   
   private async checkAndClearStaleCache() {
     const CACHE_VERSION_KEY = 'word_cache_version'
-    const CURRENT_VERSION = '2.10.0' // 문맥 속 어휘(contextQuestion) 보너스 문제 추가
+    const CURRENT_VERSION = '2.11.0' // 문맥 속 어휘(contextQuestion) SAT 2000개 전체로 확장
     
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
     if (storedVersion !== CURRENT_VERSION) {
