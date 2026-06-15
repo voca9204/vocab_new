@@ -13,7 +13,8 @@ import {
   Sparkles,
   Clock,
   Target,
-  Keyboard
+  Keyboard,
+  GraduationCap
 } from 'lucide-react'
 import { getCollectionName } from '@/lib/utils/collection-name'
 import type { Collection } from '@/contexts/collection-context-v2'
@@ -22,7 +23,7 @@ interface StudyMethodModalProps {
   isOpen: boolean
   onClose: () => void
   collection: Collection | null
-  onSelectMethod: (method: 'list' | 'flashcards' | 'quiz' | 'typing') => void
+  onSelectMethod: (method: 'list' | 'flashcards' | 'quiz' | 'typing' | 'exam') => void
   lastStudyMethod?: string
 }
 
@@ -33,7 +34,7 @@ export function StudyMethodModal({
   onSelectMethod,
   lastStudyMethod
 }: StudyMethodModalProps) {
-  const [selectedMethod, setSelectedMethod] = useState<'list' | 'flashcards' | 'quiz' | 'typing' | null>(null)
+  const [selectedMethod, setSelectedMethod] = useState<'list' | 'flashcards' | 'quiz' | 'typing' | 'exam' | null>(null)
 
   console.log('[StudyMethodModal] Render - isOpen:', isOpen, 'collection:', collection)
 
@@ -83,10 +84,20 @@ export function StudyMethodModal({
       recommended: false,
       color: 'bg-amber-50 hover:bg-amber-100 border-amber-200',
       iconColor: 'text-amber-600'
+    },
+    {
+      id: 'exam' as const,
+      title: '시험 모드',
+      icon: GraduationCap,
+      description: '매일 정해진 분량을 외우고 테스트',
+      features: ['하루 학습량 설정', '매일 다른 배치', '오늘 단어 인쇄'],
+      recommended: false,
+      color: 'bg-rose-50 hover:bg-rose-100 border-rose-200',
+      iconColor: 'text-rose-600'
     }
   ]
 
-  const handleSelectMethod = (method: 'list' | 'flashcards' | 'quiz' | 'typing') => {
+  const handleSelectMethod = (method: 'list' | 'flashcards' | 'quiz' | 'typing' | 'exam') => {
     setSelectedMethod(method)
 
     // 약간의 지연 후 모달 닫고 학습 시작

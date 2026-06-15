@@ -15,7 +15,8 @@ import {
   Target,
   Clock,
   HelpCircle,
-  Camera
+  Camera,
+  GraduationCap
 } from 'lucide-react'
 
 export default function StudyPage() {
@@ -126,6 +127,14 @@ export default function StudyPage() {
       href: '/study/typing',
       color: 'bg-orange-500',
       stats: '철자 마스터'
+    },
+    {
+      title: '시험 모드',
+      description: '매일 분량 외우고 테스트·인쇄',
+      icon: GraduationCap,
+      href: '/study/exam',
+      color: 'bg-rose-500',
+      stats: '일일 학습 계획'
     },
     {
       title: '일일 목표',

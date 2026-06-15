@@ -282,6 +282,17 @@ service cloud.firestore {
       allow write: if false; // 시스템에서만 생성
     }
     
+    // exam_plans - 시험 모드 계획 (본인만 접근 가능). 문서 ID = userId_collectionId
+    match /exam_plans/{planId} {
+      allow read: if request.auth != null &&
+        (planId.split('_')[0] == request.auth.uid ||
+         (resource != null && resource.data.userId == request.auth.uid));
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
     // 기본적으로 모든 접근 차단
     match /{document=**} {
       allow read, write: if false;
