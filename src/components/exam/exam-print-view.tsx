@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { UnifiedWord } from '@/types/unified-word'
 import { getFieldString } from '@/lib/utils/word-field-normalizer'
+import { formatPartOfSpeech } from '@/lib/utils/part-of-speech'
 
 interface ExamPrintViewProps {
   title: string
@@ -44,7 +45,7 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
           </p>
           <div className="text-[11pt] leading-relaxed">
             {pageWords.map((w, i) => {
-              const pos = Array.isArray(w.partOfSpeech) ? w.partOfSpeech.join(', ') : ''
+              const pos = formatPartOfSpeech(w.partOfSpeech)
               const synonyms = (Array.isArray(w.synonyms) ? w.synonyms : []).slice(0, 2).map(String)
               const num = pageIdx * PER_PAGE + i + 1
               return (

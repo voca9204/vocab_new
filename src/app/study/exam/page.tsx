@@ -26,6 +26,7 @@ import { wordAdapterBridge } from '@/lib/adapters/word-adapter-bridge'
 import { getCollectionName } from '@/lib/utils/collection-name'
 import { getFieldString } from '@/lib/utils/word-field-normalizer'
 import { speakText } from '@/lib/utils/speech'
+import { normalizePartOfSpeech } from '@/lib/utils/part-of-speech'
 import type { UnifiedWord } from '@/types/unified-word'
 
 type View = 'loading' | 'no-collection' | 'setup' | 'overview' | 'test' | 'result'
@@ -391,7 +392,7 @@ function ExamPageContent() {
             <p className="text-sm font-medium text-gray-700 mb-2">오늘 외울 단어</p>
             <div className="space-y-2">
               {todayWords.map((w, i) => {
-                const pos = Array.isArray(w.partOfSpeech) ? w.partOfSpeech : []
+                const pos = normalizePartOfSpeech(w.partOfSpeech)
                 const synonyms = (Array.isArray(w.synonyms) ? w.synonyms : []).slice(0, 2).map(String)
                 return (
                   <Card key={w.id} className="p-3">
