@@ -33,6 +33,15 @@ export interface UnifiedWord {
   // 유사어/반의어
   synonyms?: string[]
   antonyms?: string[]
+
+  // 문맥 속 어휘 문제 (Digital SAT Words in Context, 보너스용)
+  contextQuestion?: {
+    word: string
+    format: 'cloze' | 'meaning'
+    passage: string
+    options: string[]
+    answer: number
+  }
   
   // 메타데이터
   difficulty: number  // 1-10

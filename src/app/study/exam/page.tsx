@@ -96,6 +96,15 @@ function ExamPageContent() {
   const [correctCount, setCorrectCount] = useState(0)
   const [wrongWords, setWrongWords] = useState<UnifiedWord[]>([])
 
+  // 보너스: 문맥 속 어휘 (Digital SAT Words in Context)
+  type ContextQ = NonNullable<UnifiedWord['contextQuestion']>
+  const [bonusQs, setBonusQs] = useState<ContextQ[]>([])
+  const [inBonus, setInBonus] = useState(false)
+  const [bIndex, setBIndex] = useState(0)
+  const [bSelected, setBSelected] = useState<number | null>(null)
+  const [bAnswered, setBAnswered] = useState(false)
+  const [bonusCorrect, setBonusCorrect] = useState(0)
+
   // ===== 계획 적용 + 오늘 단어 로드 =====
   const applyPlan = async (p: ExamPlan, ordered: string[]) => {
     setPlan(p)
@@ -179,6 +188,19 @@ function ExamPageContent() {
     setAnswered(false)
     setCorrectCount(0)
     setWrongWords([])
+
+    // 보너스 문맥 문제: 오늘 단어 중 문맥문제 보유분에서 10문제당 1개
+    const available = todayWords
+      .map((w) => w.contextQuestion)
+      .filter((c): c is ContextQ => !!c && Array.isArray(c.options) && c.options.length === 4)
+    const bonusCount = Math.floor(todayWords.length / 10)
+    setBonusQs(available.slice(0, bonusCount))
+    setInBonus(false)
+    setBIndex(0)
+    setBSelected(null)
+    setBAnswered(false)
+    setBonusCorrect(0)
+
     setView('test')
   }
 
@@ -211,6 +233,29 @@ function ExamPageContent() {
       setQIndex((i) => i + 1)
       setSelected(null)
       setAnswered(false)
+    } else if (bonusQs.length > 0) {
+      // 본 시험 끝 → 보너스 문맥 문제로
+      setInBonus(true)
+      setBIndex(0)
+      setBSelected(null)
+      setBAnswered(false)
+    } else {
+      setView('result')
+    }
+  }
+
+  const handleBonusAnswer = (idx: number) => {
+    if (bAnswered) return
+    setBSelected(idx)
+    setBAnswered(true)
+    if (idx === bonusQs[bIndex]?.answer) setBonusCorrect((c) => c + 1)
+  }
+
+  const nextBonus = () => {
+    if (bIndex < bonusQs.length - 1) {
+      setBIndex((i) => i + 1)
+      setBSelected(null)
+      setBAnswered(false)
     } else {
       setView('result')
     }
@@ -236,6 +281,84 @@ function ExamPageContent() {
         <BookOpen className="h-10 w-10 mx-auto mb-3 text-gray-400" />
         <p className="text-gray-600 mb-4">먼저 단어장을 선택해주세요.</p>
         <Button onClick={() => router.push('/')}>단어장 선택하기</Button>
+      </div>
+    )
+  }
+
+  // ----- 보너스: 문맥 속 어휘 화면 -----
+  if (view === 'test' && inBonus) {
+    const bq = bonusQs[bIndex]
+    if (!bq) return null
+    const progress = ((bIndex + 1) / bonusQs.length) * 100
+    const isCloze = bq.format === 'cloze'
+    return (
+      <div className="fixed inset-0 z-[70] bg-white flex flex-col print:hidden">
+        <div className="px-4 pt-4 pb-2 border-b">
+          <div className="flex items-center justify-between mb-2">
+            <button onClick={() => setView('overview')} className="text-gray-500 text-sm flex items-center gap-1">
+              <ChevronLeft className="h-4 w-4" /> 나가기
+            </button>
+            <span className="text-sm font-medium text-purple-600">
+              보너스 · 문맥 속 어휘 {bIndex + 1} / {bonusQs.length}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-purple-600 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-5">
+          <div className="max-w-xl w-full mx-auto">
+            <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-[15px] leading-relaxed text-gray-800">
+              {isCloze ? bq.passage : renderExample(bq.passage, bq.word)}
+            </div>
+            <p className="mt-4 mb-3 font-medium text-gray-900">
+              {isCloze
+                ? '빈칸에 들어갈 가장 알맞은 단어는?'
+                : <>본문에서 <span className="font-bold">'{bq.word}'</span>의 의미로 가장 가까운 것은?</>}
+            </p>
+            <div className="space-y-3">
+              {bq.options.map((opt, i) => {
+                const isCorrect = i === bq.answer
+                const isPicked = i === bSelected
+                let cls = 'border-gray-200 bg-white hover:bg-gray-50'
+                if (bAnswered) {
+                  if (isCorrect) cls = 'border-green-500 bg-green-50'
+                  else if (isPicked) cls = 'border-red-500 bg-red-50'
+                  else cls = 'border-gray-200 bg-white opacity-60'
+                }
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleBonusAnswer(i)}
+                    disabled={bAnswered}
+                    className={`w-full text-left px-4 py-3.5 rounded-xl border-2 transition-all flex items-center justify-between ${cls}`}
+                  >
+                    <span className="text-base">
+                      <span className="text-gray-400 mr-2">{String.fromCharCode(65 + i)}</span>
+                      {opt}
+                    </span>
+                    {bAnswered && isCorrect && <Check className="h-5 w-5 text-green-600 shrink-0" />}
+                    {bAnswered && isPicked && !isCorrect && <X className="h-5 w-5 text-red-600 shrink-0" />}
+                  </button>
+                )
+              })}
+            </div>
+            {bAnswered && (
+              <div className={`mt-3 font-semibold flex items-center gap-1.5 ${bSelected === bq.answer ? 'text-green-700' : 'text-red-600'}`}>
+                {bSelected === bq.answer ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                {bSelected === bq.answer ? '정답!' : '오답'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="px-5 pb-6 pt-3 border-t">
+          <Button className="w-full h-12 text-base" disabled={!bAnswered} onClick={nextBonus}>
+            {bIndex < bonusQs.length - 1 ? '다음' : '결과 보기'}
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
       </div>
     )
   }
@@ -330,7 +453,7 @@ function ExamPageContent() {
         {/* 하단 액션 */}
         <div className="px-5 pb-6 pt-3">
           <Button className="w-full h-12 text-base" disabled={!answered} onClick={nextQuestion}>
-            {qIndex < questions.length - 1 ? '다음' : '결과 보기'}
+            {qIndex < questions.length - 1 ? '다음' : bonusQs.length > 0 ? '보너스 문제' : '결과 보기'}
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
@@ -349,6 +472,11 @@ function ExamPageContent() {
           <p className="text-gray-600 mt-1">
             {correctCount} / {questions.length} 정답 · 정확도 {accuracy}%
           </p>
+          {bonusQs.length > 0 && (
+            <p className="text-purple-600 mt-1 text-sm font-medium">
+              보너스 (문맥 속 어휘) {bonusCorrect} / {bonusQs.length} 정답
+            </p>
+          )}
         </div>
         {wrongWords.length > 0 && (
           <Card className="mb-6">
