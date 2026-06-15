@@ -204,7 +204,7 @@ function ExamPageContent() {
     if (!q) return null
     const progress = ((qIndex + 1) / questions.length) * 100
     return (
-      <div className="fixed inset-0 z-50 bg-white flex flex-col print:hidden">
+      <div className="fixed inset-0 z-[70] bg-white flex flex-col print:hidden">
         {/* 헤더 + 진행바 */}
         <div className="px-4 pt-4 pb-2 border-b">
           <div className="flex items-center justify-between mb-2">
