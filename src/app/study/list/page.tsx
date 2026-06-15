@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
@@ -37,7 +37,14 @@ export default function VocabularyListPage() {
     updateWordSynonyms,
     loadWords: loadAllWordsContext
   } = useCollectionV2()
-  const [filteredWords, setFilteredWords] = useState<UnifiedWord[]>([])
+  // Phase 3: Typesense 페이지네이션 기반 (초기 전체 Firestore 로드 제거)
+  const [loadedWords, setLoadedWords] = useState<UnifiedWord[]>([])
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [usingFallback, setUsingFallback] = useState(false)
+  const [studyMap, setStudyMap] = useState<Map<string, any>>(new Map())
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'studied' | 'not-studied' | 'mastered'>('all')
@@ -111,105 +118,117 @@ export default function VocabularyListPage() {
     }
   }
 
-  // 단어 목록 페이지는 검색을 위해 전체 단어를 로드해야 함
+  const collectionIds = selectedCollections.map(c => c.id).filter(Boolean).join(',')
+  const PER_PAGE = 100
+
+  // Typesense doc → UnifiedWord (렌더용 최소 필드)
+  const docToWord = (d: any): UnifiedWord => ({
+    id: d.id,
+    word: d.word,
+    definition: d.koreanDefinition || d.definition || '',
+    englishDefinition: d.englishDefinition || '',
+    partOfSpeech: Array.isArray(d.partOfSpeech) ? d.partOfSpeech : [],
+    difficulty: d.difficulty,
+  } as UnifiedWord)
+
+  // 사용자 학습 상태 1회 로드 (studyStatus 매핑용; 학습한 단어만이라 보통 작음)
   useEffect(() => {
-    if (user && selectedCollections.length > 0) {
-      loadAllWordsContext(10000) // 전체 로드
-    }
-  }, [user, selectedCollections, loadAllWordsContext])
-
-  // Use context words instead of loading separately
-  useEffect(() => {
-    setLoading(contextLoading)
-  }, [contextLoading])
-
-  // Context will handle updates automatically
-  useEffect(() => {
-    if (contextWords.length > 0) {
-      console.log('Context words updated:', contextWords.length)
-    }
-  }, [contextWords])
-
-  // 학습 상태 필터
-  const applyStatusFilter = useCallback((words: UnifiedWord[]): UnifiedWord[] => {
-    switch (filterType) {
-      case 'studied': return words.filter(w => (w.studyStatus?.reviewCount || 0) > 0)
-      case 'not-studied': return words.filter(w => (w.studyStatus?.reviewCount || 0) === 0)
-      case 'mastered': return words.filter(w => (w.studyStatus?.masteryLevel || 0) >= 80)
-      default: return words
-    }
-  }, [filterType])
-
-  // 메모리 검색 (Typesense 폴백용)
-  const memorySearch = (words: UnifiedWord[], lower: string): UnifiedWord[] =>
-    words.filter(word =>
-      word.word.toLowerCase().includes(lower) ||
-      getFieldString(word.definition).toLowerCase().includes(lower) ||
-      getFieldString(word.englishDefinition).toLowerCase().includes(lower)
-    )
-
-  // 검색/필터: 검색어는 Typesense(컬렉션 범위)로, 실패·미인덱싱 시 메모리 폴백
-  useEffect(() => {
+    if (!user) return
     let cancelled = false
-
-    const run = async () => {
-      // 중복 ID 제거 + 상태 필터
-      const uniqueWords = new Map<string, UnifiedWord>()
-      contextWords.forEach(word => {
-        if (word.id && !uniqueWords.has(word.id)) uniqueWords.set(word.id, word)
+    fetch(`/api/user-words?userId=${user.uid}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (cancelled || !d) return
+        const m = new Map<string, any>()
+        ;(d.userWords || []).forEach((uw: any) => {
+          if (uw.wordId && uw.studyStatus) m.set(uw.wordId, uw.studyStatus)
+        })
+        setStudyMap(m)
       })
-      const base = applyStatusFilter(Array.from(uniqueWords.values()))
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [user])
 
+  // 한 페이지 조회 (Typesense; q 없으면 전체 브라우징)
+  const fetchPage = useCallback(async (pageNum: number, term: string) => {
+    const res = await fetch(
+      `/api/search?q=${encodeURIComponent(term)}&collectionIds=${encodeURIComponent(collectionIds)}&page=${pageNum}&perPage=${PER_PAGE}`
+    )
+    return res.json()
+  }, [collectionIds])
+
+  // 검색어/컬렉션 변경 → 1페이지 로드 (디바운스). 초기 전체 로드 없음.
+  useEffect(() => {
+    if (!user || selectedCollections.length === 0) {
+      setLoadedWords([]); setLoading(false); return
+    }
+    let cancelled = false
+    setLoading(true)
+    const run = async () => {
       const term = searchTerm.trim()
-      if (!term) {
-        if (!cancelled) setFilteredWords(base)
-        return
-      }
-      const lower = term.toLowerCase()
-
-      // Typesense 컬렉션 범위 검색 (공식 단어장)
       try {
-        const collectionIds = selectedCollections.map(c => c.id).filter(Boolean).join(',')
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(term)}&collectionIds=${encodeURIComponent(collectionIds)}&perPage=250`
-        )
-        const data = await res.json()
-        if (!cancelled && data && !data.fallback && Array.isArray(data.docs) && data.docs.length > 0) {
-          // 로드된 단어(studyStatus 등 풍부한 데이터)는 그대로, 미로드 단어는 Typesense 데이터로 구성
-          const loadedById = new Map(Array.from(uniqueWords.values()).map(w => [w.id, w]))
-          const ordered: UnifiedWord[] = data.docs.map((d: any) => {
-            const loaded = loadedById.get(d.id)
-            if (loaded) return loaded
-            return {
-              id: d.id,
-              word: d.word,
-              definition: d.koreanDefinition || d.definition || '',
-              englishDefinition: d.englishDefinition || '',
-              partOfSpeech: Array.isArray(d.partOfSpeech) ? d.partOfSpeech : [],
-              difficulty: d.difficulty,
-            } as UnifiedWord
-          })
-          // 상태 필터: 로드된 단어에만 적용(미로드 단어는 status 불명이라 검색 결과로 노출)
-          const result = filterType === 'all'
-            ? ordered
-            : ordered.filter(w => !loadedById.has(w.id) || applyStatusFilter([w]).length > 0)
-          setFilteredWords(result)
+        const data = await fetchPage(1, term)
+        if (cancelled) return
+        if (data && data.fallback) {
+          // Typesense 미설정/다운 → Firestore 전체 로드 폴백 (기존 동작)
+          setUsingFallback(true)
+          await loadAllWordsContext(10000)
+          if (!cancelled) setLoading(false)
           return
         }
+        setUsingFallback(false)
+        const docs: any[] = Array.isArray(data.docs) ? data.docs : []
+        setLoadedWords(docs.map(docToWord))
+        setTotal(data.found || docs.length)
+        setPage(1)
+        setHasMore(docs.length < (data.found || 0))
+        setLoading(false)
       } catch {
-        // 무시 → 메모리 폴백
+        if (!cancelled) {
+          setUsingFallback(true)
+          await loadAllWordsContext(10000)
+          setLoading(false)
+        }
       }
-
-      // 폴백: 메모리 검색 (개인 단어장 / Typesense 미설정·다운)
-      if (!cancelled) setFilteredWords(memorySearch(base, lower))
     }
-
     const debounce = setTimeout(run, 250)
-    return () => {
-      cancelled = true
-      clearTimeout(debounce)
+    return () => { cancelled = true; clearTimeout(debounce) }
+  }, [collectionIds, searchTerm, user, selectedCollections.length, fetchPage, loadAllWordsContext])
+
+  // 무한스크롤: 다음 페이지 누적
+  const loadMore = useCallback(async () => {
+    if (usingFallback || loadingMore || !hasMore) return
+    setLoadingMore(true)
+    try {
+      const next = page + 1
+      const data = await fetchPage(next, searchTerm.trim())
+      if (data && !data.fallback && Array.isArray(data.docs)) {
+        setLoadedWords(prev => {
+          const merged = [...prev, ...data.docs.map(docToWord)]
+          setHasMore(merged.length < (data.found || total))
+          return merged
+        })
+        setPage(next)
+      }
+    } finally {
+      setLoadingMore(false)
     }
-  }, [contextWords, searchTerm, filterType, selectedCollections, applyStatusFilter])
+  }, [usingFallback, loadingMore, hasMore, page, searchTerm, fetchPage, total])
+
+  // 표시 소스 (폴백 시 Firestore contextWords) + studyStatus 머지 + 상태 필터
+  const filteredWords = useMemo(() => {
+    const source = usingFallback ? contextWords : loadedWords
+    let words = source.map(w => {
+      const st = studyMap.get(w.id)
+      return st ? ({ ...w, studyStatus: st } as UnifiedWord) : w
+    })
+    switch (filterType) {
+      case 'studied': words = words.filter(w => (w.studyStatus?.reviewCount || 0) > 0); break
+      case 'not-studied': words = words.filter(w => (w.studyStatus?.reviewCount || 0) === 0); break
+      case 'mastered': words = words.filter(w => (w.studyStatus?.masteryLevel || 0) >= 80); break
+    }
+    return words
+  }, [usingFallback, contextWords, loadedWords, studyMap, filterType])
 
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty <= 3) return 'text-green-600'
@@ -256,6 +275,16 @@ export default function VocabularyListPage() {
     4: 'grid-cols-4',
   }
 
+  // 무한스크롤: 마지막 행 근처에 도달하면 다음 페이지 로드
+  const virtualItems = rowVirtualizer.getVirtualItems()
+  useEffect(() => {
+    const last = virtualItems[virtualItems.length - 1]
+    if (!last) return
+    if (last.index >= rowCount - 2 && hasMore && !loadingMore && !usingFallback) {
+      loadMore()
+    }
+  }, [virtualItems, rowCount, hasMore, loadingMore, usingFallback, loadMore])
+
   if (!user) {
     return (
       <div className="container mx-auto py-8 text-center">
@@ -272,7 +301,7 @@ export default function VocabularyListPage() {
       {/* 헤더 */}
       <StudyHeader
         title="단어 목록"
-        subtitle={`${selectedCollections.map(wb => getCollectionName(wb.name)).join(', ')} - ${filteredWords.length}개 단어`}
+        subtitle={`${selectedCollections.map(wb => getCollectionName(wb.name)).join(', ')} - ${usingFallback ? filteredWords.length : total}개 단어`}
         backPath="/unified-dashboard"
       />
 
