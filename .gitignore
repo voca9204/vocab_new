@@ -80,3 +80,6 @@ node_modules/
 
 # Claude Code personal/local files
 CLAUDE.local.md
+
+# Large reference corpora for one-off scripts (reproducible via download)
+scripts/data/
