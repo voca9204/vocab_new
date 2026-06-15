@@ -17,6 +17,7 @@ import {
   ArrowRight,
   RotateCcw,
   CalendarDays,
+  Volume2,
 } from 'lucide-react'
 import { examPlanService, type ExamPlan, type TodayBatch, type ExamCollectionType } from '@/lib/services/exam-plan-service'
 import { generateExamQuestions, type ExamQuestion } from '@/lib/exam/generate-questions'
@@ -24,6 +25,7 @@ import { ExamPrintView } from '@/components/exam/exam-print-view'
 import { wordAdapterBridge } from '@/lib/adapters/word-adapter-bridge'
 import { getCollectionName } from '@/lib/utils/collection-name'
 import { getFieldString } from '@/lib/utils/word-field-normalizer'
+import { speakText } from '@/lib/utils/speech'
 import type { UnifiedWord } from '@/types/unified-word'
 
 type View = 'loading' | 'no-collection' | 'setup' | 'overview' | 'test' | 'result'
@@ -388,17 +390,41 @@ function ExamPageContent() {
 
             <p className="text-sm font-medium text-gray-700 mb-2">오늘 외울 단어</p>
             <div className="space-y-2">
-              {todayWords.map((w, i) => (
-                <Card key={w.id} className="p-3">
-                  <div className="flex items-start gap-3">
-                    <span className="text-gray-400 text-sm w-6 shrink-0">{i + 1}</span>
-                    <div>
-                      <div className="font-semibold">{w.word}</div>
-                      <div className="text-sm text-gray-600">{getFieldString(w.definition)}</div>
+              {todayWords.map((w, i) => {
+                const pos = Array.isArray(w.partOfSpeech) ? w.partOfSpeech : []
+                const synonyms = (Array.isArray(w.synonyms) ? w.synonyms : []).slice(0, 2).map(String)
+                return (
+                  <Card key={w.id} className="p-3">
+                    <div className="flex items-start gap-3">
+                      <span className="text-gray-400 text-sm w-6 shrink-0">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold">{w.word}</span>
+                          {pos.map((p) => (
+                            <span key={p} className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                              {p}
+                            </span>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => speakText(w.word)}
+                            className="text-gray-400 hover:text-blue-600 p-0.5"
+                            aria-label="발음 듣기"
+                          >
+                            <Volume2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {getFieldString(w.definition)}
+                          {synonyms.length > 0 && (
+                            <span className="text-gray-400"> · 유의어: {synonyms.join(', ')}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                )
+              })}
             </div>
           </>
         )}

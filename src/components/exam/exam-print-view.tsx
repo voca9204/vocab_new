@@ -30,19 +30,27 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
         className="text-[11px] leading-snug"
         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '1.5rem' }}
       >
-        {words.map((w, i) => (
-          <div
-            key={w.id}
-            className="flex gap-1.5 py-0.5 border-b border-gray-200"
-            style={{ breakInside: 'avoid' }}
-          >
-            <span className="text-gray-400 shrink-0 w-5 text-right">{i + 1}</span>
-            <span className="min-w-0">
-              <span className="font-semibold">{w.word}</span>
-              <span className="text-gray-700">{'  '}— {getFieldString(w.definition)}</span>
-            </span>
-          </div>
-        ))}
+        {words.map((w, i) => {
+          const pos = Array.isArray(w.partOfSpeech) ? w.partOfSpeech.join(', ') : ''
+          const synonyms = (Array.isArray(w.synonyms) ? w.synonyms : []).slice(0, 2).map(String)
+          return (
+            <div
+              key={w.id}
+              className="flex gap-1.5 py-0.5 border-b border-gray-200"
+              style={{ breakInside: 'avoid' }}
+            >
+              <span className="text-gray-400 shrink-0 w-5 text-right">{i + 1}</span>
+              <span className="min-w-0">
+                <span className="font-semibold">{w.word}</span>
+                {pos && <span className="text-gray-500"> ({pos})</span>}
+                <span className="text-gray-700">{'  '}— {getFieldString(w.definition)}</span>
+                {synonyms.length > 0 && (
+                  <span className="text-gray-500"> · 유의어: {synonyms.join(', ')}</span>
+                )}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
