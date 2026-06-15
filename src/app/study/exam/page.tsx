@@ -265,7 +265,17 @@ function ExamPageContent() {
         {/* 문제 */}
         <div className="flex-1 flex flex-col justify-center px-5">
           <p className="text-center text-sm text-gray-500 mb-3">뜻을 고르세요</p>
-          <h2 className="text-4xl font-bold text-center mb-8 break-words">{q.word.word}</h2>
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <h2 className="text-4xl font-bold text-center break-words">{q.word.word}</h2>
+            <button
+              type="button"
+              onClick={() => speakText(q.word.word)}
+              className="text-gray-400 hover:text-blue-600 p-1 shrink-0"
+              aria-label="발음 듣기"
+            >
+              <Volume2 className="h-6 w-6" />
+            </button>
+          </div>
           <div className="space-y-3 max-w-xl w-full mx-auto">
             {q.options.map((opt, i) => {
               const isCorrect = i === q.correctAnswer
