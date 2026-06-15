@@ -50,7 +50,7 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
               return (
                 <div
                   key={w.id}
-                  className="flex gap-2 py-1.5 border-b border-gray-200"
+                  className="flex gap-2 py-2 border-b border-gray-200"
                   style={{ breakInside: 'avoid' }}
                 >
                   <span className="text-gray-400 shrink-0 w-6 text-right">{num}</span>

@@ -45,7 +45,11 @@ function ExamPageContent() {
       null,
     [selectedCollections, collections, collectionId]
   )
-  const collectionName = getCollectionName(collection?.name) || '단어장'
+  const [fetchedName, setFetchedName] = useState<any>(null)
+  const collectionName =
+    (collection?.name ? getCollectionName(collection.name) : null) ||
+    (fetchedName ? getCollectionName(fetchedName) : null) ||
+    '단어장'
   const collectionType: ExamCollectionType = collection?.type === 'personal' ? 'personal' : 'official'
 
   const [view, setView] = useState<View>('loading')
@@ -92,6 +96,13 @@ function ExamPageContent() {
         const ordered = await examPlanService.getOrderedWordIds(collectionId, collectionType)
         if (cancelled) return
         setOrderedIds(ordered)
+        // 컨텍스트에 컬렉션이 없을 때(새로고침/캐시클리어 직후) 이름 폴백
+        if (!collection?.name) {
+          examPlanService
+            .getCollectionDisplayName(collectionId, collectionType)
+            .then((nm) => { if (!cancelled && nm) setFetchedName(nm) })
+            .catch(() => {})
+        }
         const existing = await examPlanService.getExamPlan(user.uid, collectionId)
         if (cancelled) return
         if (!existing) {
