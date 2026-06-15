@@ -241,8 +241,8 @@ export default function HomePage() {
 
   // 실제 학습 시작 (모달에서 학습 방법 선택 후 또는 RecentLearningWidget에서 직접 호출)
   const handleStartLearning = async (
-    collectionOrMethod: Collection | 'list' | 'flashcards' | 'quiz' | 'typing',
-    studyMethod?: 'list' | 'flashcards' | 'quiz' | 'typing'
+    collectionOrMethod: Collection | 'list' | 'flashcards' | 'quiz' | 'typing' | 'exam',
+    studyMethod?: 'list' | 'flashcards' | 'quiz' | 'typing' | 'exam'
   ) => {
     console.log('🎯 handleStartLearning called with:', {
       collectionOrMethod: typeof collectionOrMethod === 'object' ? collectionOrMethod.name : collectionOrMethod,
@@ -252,7 +252,7 @@ export default function HomePage() {
 
     // 파라미터 정리: Collection 객체가 오면 첫 번째 파라미터가 collection
     let collection: Collection | null
-    let method: 'list' | 'flashcards' | 'quiz' | 'typing'
+    let method: 'list' | 'flashcards' | 'quiz' | 'typing' | 'exam'
 
     if (typeof collectionOrMethod === 'object') {
       // RecentLearningWidget에서 호출한 경우

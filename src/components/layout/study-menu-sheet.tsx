@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ChevronRight, CreditCard, Brain, PenTool, RefreshCw, Calendar, List, ArrowLeft } from 'lucide-react'
+import { X, ChevronRight, CreditCard, Brain, PenTool, RefreshCw, Calendar, List, ArrowLeft, GraduationCap } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
@@ -60,6 +60,14 @@ export default function StudyMenuSheet({ isOpen, onClose }: StudyMenuSheetProps)
       icon: PenTool,
       href: '/study/typing',
       description: '철자 익히기',
+      requiresCollection: true
+    },
+    {
+      id: 'exam',
+      label: '시험 모드',
+      icon: GraduationCap,
+      href: '/study/exam',
+      description: '매일 분량 외우고 테스트',
       requiresCollection: true
     },
     {
