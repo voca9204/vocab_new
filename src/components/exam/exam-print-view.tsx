@@ -59,7 +59,7 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
                     {pos && <span className="text-gray-500"> ({pos})</span>}
                     <span className="text-gray-700">{'  '}— {getFieldString(w.definition)}</span>
                     {synonyms.length > 0 && (
-                      <span className="text-gray-500"> · 유의어: {synonyms.join(', ')}</span>
+                      <span className="text-gray-500"> · {synonyms.join(', ')}</span>
                     )}
                   </span>
                 </div>

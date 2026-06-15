@@ -429,7 +429,7 @@ function ExamPageContent() {
                         <div className="text-sm text-gray-600">
                           {getFieldString(w.definition)}
                           {synonyms.length > 0 && (
-                            <span className="text-gray-400"> · 유의어: {synonyms.join(', ')}</span>
+                            <span className="text-gray-400"> · {synonyms.join(', ')}</span>
                           )}
                         </div>
                       </div>
