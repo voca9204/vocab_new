@@ -26,7 +26,7 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
       <h1 className="text-lg font-bold mb-0.5">{title}</h1>
       <p className="text-xs text-gray-500 mb-3">{words.length}개 단어</p>
       {/* 1열 목록: 페이지 수 관계없이 위에서 아래로 한 줄씩 */}
-      <div className="text-[11px] leading-snug">
+      <div className="text-[11pt] leading-snug">
         {words.map((w, i) => {
           const pos = Array.isArray(w.partOfSpeech) ? w.partOfSpeech.join(', ') : ''
           const synonyms = (Array.isArray(w.synonyms) ? w.synonyms : []).slice(0, 2).map(String)
