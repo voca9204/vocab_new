@@ -306,9 +306,6 @@ function ExamPageContent() {
                 <div className={`flex items-center gap-1.5 font-semibold ${isCorrect ? 'text-green-700' : 'text-red-600'}`}>
                   {isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                   {isCorrect ? '정답!' : '오답'}
-                  <span className="ml-1 font-normal text-gray-600 text-sm">
-                    {q.word.word} — {getFieldString(q.word.definition)}
-                  </span>
                 </div>
                 {example && (
                   <p className="mt-2 text-sm text-gray-700 leading-snug">
