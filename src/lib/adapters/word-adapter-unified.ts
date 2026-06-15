@@ -40,7 +40,7 @@ export class UnifiedWordAdapter {
   
   private async checkAndClearStaleCache() {
     const CACHE_VERSION_KEY = 'word_cache_version'
-    const CURRENT_VERSION = '2.8.0' // 유사어(synonyms) 누락 전수 채움
+    const CURRENT_VERSION = '2.9.0' // SAT 단어 예문(examples) 누락 전수 채움
     
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
     if (storedVersion !== CURRENT_VERSION) {
