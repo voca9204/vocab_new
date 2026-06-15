@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, Suspense } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useCollectionV2 } from '@/contexts/collection-context-v2'
@@ -30,6 +30,36 @@ import { normalizePartOfSpeech } from '@/lib/utils/part-of-speech'
 import type { UnifiedWord } from '@/types/unified-word'
 
 type View = 'loading' | 'no-collection' | 'setup' | 'overview' | 'test' | 'result'
+
+const AUTO_ADVANCE_MS = 1800
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/** 단어의 예문 중 그 단어가 들어간 것을 우선 선택. 없으면 첫 예문. */
+function pickExample(word: UnifiedWord): string {
+  const examples = (Array.isArray(word.examples) ? word.examples : [])
+    .map((e: any) => (typeof e === 'string' ? e : e?.sentence || e?.example || ''))
+    .filter((s: string) => s && s.trim())
+  if (examples.length === 0) return ''
+  const w = (word.word || '').toLowerCase()
+  return examples.find((s) => w && s.toLowerCase().includes(w)) || examples[0]
+}
+
+/** 예문에서 해당 단어를 굵게 강조해 렌더 */
+function renderExample(sentence: string, word: string) {
+  if (!word) return sentence
+  const re = new RegExp(`(${escapeRegExp(word)})`, 'gi')
+  const parts = sentence.split(re)
+  return parts.map((p, i) =>
+    p.toLowerCase() === word.toLowerCase() ? (
+      <strong key={i} className="font-semibold text-gray-900">{p}</strong>
+    ) : (
+      <span key={i}>{p}</span>
+    )
+  )
+}
 
 function ExamPageContent() {
   const router = useRouter()
@@ -67,6 +97,10 @@ function ExamPageContent() {
   const [answered, setAnswered] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
   const [wrongWords, setWrongWords] = useState<UnifiedWord[]>([])
+  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 언마운트 시 자동 넘김 타이머 정리
+  useEffect(() => () => { if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current) }, [])
 
   // ===== 계획 적용 + 오늘 단어 로드 =====
   const applyPlan = async (p: ExamPlan, ordered: string[]) => {
@@ -176,9 +210,19 @@ function ExamPageContent() {
         }),
       }).catch(() => {})
     }
+
+    // 정답이면 예문을 잠깐 보여준 뒤 자동으로 다음 문제로
+    if (isCorrect) {
+      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
+      autoAdvanceTimer.current = setTimeout(() => nextQuestion(), AUTO_ADVANCE_MS)
+    }
   }
 
   const nextQuestion = () => {
+    if (autoAdvanceTimer.current) {
+      clearTimeout(autoAdvanceTimer.current)
+      autoAdvanceTimer.current = null
+    }
     if (qIndex < questions.length - 1) {
       setQIndex((i) => i + 1)
       setSelected(null)
@@ -222,7 +266,13 @@ function ExamPageContent() {
         {/* 헤더 + 진행바 */}
         <div className="px-4 pt-4 pb-2 border-b">
           <div className="flex items-center justify-between mb-2">
-            <button onClick={() => setView('overview')} className="text-gray-500 text-sm flex items-center gap-1">
+            <button
+              onClick={() => {
+                if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
+                setView('overview')
+              }}
+              className="text-gray-500 text-sm flex items-center gap-1"
+            >
               <ChevronLeft className="h-4 w-4" /> 나가기
             </button>
             <span className="text-sm text-gray-600">
@@ -264,8 +314,36 @@ function ExamPageContent() {
           </div>
         </div>
 
+        {/* 정답/오답 피드백 + 예문 */}
+        {answered && (() => {
+          const isCorrect = selected === q.correctAnswer
+          const example = pickExample(q.word)
+          return (
+            <div className="px-5">
+              <div
+                className={`max-w-xl w-full mx-auto rounded-xl px-4 py-3 ${
+                  isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                }`}
+              >
+                <div className={`flex items-center gap-1.5 font-semibold ${isCorrect ? 'text-green-700' : 'text-red-600'}`}>
+                  {isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                  {isCorrect ? '정답!' : '오답'}
+                  <span className="ml-1 font-normal text-gray-600 text-sm">
+                    {q.word.word} — {getFieldString(q.word.definition)}
+                  </span>
+                </div>
+                {example && (
+                  <p className="mt-2 text-sm text-gray-700 leading-snug">
+                    {renderExample(example, q.word.word)}
+                  </p>
+                )}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* 하단 액션 */}
-        <div className="px-5 pb-6 pt-2">
+        <div className="px-5 pb-6 pt-3">
           <Button className="w-full h-12 text-base" disabled={!answered} onClick={nextQuestion}>
             {qIndex < questions.length - 1 ? '다음' : '결과 보기'}
             <ArrowRight className="h-4 w-4 ml-2" />
