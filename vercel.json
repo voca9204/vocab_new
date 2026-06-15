@@ -10,6 +10,15 @@
     },
     "src/app/api/test-env/route.ts": {
       "maxDuration": 10
+    },
+    "src/app/api/cron/reindex-typesense/route.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/reindex-typesense",
+      "schedule": "0 18 * * *"
+    }
+  ]
 }
