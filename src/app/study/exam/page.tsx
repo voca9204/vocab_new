@@ -481,7 +481,7 @@ function ExamPageContent() {
                   <span className="text-base">
                     {opt}
                     {answered && q.optionWords[i]?.word && (
-                      <span className="ml-1.5 text-sm text-gray-400">— {q.optionWords[i].word}</span>
+                      <span className="ml-1.5 text-sm font-medium text-gray-700">— {q.optionWords[i].word}</span>
                     )}
                   </span>
                   {answered && isCorrect && <Check className="h-5 w-5 text-green-600 shrink-0" />}
