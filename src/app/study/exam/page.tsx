@@ -38,6 +38,16 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+/** Fisher-Yates 셔플 (원본 불변, 새 배열 반환) */
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 /** 단어의 예문 중 그 단어가 들어간 것을 우선 선택. 없으면 첫 예문. */
 function pickExample(word: UnifiedWord): string {
   const examples = (Array.isArray(word.examples) ? word.examples : [])
@@ -202,7 +212,8 @@ function ExamPageContent() {
       .map((w) => w.contextQuestion)
       .filter((c): c is ContextQ => !!c && Array.isArray(c.options) && c.options.length === 4)
     const bonusCount = Math.floor(todayWords.length / 10)
-    setBonusQs(available.slice(0, bonusCount))
+    // 무작위로 뽑아 섞어서 출제
+    setBonusQs(shuffle(available).slice(0, bonusCount))
     setInBonus(false)
     setBIndex(0)
     setBSelected(null)
@@ -228,7 +239,7 @@ function ExamPageContent() {
       const available = todayWords
         .map((w) => w.contextQuestion)
         .filter((c): c is ContextQ => !!c && Array.isArray(c.options) && c.options.length === 4)
-      const bonus = available.slice(0, Math.floor(todayWords.length / 10)).map((c) => ({
+      const bonus = shuffle(available).slice(0, Math.floor(todayWords.length / 10)).map((c) => ({
         word: c.word,
         format: c.format,
         passage: c.passage,
