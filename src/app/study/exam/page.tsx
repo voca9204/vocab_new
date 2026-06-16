@@ -123,6 +123,14 @@ function ExamPageContent() {
   const [sharedExamId, setSharedExamId] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
 
+  // 풀스크린 테스트 중에는 하단 모바일 네비 숨김
+  useEffect(() => {
+    if (view === 'test') {
+      document.body.classList.add('exam-fullscreen')
+      return () => document.body.classList.remove('exam-fullscreen')
+    }
+  }, [view])
+
   // ===== 계획 적용 + 오늘 단어 로드 =====
   const applyPlan = async (p: ExamPlan, ordered: string[]) => {
     setPlan(p)

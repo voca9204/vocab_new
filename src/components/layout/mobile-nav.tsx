@@ -55,7 +55,7 @@ export default function MobileNav() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 md:hidden">
+      <div className="mobile-bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t z-50 md:hidden">
         <nav className="grid grid-cols-4 h-16" role="navigation" aria-label="바로가기 네비게이션">
           {navItems.map((item) => {
             const Icon = item.icon

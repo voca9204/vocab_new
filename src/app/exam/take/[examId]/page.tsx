@@ -45,6 +45,14 @@ export default function TakeSharedExamPage() {
 
   const [submitting, setSubmitting] = useState(false)
 
+  // 풀스크린 응시 중에는 하단 모바일 네비 숨김
+  useEffect(() => {
+    if (view === 'test' || view === 'bonus') {
+      document.body.classList.add('exam-fullscreen')
+      return () => document.body.classList.remove('exam-fullscreen')
+    }
+  }, [view])
+
   useEffect(() => {
     let cancelled = false
     if (!examId) return

@@ -58,6 +58,11 @@
   }
 }
 
+/* 풀스크린 시험(테스트/보너스) 중에는 하단 모바일 네비를 숨긴다 */
+body.exam-fullscreen .mobile-bottom-nav {
+  display: none !important;
+}
+
 /* 인쇄 격리: body 직속으로 포털된 .print-area만 출력하고 앱 레이아웃은 숨김.
    (absolute/visibility 대신 display:none을 써서 빈 페이지 없이 정상 페이지네이션) */
 @media print {
