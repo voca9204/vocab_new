@@ -19,7 +19,7 @@ const defOf = (w: UnifiedWord) => getFieldString(w.definition) || '정의 없음
 export function generateExamQuestions(batchWords: UnifiedWord[], pool?: UnifiedWord[]): ExamQuestion[] {
   const distractorPool = pool && pool.length >= 4 ? pool : batchWords
 
-  return batchWords.map((word) => {
+  const questions = batchWords.map((word) => {
     const correctDef = defOf(word)
     const others = distractorPool.filter((w) => w.id !== word.id).sort(() => Math.random() - 0.5)
 
@@ -50,4 +50,12 @@ export function generateExamQuestions(batchWords: UnifiedWord[], pool?: UnifiedW
 
     return { word, options, optionWords, correctAnswer }
   })
+
+  // 외운 순서대로 내지 않도록 문제 순서를 섞는다 (Fisher-Yates)
+  for (let i = questions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[questions[i], questions[j]] = [questions[j], questions[i]]
+  }
+
+  return questions
 }
