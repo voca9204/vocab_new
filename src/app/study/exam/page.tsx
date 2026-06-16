@@ -18,10 +18,13 @@ import {
   RotateCcw,
   CalendarDays,
   Volume2,
+  Share2,
 } from 'lucide-react'
 import { examPlanService, type ExamPlan, type TodayBatch, type ExamCollectionType } from '@/lib/services/exam-plan-service'
 import { generateExamQuestions, type ExamQuestion } from '@/lib/exam/generate-questions'
 import { ExamPrintView } from '@/components/exam/exam-print-view'
+import { ExamShareModal } from '@/components/exam/exam-share-modal'
+import { sharedExamService } from '@/lib/services/shared-exam-service'
 import { wordAdapterBridge } from '@/lib/adapters/word-adapter-bridge'
 import { getCollectionName } from '@/lib/utils/collection-name'
 import { getFieldString } from '@/lib/utils/word-field-normalizer'
@@ -104,6 +107,11 @@ function ExamPageContent() {
   const [bSelected, setBSelected] = useState<number | null>(null)
   const [bAnswered, setBAnswered] = useState(false)
   const [bonusCorrect, setBonusCorrect] = useState(0)
+
+  // 시험 공유 (QR/링크)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [sharedExamId, setSharedExamId] = useState<string | null>(null)
+  const [sharing, setSharing] = useState(false)
 
   // ===== 계획 적용 + 오늘 단어 로드 =====
   const applyPlan = async (p: ExamPlan, ordered: string[]) => {
@@ -202,6 +210,48 @@ function ExamPageContent() {
     setBonusCorrect(0)
 
     setView('test')
+  }
+
+  const createAndShare = async () => {
+    if (!user || todayWords.length === 0 || sharing) return
+    setSharing(true)
+    setSharedExamId(null)
+    setShareOpen(true)
+    try {
+      const qs = generateExamQuestions(todayWords, poolWords)
+      const questions = qs.map((q) => ({
+        wordId: q.word.id,
+        word: q.word.word,
+        options: q.options,
+        answer: q.correctAnswer,
+      }))
+      const available = todayWords
+        .map((w) => w.contextQuestion)
+        .filter((c): c is ContextQ => !!c && Array.isArray(c.options) && c.options.length === 4)
+      const bonus = available.slice(0, Math.floor(todayWords.length / 10)).map((c) => ({
+        word: c.word,
+        format: c.format,
+        passage: c.passage,
+        options: c.options,
+        answer: c.answer,
+      }))
+      const title = `${collectionName} · Day ${(todayBatch?.batchIndex ?? 0) + 1}`
+      const id = await sharedExamService.createSharedExam({
+        ownerId: user.uid,
+        ownerName: user.displayName || user.email || undefined,
+        title,
+        collectionId,
+        questions,
+        bonus,
+      })
+      setSharedExamId(id)
+    } catch (e) {
+      console.error('[exam] share error:', e)
+      setShareOpen(false)
+      alert('시험 공유 생성에 실패했습니다.')
+    } finally {
+      setSharing(false)
+    }
   }
 
   const handleAnswer = (idx: number) => {
@@ -582,7 +632,7 @@ function ExamPageContent() {
               / {todayBatch?.totalDays}일 · 오늘 {todayWords.length}개 단어
             </p>
 
-            <div className="flex gap-3 mb-6">
+            <div className="flex gap-3 mb-3">
               <Button className="flex-1 h-12" onClick={startTest} disabled={todayWords.length === 0}>
                 <Play className="h-4 w-4 mr-2" /> 테스트 시작
               </Button>
@@ -590,6 +640,14 @@ function ExamPageContent() {
                 <Printer className="h-4 w-4 mr-2" /> 인쇄
               </Button>
             </div>
+            <Button
+              variant="outline"
+              className="w-full h-11 mb-6"
+              onClick={createAndShare}
+              disabled={todayWords.length === 0 || sharing}
+            >
+              <Share2 className="h-4 w-4 mr-2" /> {sharing ? '시험 생성 중…' : '시험 공유 (QR/링크)'}
+            </Button>
 
             <p className="text-sm font-medium text-gray-700 mb-2">오늘 외울 단어</p>
             <div className="space-y-2">
@@ -635,6 +693,14 @@ function ExamPageContent() {
 
       {/* 인쇄 전용 (오늘 배치) */}
       <ExamPrintView title={`${collectionName} · Day ${(todayBatch?.batchIndex ?? 0) + 1}`} words={todayWords} />
+
+      {/* 시험 공유 모달 */}
+      <ExamShareModal
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        examId={sharedExamId}
+        title={`${collectionName} · Day ${(todayBatch?.batchIndex ?? 0) + 1}`}
+      />
     </>
   )
 }
