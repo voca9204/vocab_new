@@ -234,6 +234,7 @@ function ExamPageContent() {
         wordId: q.word.id,
         word: q.word.word,
         options: q.options,
+        optionWords: q.optionWords.map((w) => w.word),
         answer: q.correctAnswer,
       }))
       const available = todayWords
@@ -477,7 +478,12 @@ function ExamPageContent() {
                   disabled={answered}
                   className={`w-full text-left px-4 py-4 rounded-xl border-2 transition-all flex items-center justify-between ${cls}`}
                 >
-                  <span className="text-base">{opt}</span>
+                  <span className="text-base">
+                    {opt}
+                    {answered && q.optionWords[i]?.word && (
+                      <span className="ml-1.5 text-sm text-gray-400">— {q.optionWords[i].word}</span>
+                    )}
+                  </span>
                   {answered && isCorrect && <Check className="h-5 w-5 text-green-600 shrink-0" />}
                   {answered && isPicked && !isCorrect && <X className="h-5 w-5 text-red-600 shrink-0" />}
                 </button>
