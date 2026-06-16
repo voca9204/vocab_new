@@ -310,9 +310,8 @@ service cloud.firestore {
           && request.resource.data.takerName.size() <= 60
           && request.resource.data.score is int
           && request.resource.data.total is int;
-        // 결과 조회는 출제자 본인만
-        allow read: if request.auth != null &&
-          resource.data.ownerId == request.auth.uid;
+        // 결과 조회는 공개 (응시자도 전체 결과/리더보드 확인 가능)
+        allow read: if true;
         allow update, delete: if false;
       }
     }

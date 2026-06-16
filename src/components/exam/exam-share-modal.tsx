@@ -19,7 +19,7 @@ export function ExamShareModal({ isOpen, onClose, examId, title }: ExamShareModa
 
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
   const takeUrl = examId ? `${origin}/exam/take/${examId}` : ''
-  const resultsUrl = examId ? `/study/exam/${examId}/results` : ''
+  const resultsUrl = examId ? `/exam/${examId}/results` : ''
 
   useEffect(() => {
     if (!takeUrl) return
