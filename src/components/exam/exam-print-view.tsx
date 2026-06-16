@@ -11,7 +11,7 @@ interface ExamPrintViewProps {
   words: UnifiedWord[]
 }
 
-const PER_PAGE = 25
+const PER_PAGE = 20
 
 /**
  * 인쇄 전용 단어 목록 (단어 + 품사 + 뜻 + 유의어).
@@ -50,12 +50,12 @@ export function ExamPrintView({ title, words }: ExamPrintViewProps) {
               return (
                 <div
                   key={w.id}
-                  className="flex gap-2 py-2 border-b border-gray-200"
+                  className="flex gap-2 py-3 border-b border-gray-200"
                   style={{ breakInside: 'avoid' }}
                 >
                   <span className="text-gray-400 shrink-0 w-6 text-right">{num}</span>
                   <span className="min-w-0">
-                    <span className="font-semibold">{w.word}</span>
+                    <span>{w.word}</span>
                     {pos && <span className="text-gray-500"> ({pos})</span>}
                     <span className="text-gray-700">{'  '}— {getFieldString(w.definition)}</span>
                     {synonyms.length > 0 && (
