@@ -293,6 +293,30 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
+    // shared_exams - 공유 시험 (QR/링크로 응시). 링크 가진 누구나 시험을 읽고,
+    // 로그인 없이 결과를 제출할 수 있으나, 결과 조회는 출제자 본인만 가능.
+    match /shared_exams/{examId} {
+      allow read: if true; // 링크로 응시하려면 시험 내용을 읽어야 함
+      allow create: if request.auth != null &&
+        request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null &&
+        resource.data.ownerId == request.auth.uid;
+
+      match /results/{resultId} {
+        // 응시자(비로그인)도 결과 제출 가능. 최소 필드 검증.
+        allow create: if request.resource.data.ownerId is string
+          && request.resource.data.takerName is string
+          && request.resource.data.takerName.size() > 0
+          && request.resource.data.takerName.size() <= 60
+          && request.resource.data.score is int
+          && request.resource.data.total is int;
+        // 결과 조회는 출제자 본인만
+        allow read: if request.auth != null &&
+          resource.data.ownerId == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
     // 기본적으로 모든 접근 차단
     match /{document=**} {
       allow read, write: if false;
