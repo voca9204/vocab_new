@@ -247,7 +247,10 @@ export default function TakeSharedExamPage() {
             {exam.bonus.length > 0 && (
               <p className="text-purple-600 text-sm mt-1">보너스 {bonusCorrect} / {exam.bonus.length} 정답</p>
             )}
-            <p className="text-sm text-gray-400 mt-5">결과가 출제자에게 전송되었습니다.</p>
+            <p className="text-sm text-gray-400 mt-5 mb-4">결과가 출제자에게 전송되었습니다.</p>
+            <Button variant="outline" className="w-full" onClick={() => (window.location.href = `/exam/${exam.id}/results`)}>
+              전체 결과 보기
+            </Button>
           </CardContent>
         </Card>
       </div>
