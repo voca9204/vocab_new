@@ -15,6 +15,7 @@ export interface SharedExamQuestion {
   wordId: string
   word: string
   options: string[] // 정의 4개
+  optionWords?: string[] // 각 보기(정의)에 해당하는 단어
   answer: number
 }
 
