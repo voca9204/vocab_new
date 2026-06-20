@@ -100,6 +100,8 @@ function ExamPageContent() {
   const [todayWords, setTodayWords] = useState<UnifiedWord[]>([])
   const [poolWords, setPoolWords] = useState<UnifiedWord[]>([])
   const [dailyCount, setDailyCount] = useState(20)
+  const [todayDayIndex, setTodayDayIndex] = useState(0) // 실제 오늘 Day (0-based)
+  const [selectedDay, setSelectedDay] = useState(0) // 현재 보고 있는 Day (0-based)
 
   // 테스트 상태
   const [questions, setQuestions] = useState<ExamQuestion[]>([])
@@ -131,18 +133,32 @@ function ExamPageContent() {
     }
   }, [view])
 
-  // ===== 계획 적용 + 오늘 단어 로드 =====
-  const applyPlan = async (p: ExamPlan, ordered: string[]) => {
-    setPlan(p)
-    const batch = examPlanService.computeTodayBatch(p, ordered)
+  // ===== 배치 단어 로드 (오늘/지난 날짜 공통) =====
+  const fetchAndSetWords = async (batch: TodayBatch, ordered: string[]) => {
     setTodayBatch(batch)
-    // 오늘 단어 + 오답 보기용 풀(컬렉션 앞부분 일부)
+    setSelectedDay(batch.batchIndex)
+    // 배치 단어 + 오답 보기용 풀(컬렉션 앞부분 일부)
     const poolIds = Array.from(new Set([...batch.todayIds, ...ordered.slice(0, 12)]))
     const fetched = await wordAdapterBridge.getWordsByIds(poolIds)
     const byId = new Map(fetched.map((w) => [w.id, w]))
     setPoolWords(fetched)
     setTodayWords(batch.todayIds.map((id) => byId.get(id)).filter((w): w is UnifiedWord => Boolean(w)))
+  }
+
+  // ===== 계획 적용 + 오늘 단어 로드 =====
+  const applyPlan = async (p: ExamPlan, ordered: string[]) => {
+    setPlan(p)
+    const today = examPlanService.computeTodayBatch(p, ordered)
+    setTodayDayIndex(today.batchIndex)
+    await fetchAndSetWords(today, ordered)
     setView('overview')
+  }
+
+  // 지난 날짜(Day) 선택
+  const onSelectDay = async (dayIndex: number) => {
+    if (!plan || dayIndex === todayBatch?.batchIndex) return
+    const batch = examPlanService.computeBatchForDay(plan, orderedIds, dayIndex)
+    await fetchAndSetWords(batch, orderedIds)
   }
 
   // ===== 초기화 =====
@@ -635,6 +651,25 @@ function ExamPageContent() {
           <h1 className="text-xl font-bold">{collectionName} · 시험 모드</h1>
         </div>
 
+        {/* 날짜(Day) 선택 — 지난 날짜 시험을 보거나 공유 */}
+        {todayDayIndex > 0 && (
+          <div className="flex items-center gap-2 mb-4 mt-2">
+            <label className="text-sm text-gray-600 shrink-0">날짜 선택</label>
+            <select
+              value={selectedDay}
+              onChange={(e) => onSelectDay(Number(e.target.value))}
+              className="border rounded-lg px-3 py-1.5 text-sm bg-white"
+            >
+              {Array.from({ length: todayDayIndex + 1 }, (_, i) => (
+                <option key={i} value={i}>
+                  Day {i + 1}
+                  {i === todayDayIndex ? ' (오늘)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {done ? (
           <Card className="mt-6">
             <CardContent className="p-8 text-center">
@@ -654,7 +689,8 @@ function ExamPageContent() {
               <span className="font-semibold text-blue-600">
                 Day {(todayBatch?.batchIndex ?? 0) + 1}
               </span>{' '}
-              / {todayBatch?.totalDays}일 · 오늘 {todayWords.length}개 단어
+              / {todayBatch?.totalDays}일 · {todayWords.length}개 단어
+              {selectedDay !== todayDayIndex && <span className="text-gray-400">{' '}(지난 날짜)</span>}
             </p>
 
             <div className="flex gap-3 mb-3">
