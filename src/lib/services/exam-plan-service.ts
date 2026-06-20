@@ -119,6 +119,16 @@ export class ExamPlanService {
     const todayIds = orderedWordIds.slice(start, start + n)
     return { batchIndex, totalDays, todayIds, done }
   }
+
+  /** 특정 Day(0-based) 배치 계산 (지난 날짜 선택용) */
+  computeBatchForDay(plan: ExamPlan, orderedWordIds: string[], dayIndex: number): TodayBatch {
+    const n = Math.max(plan.dailyWordCount, 1)
+    const totalDays = Math.max(Math.ceil(orderedWordIds.length / n), 1)
+    const batchIndex = Math.min(Math.max(dayIndex, 0), totalDays - 1)
+    const start = batchIndex * n
+    const todayIds = orderedWordIds.slice(start, start + n)
+    return { batchIndex, totalDays, todayIds, done: false }
+  }
 }
 
 export const examPlanService = new ExamPlanService()
