@@ -16,8 +16,8 @@ const PER_PAGE = 20
 /**
  * 인쇄 전용 단어 목록 (단어 + 품사 + 뜻 + 유의어).
  * body 직속으로 포털해, 인쇄 시 앱 레이아웃을 숨기고(globals.css의 @media print)
- * 이 목록만 출력한다. 페이지당 25개씩 끊고, @page(A4/11mm)에 맞춰 25줄이 한 페이지에
- * 정확히 들어가도록 행 높이를 조정한다. 화면에서는 hidden, 인쇄 시에만 print:block.
+ * 이 목록만 출력한다. 페이지당 20개씩 끊고, @page(A4/11mm)에 맞춰 20줄이 한 페이지에
+ * 넉넉히 들어가도록 행 높이를 조정한다. 화면에서는 hidden, 인쇄 시에만 print:block.
  */
 export function ExamPrintView({ title, words }: ExamPrintViewProps) {
   const [mounted, setMounted] = useState(false)

@@ -303,13 +303,23 @@ service cloud.firestore {
         resource.data.ownerId == request.auth.uid;
 
       match /results/{resultId} {
-        // 응시자(비로그인)도 결과 제출 가능. 최소 필드 검증.
+        // 응시자(비로그인)도 결과 제출 가능. 필드 + 점수 범위 검증으로
+        // 리더보드 위조(score>total, 음수, 비정상 분모)를 차단한다.
         allow create: if request.resource.data.ownerId is string
           && request.resource.data.takerName is string
           && request.resource.data.takerName.size() > 0
           && request.resource.data.takerName.size() <= 60
           && request.resource.data.score is int
-          && request.resource.data.total is int;
+          && request.resource.data.total is int
+          && request.resource.data.total > 0
+          && request.resource.data.total <= 1000
+          && request.resource.data.score >= 0
+          && request.resource.data.score <= request.resource.data.total
+          && request.resource.data.bonusScore is int
+          && request.resource.data.bonusTotal is int
+          && request.resource.data.bonusScore >= 0
+          && request.resource.data.bonusTotal >= 0
+          && request.resource.data.bonusScore <= request.resource.data.bonusTotal;
         // 결과 조회는 공개 (응시자도 전체 결과/리더보드 확인 가능)
         allow read: if true;
         allow update, delete: if false;

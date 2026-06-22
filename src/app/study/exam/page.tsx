@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, Suspense } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useCollectionV2 } from '@/contexts/collection-context-v2'
@@ -25,6 +25,7 @@ import { generateExamQuestions, type ExamQuestion } from '@/lib/exam/generate-qu
 import { ExamPrintView } from '@/components/exam/exam-print-view'
 import { ExamShareModal } from '@/components/exam/exam-share-modal'
 import { sharedExamService } from '@/lib/services/shared-exam-service'
+import { getAuthHeader } from '@/lib/firebase/auth-header'
 import { wordAdapterBridge } from '@/lib/adapters/word-adapter-bridge'
 import { getCollectionName } from '@/lib/utils/collection-name'
 import { getFieldString } from '@/lib/utils/word-field-normalizer'
@@ -134,12 +135,16 @@ function ExamPageContent() {
   }, [view])
 
   // ===== 배치 단어 로드 (오늘/지난 날짜 공통) =====
+  const loadSeqRef = useRef(0)
   const fetchAndSetWords = async (batch: TodayBatch, ordered: string[]) => {
+    const seq = ++loadSeqRef.current
     setTodayBatch(batch)
     setSelectedDay(batch.batchIndex)
     // 배치 단어 + 오답 보기용 풀(컬렉션 앞부분 일부)
     const poolIds = Array.from(new Set([...batch.todayIds, ...ordered.slice(0, 12)]))
     const fetched = await wordAdapterBridge.getWordsByIds(poolIds)
+    // 더 최신 로드(빠른 Day 전환)가 시작됐으면 stale 응답으로 덮어쓰지 않음
+    if (seq !== loadSeqRef.current) return
     const byId = new Map(fetched.map((w) => [w.id, w]))
     setPoolWords(fetched)
     setTodayWords(batch.todayIds.map((id) => byId.get(id)).filter((w): w is UnifiedWord => Boolean(w)))
@@ -301,16 +306,18 @@ function ExamPageContent() {
 
     // 진행 저장 (다른 모드와 동일 경로; quiz로 기록)
     if (user && q.word.id) {
-      fetch('/api/study-progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          wordId: q.word.id,
-          result: isCorrect ? 'correct' : 'incorrect',
-          studyType: 'quiz',
-        }),
-      }).catch(() => {})
+      getAuthHeader().then((authHeader) =>
+        fetch('/api/study-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({
+            userId: user.uid,
+            wordId: q.word.id,
+            result: isCorrect ? 'correct' : 'incorrect',
+            studyType: 'quiz',
+          }),
+        }).catch(() => {})
+      )
     }
   }
 

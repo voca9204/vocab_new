@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import type { VocabularyWord } from '@/types'
+import { getAuthHeader } from '@/lib/firebase/auth-header'
 import { useAuth } from '@/components/providers/auth-provider'
 
 export interface TypingResult {
@@ -110,16 +111,16 @@ export function useTypingPractice(): UseTypingPracticeReturn {
     // 학습 진도 업데이트 - 다른 학습 모드(quiz/flashcards/review)와 동일한
     // /api/study-progress 경로로 저장해 mastery 계산과 복습 스케줄을 일관되게 유지
     if (currentWord.id && user) {
-      fetch('/api/study-progress', {
+      getAuthHeader().then((authHeader) => fetch('/api/study-progress', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeader },
         body: JSON.stringify({
           userId: user.uid,
           wordId: currentWord.id,
           result: isCorrect ? 'correct' : 'incorrect',
           studyType: 'typing'
         })
-      }).then(() => {
+      })).then(() => {
         console.log('Typing progress updated:', currentWord.word, isCorrect)
       }).catch(error => {
         console.error('Failed to update typing progress:', error)

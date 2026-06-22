@@ -80,13 +80,11 @@ async function reindex(): Promise<{ collections: number; words: number; indexed:
 }
 
 export async function GET(req: NextRequest) {
-  // 인증: Vercel Cron은 Authorization: Bearer <CRON_SECRET>를 자동 첨부
+  // 인증: Vercel Cron은 Authorization: Bearer <CRON_SECRET>를 자동 첨부.
+  // 시크릿 미설정 시 fail-open 되지 않도록 부정 조건으로 강제(누구나 전체 재색인 트리거 방지).
   const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = req.headers.get('authorization')
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   if (!isTypesenseConfigured()) {

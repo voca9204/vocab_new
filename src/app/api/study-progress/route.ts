@@ -1,12 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
-import { adminDb } from '@/lib/firebase/admin'
+import { adminDb, getAdminAuth } from '@/lib/firebase/admin'
 import type { StudyActivityType } from '@/types/vocabulary-v2'
 
 // Spaced-repetition intervals (in days) keyed by consecutive-correct streak.
 // Matches the schedule advertised in the review UI: 1 → 3 → 7 → 14 → 30 → 60 days.
 const REVIEW_INTERVALS_DAYS = [1, 3, 7, 14, 30, 60]
 const DAY_MS = 24 * 60 * 60 * 1000
+
+const ALLOWED_STUDY_TYPES = ['quiz', 'flashcard', 'typing', 'review'] as const
+const ALLOWED_RESULTS = ['correct', 'incorrect'] as const
+
+/**
+ * Authorization: Bearer <idToken> 를 검증하고 토큰의 uid가 userId와 일치하는지 확인.
+ * 실패 시 에러 응답(NextResponse)을, 성공 시 null을 반환한다.
+ * (이 라우트는 Admin SDK로 Firestore 규칙을 우회하므로 여기서 직접 인가를 강제해야 함)
+ */
+async function verifyOwner(request: NextRequest, userId: string): Promise<NextResponse | null> {
+  const authHeader = request.headers.get('authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  try {
+    const decoded = await getAdminAuth().verifyIdToken(authHeader.slice(7))
+    if (decoded.uid !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    return null
+  } catch {
+    return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+  }
+}
 
 /**
  * Compute the next review date from the new consecutive-correct streak.
@@ -30,6 +54,9 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    const authErr = await verifyOwner(request, userId)
+    if (authErr) return authErr
 
     console.log(`[study-progress] Fetching progress for user ${userId}, words: ${wordIds?.length || 'all'}`)
 
@@ -103,6 +130,9 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      const fetchAuthErr = await verifyOwner(request, userId)
+      if (fetchAuthErr) return fetchAuthErr
+
       console.log(`[study-progress] POST fetch - Fetching progress for user ${userId}, words: ${wordIds?.length || 'all'}`)
 
       const userWordsRef = adminDb.collection('user_words')
@@ -161,7 +191,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
+    // 허용된 값만 — 동적 필드 경로 주입/스키마 오염 방지
+    if (!ALLOWED_RESULTS.includes(result)) {
+      return NextResponse.json({ error: 'Invalid result' }, { status: 400 })
+    }
+    if (!ALLOWED_STUDY_TYPES.includes(studyType)) {
+      return NextResponse.json({ error: 'Invalid studyType' }, { status: 400 })
+    }
+
+    const recordAuthErr = await verifyOwner(request, userId)
+    if (recordAuthErr) return recordAuthErr
+
     console.log(`[study-progress] Recording ${result} result for word ${wordId} by user ${userId} in ${studyType}`)
     
     // Find existing user word record
