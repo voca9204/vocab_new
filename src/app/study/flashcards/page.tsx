@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
+import { getAuthHeader } from '@/lib/firebase/auth-header'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
 import { useWordDetailModal } from '@/hooks/use-word-detail-modal'
 import { useWordDiscovery } from '@/hooks/use-word-discovery'
@@ -594,7 +595,7 @@ function FlashcardsContent() {
         // UserWordService를 사용하여 학습 기록 저장
         const response = await fetch('/api/study-progress', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await getAuthHeader()) },
           body: JSON.stringify({
             userId: user.uid,
             wordId: currentWord.id,
@@ -637,7 +638,7 @@ function FlashcardsContent() {
         // UserWordService를 사용하여 학습 기록 저장
         const response = await fetch('/api/study-progress', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await getAuthHeader()) },
           body: JSON.stringify({
             userId: user.uid,
             wordId: currentWord.id,

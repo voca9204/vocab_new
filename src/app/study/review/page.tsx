@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { speakText } from '@/lib/utils/speech'
+import { getAuthHeader } from '@/lib/firebase/auth-header'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useCollectionV2 } from '@/contexts/collection-context-v2'
@@ -74,7 +75,8 @@ export default function ReviewPage() {
       const response = await fetch('/api/study-progress', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(await getAuthHeader())
         },
         body: JSON.stringify({
           action: 'fetch',
@@ -332,7 +334,7 @@ export default function ReviewPage() {
       try {
         await fetch('/api/study-progress', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await getAuthHeader()) },
           body: JSON.stringify({
             userId: user.uid,
             wordId: currentWord.id,

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { speakText } from '@/lib/utils/speech'
+import { getAuthHeader } from '@/lib/firebase/auth-header'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useSettings, getTextSizeClass } from '@/components/providers/settings-provider'
@@ -453,7 +454,7 @@ function QuizContent() {
         // Ver.4: Study progress API 호출
         const response = await fetch('/api/study-progress', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await getAuthHeader()) },
           body: JSON.stringify({
             userId: user?.uid,
             wordId: currentQuestion.word.id,
